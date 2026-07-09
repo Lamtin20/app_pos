@@ -4813,8 +4813,8 @@
       inventoryData = invResult.status === 'fulfilled' && invResult.value ? invResult.value : [];
       renderMenu(); renderCategories();
       if (menuResult.status === 'rejected') {
-        showSheetStatus('err', '⚠️ Chưa kết nối Sheet — dùng menu mẫu');
-        showToast('⚠️ ' + (menuResult.reason && menuResult.reason.message ? menuResult.reason.message : 'Không tải được menu từ Sheet'));
+        showSheetStatus('err', '⚠️ Chưa kết nối Sheet — <a href="/?setup=1" style="color:inherit;text-decoration:underline;margin-left:6px;">Setup</a>');
+        showToast('⚠️ ' + (menuResult.reason && menuResult.reason.message ? menuResult.reason.message : 'Không tải được menu — vào trang chủ Setup'));
       } else {
         showSheetStatus('ok', '✅ Đã tải ' + menuData.length + ' món từ Google Sheet');
       }

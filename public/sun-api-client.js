@@ -5,6 +5,30 @@
 (function (global) {
   var RPC_URL = '/api/rpc';
 
+  function getSunConfig() {
+    try {
+      return {
+        sheetId: localStorage.getItem('sun_sheet_id') || '',
+        driveFolderId: localStorage.getItem('sun_drive_folder_id') || '',
+        sheetUrl: localStorage.getItem('sun_sheet_url') || '',
+        driveUrl: localStorage.getItem('sun_drive_url') || '',
+      };
+    } catch (e) {
+      return { sheetId: '', driveFolderId: '', sheetUrl: '', driveUrl: '' };
+    }
+  }
+
+  function saveSunConfig(sheetUrl, driveUrl, sheetId, driveFolderId) {
+    try {
+      if (sheetUrl) localStorage.setItem('sun_sheet_url', sheetUrl);
+      if (driveUrl) localStorage.setItem('sun_drive_url', driveUrl);
+      if (sheetId) localStorage.setItem('sun_sheet_id', sheetId);
+      else localStorage.removeItem('sun_sheet_id');
+      if (driveFolderId) localStorage.setItem('sun_drive_folder_id', driveFolderId);
+      else localStorage.removeItem('sun_drive_folder_id');
+    } catch (e) { /* ignore */ }
+  }
+
   function rpcCall(method, args, timeoutMs) {
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = ctrl
@@ -13,13 +37,18 @@
         }, timeoutMs || 55000)
       : null;
 
+    var cfg = getSunConfig();
+    var config = {};
+    if (cfg.sheetId) config.sheetId = cfg.sheetId;
+    if (cfg.driveFolderId) config.driveFolderId = cfg.driveFolderId;
+
     return fetch(RPC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       cache: 'no-store',
       signal: ctrl ? ctrl.signal : undefined,
-      body: JSON.stringify({ method: method, args: args || [] }),
+      body: JSON.stringify({ method: method, args: args || [], config: config }),
     })
       .then(function (res) {
         return res.json().then(function (data) {
@@ -82,7 +111,7 @@
     return rpcCall(method, args, ms || 55000);
   }
 
-  global.SUN_API = { call: rpcCall, api: api, apiLong: apiLong };
+  global.SUN_API = { call: rpcCall, api: api, apiLong: apiLong, getConfig: getSunConfig, saveConfig: saveSunConfig };
 
   /** Override Admin-style api.call if loaded after sun-api-client */
   global.__SUN_INSTALL_API__ = function () {
