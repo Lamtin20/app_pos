@@ -7,7 +7,7 @@
 .legacy-page-root{height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .legacy-page-root .topbar,.legacy-page-root .bottom-nav{flex-shrink:0}
 .legacy-page-root .pos-layout,.legacy-page-root .mem-shell{flex:1;min-height:0}
-.legacy-page-root .products-scroll,.legacy-page-root .mem-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
+.legacy-page-root .products-scroll,.legacy-page-root .mem-main,.legacy-page-root .mem-portal-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;flex:1}
 </style>
   <script src="/sun-api-client.js"></script>
   
@@ -2314,39 +2314,48 @@
       box-shadow: 0 8px 18px rgba(0,0,0,.18);
     }
 
-    /* Size toggle (large) */
+    /* Size pills — horizontal like TCH */
     .size-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .size-btn {
-      padding: 12px 10px;
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 12px 14px;
       border: 1.5px solid var(--border2);
-      border-radius: var(--radius-sm);
+      border-radius: 999px;
       cursor: pointer;
       text-align: center;
       transition: all 0.18s;
-      background: var(--surface2);
+      background: #fff;
     }
 
-    .size-btn .sz-icon {
-      font-size: 24px;
-      display: block;
-      margin-bottom: 4px;
-    }
+    .size-btn .sz-icon { display: none; }
 
     .size-btn .sz-name {
       font-size: 13px;
       font-weight: 700;
       color: var(--text);
+      display: inline;
     }
 
     .size-btn .sz-price {
-      font-size: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 0;
+      display: inline;
+    }
+
+    .size-btn .sz-price::before { content: ': '; }
+
+    .size-sub-hint {
+      font-size: 12px;
       color: var(--text-3);
-      margin-top: 2px;
+      margin: -4px 0 10px;
     }
 
     .size-btn:hover {
@@ -3877,7 +3886,8 @@
         <div class="product-detail-opts">
         <!-- SIZE -->
         <div class="opt-group" id="sheet-size-group" style="display:none;">
-          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size</div>
+          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size <span style="color:var(--red);">*</span></div>
+          <div class="size-sub-hint">Chọn 1 loại size</div>
           <div class="size-grid" id="sheet-size-options"></div>
         </div>
 
@@ -3891,34 +3901,15 @@
           </div>
         </div>
 
-        <!-- CÁCH DÙNG (ủ lạnh / nóng / đá) -->
-        <div class="opt-group" id="sheet-temp-group">
-          <div class="opt-label"><i class="fa-solid fa-temperature-half"></i> Cách dùng</div>
-          <div class="opt-grid" id="sheet-temp-options">
-            <div class="opt-btn active" onclick="selectServeTemp(this,'cold_steep')">Sữa ủ lạnh</div>
-            <div class="opt-btn" onclick="selectServeTemp(this,'hot')">Sữa nóng</div>
-            <div class="opt-btn" onclick="selectServeTemp(this,'iced')">Đá</div>
-          </div>
-        </div>
-
-        <!-- MỨC ĐÁ — chỉ khi chọn "Đá" -->
-        <div class="opt-group" id="sheet-ice-group" style="display:none;">
-          <div class="opt-label"><i class="fa-solid fa-snowflake"></i> Mức đá</div>
-          <div class="opt-grid">
+        <!-- LƯỢNG ĐÁ -->
+        <div class="opt-group" id="sheet-ice-group">
+          <div class="opt-label"><i class="fa-solid fa-snowflake"></i> Lượng đá</div>
+          <div class="opt-grid" id="sheet-ice-options">
             <div class="opt-btn" onclick="selectOption(this,'ice','Không đá')">Không đá</div>
             <div class="opt-btn" onclick="selectOption(this,'ice','Ít đá')">Ít đá</div>
             <div class="opt-btn active" onclick="selectOption(this,'ice','Vừa')">Vừa</div>
             <div class="opt-btn" onclick="selectOption(this,'ice','Nhiều')">Nhiều</div>
             <div class="opt-btn" onclick="selectOption(this,'ice','Để riêng')">Để riêng</div>
-          </div>
-        </div>
-
-        <!-- ĐÓNG GÓI -->
-        <div class="opt-group" id="sheet-pack-group">
-          <div class="opt-label"><i class="fa-solid fa-mug-hot"></i> Đóng gói</div>
-          <div class="opt-grid" id="sheet-pack-options">
-            <div class="opt-btn active" onclick="selectPackaging(this,'paper')">Ly giấy</div>
-            <div class="opt-btn" onclick="selectPackaging(this,'plastic')">Chai nhựa</div>
           </div>
         </div>
 
@@ -3933,14 +3924,8 @@
           </div>
         </div>
 
-        <!-- TOPPINGS -->
-        <div class="opt-group" id="sheet-topping-group">
-          <div class="opt-label"><i class="fa-solid fa-plus"></i> Topping</div>
-          <div class="opt-grid" id="sheet-topping-options"></div>
-        </div>
-
-        <!-- ADDONS (legacy sugar) -->
-        <div class="opt-group" id="sheet-addon-group" style="display:none;">
+        <!-- THÊM ĐƯỜNG / SỮA -->
+        <div class="opt-group" id="sheet-addon-group">
           <div class="opt-label"><i class="fa-solid fa-plus"></i> Thêm đường / sữa</div>
           <div class="opt-grid">
             <div class="opt-btn" onclick="toggleSubOptions(this,'sugar')">Đường</div>
@@ -5400,9 +5385,8 @@
       var act = j === defIdx ? ' active' : '';
       var showPrice = fmt(Math.max(0, bp + q.price));
       szHtml += '<div class="size-btn' + act + '" onclick="selectSizeBtn(this,\'' + escAttr(q.val) + '\',' + q.price + ')">' +
-        '<span class="sz-icon">' + q.icon + '</span>' +
-        '<div class="sz-name">' + esc(q.label) + '</div>' +
-        '<div class="sz-price">' + esc(showPrice) + '</div></div>';
+        '<span class="sz-name">' + esc(q.label) + '</span>' +
+        '<span class="sz-price">' + esc(showPrice) + '</span></div>';
     }
     sizeOptions.innerHTML = szHtml;
     currentOptions.size = parts[defIdx].val;
@@ -5542,20 +5526,22 @@
     var iceG = document.getElementById('sheet-ice-group');
     var packG = document.getElementById('sheet-pack-group');
     var sizeGroup = document.getElementById('sheet-size-group');
-    var sizeOptions = document.getElementById('sheet-size-options');
+    var addonG = document.getElementById('sheet-addon-group');
     var isTopping = (p.category || '').toLowerCase().indexOf('topping') !== -1;
+
+    if (tempG) tempG.style.display = 'none';
+    if (packG) packG.style.display = 'none';
 
     if (isTopping) {
       sizeGroup.style.display = 'none';
-      if (tempG) tempG.style.display = 'none';
       if (iceG) iceG.style.display = 'none';
-      if (packG) packG.style.display = 'none';
+      if (addonG) addonG.style.display = 'none';
       currentOptions.size = 'Tiêu chuẩn';
       currentOptions.sizePrice = 0;
     } else {
       sizeGroup.style.display = 'block';
-      if (tempG) tempG.style.display = '';
-      if (packG) packG.style.display = '';
+      if (iceG) iceG.style.display = '';
+      if (addonG) addonG.style.display = '';
       var famRow = document.getElementById('family-pack-toggle-row');
       var famCb = document.getElementById('family-pack-toggle');
       if (famRow && famCb) {
@@ -5571,20 +5557,13 @@
       }
       renderProductSizeGrid();
 
-      document.querySelectorAll('#sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var tCold = document.querySelector('#sheet-temp-options .opt-btn[onclick*="cold_steep"]');
-      if (tCold) tCold.classList.add('active');
-      currentOptions.serveTemp = 'cold_steep';
       if (iceG) {
-        iceG.style.display = 'none';
-        document.querySelectorAll('#sheet-ice-group .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-        var iceMid = document.querySelector('#sheet-ice-group .opt-btn[onclick*="Vừa"]');
+        document.querySelectorAll('#sheet-ice-options .opt-btn, #sheet-ice-group .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+        var iceMid = document.querySelector('#sheet-ice-options .opt-btn[onclick*="Vừa"], #sheet-ice-group .opt-btn[onclick*="Vừa"]');
         if (iceMid) iceMid.classList.add('active');
       }
-      currentOptions.ice = 'Không đá';
-      document.querySelectorAll('#sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var pPaper = document.querySelector('#sheet-pack-options .opt-btn[onclick*="paper"]');
-      if (pPaper) pPaper.classList.add('active');
+      currentOptions.ice = 'Vừa';
+      currentOptions.serveTemp = 'iced';
       currentOptions.packaging = 'paper';
       currentOptions.packagingPrice = 0;
     }
@@ -5593,7 +5572,6 @@
     if (sweetDefault) sweetDefault.classList.add('active');
 
     renderNutMixOptions(p, isTopping);
-    renderProductToppings(p);
 
     renderProductDetailMeta(p);
 
@@ -6741,7 +6719,7 @@
   // ====== ADMIN / NAV ======
   function goToAdmin() { window.open('/admin', '_blank'); }
   function goToMemberPage() { window.location.href = '/member'; }
-  function goToGroupOrder() { window.location.href = '/member?group=1'; }
+  function goToGroupOrder() { window.location.href = '/member?tab=group'; }
   function getInfoAdmin() { goToAdmin(); }
 
   // ====== UTILS ======

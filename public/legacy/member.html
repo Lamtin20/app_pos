@@ -6,7 +6,7 @@
 .legacy-page-root{height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .legacy-page-root .topbar,.legacy-page-root .bottom-nav{flex-shrink:0}
 .legacy-page-root .pos-layout,.legacy-page-root .mem-shell{flex:1;min-height:0}
-.legacy-page-root .products-scroll,.legacy-page-root .mem-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
+.legacy-page-root .products-scroll,.legacy-page-root .mem-main,.legacy-page-root .mem-portal-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;flex:1}
 </style>
   <script src="/sun-api-client.js"></script>
   
@@ -251,10 +251,31 @@
     .mem-topbar-actions { display: flex; gap: 8px; align-items: center; }
     .mem-topbar-actions a { color: var(--primary-dk); text-decoration: none; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); display: inline-flex; align-items: center; gap: 6px; }
     .mem-carousel-wrap { max-width: none; margin: 0 auto; padding: 12px 16px 0; }
-    .mem-carousel { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; min-height: 200px; background: #1a1410; }
-    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 4/3; min-height: 210px; } }
-    .mem-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; background-size: cover; background-position: center; }
-    .mem-slide.on { opacity: 1; z-index: 1; }
+    .mem-carousel {
+      position: relative; border-radius: 20px; overflow: hidden;
+      border: 1px solid var(--border); background: #1a1410;
+      min-height: 160px;
+    }
+    .mem-carousel-track {
+      display: flex; gap: 12px; transition: transform 0.45s ease;
+      will-change: transform;
+    }
+    .mem-carousel.mem-carousel-single .mem-carousel-track { gap: 0; }
+    .mem-slide {
+      flex: 0 0 100%; min-height: 160px; background-size: cover;
+      background-position: center; position: relative; border-radius: 18px;
+      overflow: hidden;
+    }
+    @media (min-width: 900px) {
+      .mem-carousel { min-height: 180px; }
+      .mem-carousel.mem-carousel-dual .mem-slide {
+        flex: 0 0 calc(50% - 6px);
+        min-height: 180px;
+      }
+    }
+    @media (max-width: 640px) {
+      .mem-slide { min-height: 200px; border-radius: 16px; }
+    }
     .mem-slide-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px; background: linear-gradient(transparent, rgba(0,0,0,.72)); color: #fff; z-index: 2; }
     .mem-slide-cap .bdg { display: inline-block; font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(234,180,60,.95); color: #1a1410; margin-bottom: 8px; }
     .mem-slide-cap h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 6px; font-family: var(--display); line-height: 1.25; }
@@ -954,7 +975,18 @@
     .mem-portal-main {
       width: 100%; max-width: 1200px; margin: 0 auto;
       padding: 0 14px 18px; box-sizing: border-box;
+      flex: 1; min-height: 0; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
     }
+    .legacy-page-root {
+      height: 100dvh; display: flex; flex-direction: column;
+      overflow: hidden; min-height: 0;
+    }
+    .legacy-page-root > header,
+    .legacy-page-root > nav,
+    .legacy-page-root > .mem-bottom-nav { flex-shrink: 0; }
     @media (max-width: 899px) {
       body.mem-logged-in .mem-bottom-nav { display: flex !important; }
       body.mem-logged-in .mem-nav-desktop { display: none !important; }
@@ -1344,11 +1376,17 @@
     .mem-pd-scroll .opt-btn.opt-nut-chip.active .nut-chip-img {
       border-color: rgba(255, 255, 255, 0.35);
     }
-    .mem-pd-scroll .size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mem-pd-scroll .size-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .mem-pd-scroll .size-sub-hint { font-size: 12px; color: var(--text3); margin: -4px 0 10px; }
     .mem-pd-scroll .size-btn {
-      border: 1.5px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; background: var(--surface);
+      flex: 1 1 auto; min-width: 0; border: 1.5px solid var(--border2); border-radius: 999px;
+      padding: 12px 14px; text-align: center; cursor: pointer; background: #fff; transition: all 0.18s;
     }
+    .mem-pd-scroll .size-btn .sz-name,
+    .mem-pd-scroll .size-btn .sz-price { font-size: 13px; font-weight: 700; color: var(--text); display: inline; }
+    .mem-pd-scroll .size-btn .sz-price::before { content: ': '; }
     .mem-pd-scroll .size-btn.active { border-color: var(--primary); background: rgba(154,52,18,.08); }
+    .mem-pd-scroll .size-btn.active .sz-name { color: var(--primary-dk); }
     .mem-pd-scroll .sub-options { display: none; }
     .mem-pd-scroll .sub-options.show { display: block; }
     .mem-pd-scroll .modal-qty { display: flex; align-items: center; gap: 10px; }
@@ -2761,23 +2799,22 @@
         <div class="sheet-hero" id="mem-sheet-hero"><div class="sheet-hero-emoji" id="mem-sheet-hero-emoji">🥛</div></div>
         <div class="mem-pd-head"><div class="sheet-name" id="mem-sheet-name">Món</div><div class="sheet-price" id="mem-sheet-price">0đ</div></div>
         <div id="mem-product-detail-meta"></div>
-        <div class="opt-group" id="mem-sheet-size-group"><div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Kích cỡ</div><div class="size-grid" id="mem-sheet-size-options"></div></div>
+        <div class="opt-group" id="mem-sheet-size-group">
+          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size <span style="color:var(--red);">*</span></div>
+          <div class="size-sub-hint">Chọn 1 loại size</div>
+          <div class="size-grid" id="mem-sheet-size-options"></div>
+        </div>
         <div class="opt-group" id="mem-family-pack-toggle-row" style="display:none;"><label class="family-pack-toggle"><input type="checkbox" id="mem-family-pack-toggle"><span><i class="fa-solid fa-house-chimney"></i> Gói sữa gia đình</span></label></div>
-        <div class="opt-group" id="mem-sheet-temp-group"><div class="opt-label"><i class="fa-solid fa-temperature-half"></i> Cách dùng</div><div class="opt-grid" id="mem-sheet-temp-options">
-          <button type="button" class="opt-btn active" data-temp="cold_steep">Sữa ủ lạnh</button>
-          <button type="button" class="opt-btn" data-temp="hot">Sữa nóng</button>
-          <button type="button" class="opt-btn" data-temp="iced">Đá</button>
-        </div></div>
-        <div class="opt-group" id="mem-sheet-ice-group" style="display:none;"><div class="opt-label"><i class="fa-solid fa-snowflake"></i> Mức đá</div><div class="opt-grid">
-          <button type="button" class="opt-btn" data-ice="Không đá">Không đá</button>
-          <button type="button" class="opt-btn" data-ice="Ít đá">Ít đá</button>
-          <button type="button" class="opt-btn active" data-ice="Vừa">Vừa</button>
-          <button type="button" class="opt-btn" data-ice="Nhiều">Nhiều</button>
-        </div></div>
-        <div class="opt-group" id="mem-sheet-pack-group"><div class="opt-label"><i class="fa-solid fa-mug-hot"></i> Đóng gói</div><div class="opt-grid" id="mem-sheet-pack-options">
-          <button type="button" class="opt-btn active" data-pack="paper">Ly giấy</button>
-          <button type="button" class="opt-btn" data-pack="plastic">Chai nhựa</button>
-        </div></div>
+        <div class="opt-group" id="mem-sheet-ice-group">
+          <div class="opt-label"><i class="fa-solid fa-snowflake"></i> Lượng đá</div>
+          <div class="opt-grid" id="mem-sheet-ice-options">
+            <button type="button" class="opt-btn" data-ice="Không đá">Không đá</button>
+            <button type="button" class="opt-btn" data-ice="Ít đá">Ít đá</button>
+            <button type="button" class="opt-btn active" data-ice="Vừa">Vừa</button>
+            <button type="button" class="opt-btn" data-ice="Nhiều">Nhiều</button>
+            <button type="button" class="opt-btn" data-ice="Để riêng">Để riêng</button>
+          </div>
+        </div>
         <div class="opt-group"><div class="opt-label"><i class="fa-solid fa-cookie-bite"></i> Độ ngọt</div><div class="opt-grid">
           <button type="button" class="opt-btn" data-sweet="Không ngọt">Không ngọt</button>
           <button type="button" class="opt-btn" data-sweet="Ít ngọt">Ít ngọt</button>
@@ -2797,7 +2834,7 @@
           <div class="modal-qty"><button type="button" class="mq-btn" id="mem-qty-minus">−</button><div class="mq-val" id="mem-qty-display">1</div><button type="button" class="mq-btn" id="mem-qty-plus">+</button></div>
         </div>
       </div>
-      <button type="button" class="sheet-add-btn" id="mem-sheet-add-btn"><i class="fa-solid fa-cart-plus"></i> Thêm vào giỏ - <span id="mem-sheet-add-total">0đ</span></button>
+      <button type="button" class="sheet-add-btn" id="mem-sheet-add-btn"><i class="fa-solid fa-cart-plus"></i> Chọn - <span id="mem-sheet-add-total">0đ</span></button>
     </div>
   </div>
   <div class="mem-pd-toast" id="mem-pd-toast"></div>
@@ -2866,6 +2903,9 @@ function gsErrMessage(e) {
 }
 function api(method) {
   var args = Array.prototype.slice.call(arguments, 1);
+  if (window.SUN_API && typeof window.SUN_API.api === 'function') {
+    return window.SUN_API.api.apply(window.SUN_API, [method].concat(args));
+  }
   return new Promise(function (resolve, reject) {
     var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, 42000);
     try {
@@ -2878,6 +2918,9 @@ function api(method) {
 }
 function apiLong(method, ms) {
   var args = Array.prototype.slice.call(arguments, 2);
+  if (window.SUN_API && typeof window.SUN_API.apiLong === 'function') {
+    return window.SUN_API.apiLong.apply(window.SUN_API, [method, ms].concat(args));
+  }
   return new Promise(function (resolve, reject) {
     var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, ms || 55000);
     try {
@@ -2935,9 +2978,39 @@ function fmt(n) { return Math.round(n || 0).toLocaleString('vi-VN') + '₫'; }
 var memberPortalSettings = null;
 var memCarouselTimer = null;
 var memCarouselIndex = 0;
+var memCarouselList = [];
 
 function stopMemCarousel() {
   if (memCarouselTimer) { clearInterval(memCarouselTimer); memCarouselTimer = null; }
+}
+function memCarouselPerView() {
+  try {
+    return window.matchMedia('(min-width: 900px)').matches ? 2 : 1;
+  } catch (e) { return 1; }
+}
+function memCarouselSlideStep() {
+  var track = document.querySelector('#mem-carousel .mem-carousel-track');
+  var slide = track && track.querySelector('.mem-slide');
+  if (!slide) return 0;
+  var gap = 12;
+  return slide.offsetWidth + gap;
+}
+function memCarouselGoTo(index, animate) {
+  var box = document.getElementById('mem-carousel');
+  var track = box && box.querySelector('.mem-carousel-track');
+  var dots = document.getElementById('mem-carousel-dots');
+  if (!box || !track || !memCarouselList.length) return;
+  var perView = memCarouselPerView();
+  var maxIndex = Math.max(0, memCarouselList.length - perView);
+  memCarouselIndex = Math.max(0, Math.min(index, maxIndex));
+  var step = memCarouselSlideStep();
+  track.style.transition = animate === false ? 'none' : 'transform 0.45s ease';
+  track.style.transform = 'translateX(-' + (memCarouselIndex * step) + 'px)';
+  if (dots) {
+    dots.querySelectorAll('button').forEach(function (d, j) {
+      d.classList.toggle('on', j === memCarouselIndex);
+    });
+  }
 }
 function buildMemCarouselSlides(banners) {
   var box = document.getElementById('mem-carousel');
@@ -2946,34 +3019,49 @@ function buildMemCarouselSlides(banners) {
   stopMemCarousel();
   var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
   list = list.filter(function (b) { return b && String(b.image || '').trim(); });
-  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=800&q=70&auto=format', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
-  box.innerHTML = list.map(function (b, i) {
+  if (!list.length) {
+    list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: 'Tinh hoa từ hạt, trọn vẹn yêu thương' }];
+  }
+  memCarouselList = list;
+  var perView = memCarouselPerView();
+  box.classList.toggle('mem-carousel-single', list.length <= 1);
+  box.classList.toggle('mem-carousel-dual', perView >= 2 && list.length > 1);
+  var slides = list.map(function (b) {
     var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
     var bd = esc(b.badge || '');
     var t = esc(b.title || '');
     var s = esc(b.subtitle || '');
-    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="background-image:url(\'' + img + '\');">' +
+    return '<div class="mem-slide" style="background-image:url(\'' + img + '\');">' +
       '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
       (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
   }).join('');
-  dots.innerHTML = list.map(function (_b, i) {
-    return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
-  }).join('');
+  box.innerHTML = '<div class="mem-carousel-track">' + slides + '</div>';
+  var pageCount = Math.max(1, list.length - perView + 1);
+  dots.innerHTML = '';
+  for (var i = 0; i < pageCount; i++) {
+    dots.innerHTML += '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
+  }
   memCarouselIndex = 0;
-  if (list.length < 2) return;
-  memCarouselTimer = setInterval(function () {
-    memCarouselIndex = (memCarouselIndex + 1) % list.length;
-    box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === memCarouselIndex); });
-    dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === memCarouselIndex); });
-  }, 5200);
+  requestAnimationFrame(function () { memCarouselGoTo(0, false); });
   dots.querySelectorAll('button').forEach(function (btn) {
     btn.onclick = function () {
-      var ix = parseInt(btn.getAttribute('data-i'), 10) || 0;
-      memCarouselIndex = ix;
-      box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === ix); });
-      dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === ix); });
+      memCarouselGoTo(parseInt(btn.getAttribute('data-i'), 10) || 0, true);
     };
   });
+  if (list.length <= perView) return;
+  memCarouselTimer = setInterval(function () {
+    var pv = memCarouselPerView();
+    var maxIdx = Math.max(0, list.length - pv);
+    var next = memCarouselIndex >= maxIdx ? 0 : memCarouselIndex + 1;
+    memCarouselGoTo(next, true);
+  }, 5200);
+  if (!window._memCarouselResizeWired) {
+    window._memCarouselResizeWired = true;
+    window.addEventListener('resize', function () {
+      if (!memCarouselList.length) return;
+      buildMemCarouselSlides(memCarouselList);
+    });
+  }
 }
 function applyMemberPortalFromSettings(raw) {
   var d = {
@@ -3022,7 +3110,7 @@ function applyMemberPortalFromSettings(raw) {
   var carouselBanners = Array.isArray(s.banners) && s.banners.length ? s.banners : d.banners;
   buildMemCarouselSlides(carouselBanners);
   var carWrap = document.getElementById('mem-carousel-wrap');
-  if (carWrap) carWrap.style.display = (carouselBanners && carouselBanners.length) ? '' : 'none';
+  if (carWrap) carWrap.style.display = '';
   var heroReg = document.getElementById('mem-disp-hero-register-img');
   if (heroReg && s.heroRegisterImageUrl) {
     heroReg.src = s.heroRegisterImageUrl;
@@ -3073,242 +3161,6 @@ function applyMemberPortalFromSettings(raw) {
 })();
 </script>
 
-<script>
-try { var SCRIPT_URL = ""; } catch (e) { var SCRIPT_URL = ''; }
-if (typeof SCRIPT_URL === 'undefined') var SCRIPT_URL = '';
-function posBase() {
-  var u = (typeof SCRIPT_URL === 'string' && SCRIPT_URL) ? SCRIPT_URL.split('?')[0] : '';
-  return u || window.location.href.split('?')[0].replace(/[?#].*$/, '');
-}
-function memPage(p) { var m = { admin:'/admin', order:'/order', member:'/member', pickup:'/pickup' }; return m[p] || ('/' + p); }
-function wireTopLinks() {
-  var lp = document.getElementById('link-pos');
-  if (lp) lp.href = posBase() + '/order';
-  var pk = document.getElementById('link-pickup');
-  if (pk) pk.href = posBase() + '/pickup';
-}
-function gsErrMessage(e) {
-  if (e == null) return 'Lỗi không xác định';
-  if (typeof e === 'string') return e;
-  if (e.message) return String(e.message);
-  if (e.details) return String(e.details);
-  try { return JSON.stringify(e); } catch (x) { return String(e); }
-}
-function api(method) {
-  var args = Array.prototype.slice.call(arguments, 1);
-  return new Promise(function (resolve, reject) {
-    var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, 42000);
-    try {
-      var runner = google.script.run
-        .withSuccessHandler(function (r) { clearTimeout(t); resolve(r); })
-        .withFailureHandler(function (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); });
-      runner[method].apply(runner, args);
-    } catch (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); }
-  });
-}
-function apiLong(method, ms) {
-  var args = Array.prototype.slice.call(arguments, 2);
-  return new Promise(function (resolve, reject) {
-    var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, ms || 55000);
-    try {
-      var runner = google.script.run
-        .withSuccessHandler(function (r) { clearTimeout(t); resolve(r); })
-        .withFailureHandler(function (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); });
-      runner[method].apply(runner, args);
-    } catch (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); }
-  });
-}
-/**
- * Tra cứu hội viên qua GET JSON (cùng origin với Web App).
- * Dùng khi google.script.run không gọi được / treo im lặng trên một số trình duyệt hoặc bản triển khai.
- */
-function portalMemberLookupHttp(phone) {
-  var base = posBase();
-  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-  var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = ('/api/member/portal?phone=' + encodeURIComponent(String(phone || ''));
-  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-    .then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    });
-}
-/** Một GET: settings + menu + packages (một lần thực thi server, nhanh hơn 3× google.script.run). */
-function portalMemberBootstrapHttp() {
-  var base = posBase();
-  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-  var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = ('/api/member/bootstrap';
-  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-    .then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    });
-}
-function showToast(msg) {
-  var el = document.getElementById('toast');
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(function () { el.classList.remove('show'); }, 2800);
-}
-function normPhone(v) {
-  var d = String(v || '').replace(/\D/g, '');
-  if (!d) return '';
-  if (d.indexOf('84') === 0 && d.length >= 10) d = '0' + d.slice(2);
-  if (d.length === 9 && d.charAt(0) !== '0') d = '0' + d;
-  return d;
-}
-function isPhone10(ph) {
-  return /^0\d{9}$/.test(String(ph || ''));
-}
-function esc(s) {
-  var d = document.createElement('div');
-  d.textContent = s == null ? '' : s;
-  return d.innerHTML;
-}
-function fmt(n) { return Math.round(n || 0).toLocaleString('vi-VN') + '₫'; }
-
-var memberPortalSettings = null;
-var memCarouselTimer = null;
-var memCarouselIndex = 0;
-
-function stopMemCarousel() {
-  if (memCarouselTimer) { clearInterval(memCarouselTimer); memCarouselTimer = null; }
-}
-function buildMemCarouselSlides(banners) {
-  var box = document.getElementById('mem-carousel');
-  var dots = document.getElementById('mem-carousel-dots');
-  if (!box || !dots) return;
-  stopMemCarousel();
-  var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
-  list = list.filter(function (b) { return b && String(b.image || '').trim(); });
-  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
-  box.innerHTML = list.map(function (b, i) {
-    var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
-    var bd = esc(b.badge || '');
-    var t = esc(b.title || '');
-    var s = esc(b.subtitle || '');
-    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="background-image:url(\'' + img + '\');">' +
-      '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
-      (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
-  }).join('');
-  dots.innerHTML = list.map(function (_b, i) {
-    return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
-  }).join('');
-  memCarouselIndex = 0;
-  if (list.length < 2) return;
-  memCarouselTimer = setInterval(function () {
-    memCarouselIndex = (memCarouselIndex + 1) % list.length;
-    box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === memCarouselIndex); });
-    dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === memCarouselIndex); });
-  }, 5200);
-  dots.querySelectorAll('button').forEach(function (btn) {
-    btn.onclick = function () {
-      var ix = parseInt(btn.getAttribute('data-i'), 10) || 0;
-      memCarouselIndex = ix;
-      box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === ix); });
-      dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === ix); });
-    };
-  });
-}
-function applyMemberPortalFromSettings(raw) {
-  var d = {
-    brandTitle: 'SUN Nut Milk',
-    brandTagline: 'Tinh hoa từ hạt, trọn vẹn yêu thương.',
-    loginCardTitle: 'Cổng vào Hội viên',
-    loginCardSubtitle: 'Đăng nhập bằng số điện thoại để xem gói, lịch uống và ưu đãi.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=900&q=80',
-    heroFeature1Title: 'Thực đơn cá nhân hóa',
-    heroFeature1Text: 'Lộ trình sữa hạt phù hợp thể trạng và mục tiêu sức khỏe của bạn.',
-    heroFeature2Title: 'Ưu đãi thành viên',
-    heroFeature2Text: 'Tích điểm đổi quà, ưu đãi theo từng giai đoạn hội viên.',
-    heroFeature3Title: 'Gợi ý lịch uống theo menu',
-    heroFeature3Text: 'Lịch 7 ngày với món có trên thực đơn, thành phần hạt và gợi ý lợi ích (không công thức nấu).',
-    aiBotName: 'NutriBot AI',
-    aiWelcome: 'Chào bạn! Hãy cho biết mục tiêu (đẹp da, giảm cân nhẹ, tim khỏe…). Mình sẽ gợi ý lịch uống 7 ngày từ menu SUN - mỗi ngày một món, kèm thành phần hạt và lợi ích tham khảo.',
-    aiPlaceholder: 'Mục tiêu của bạn (vd: đẹp da, tim khỏe…)',
-    scheduleLockHint: 'Khóa thay đổi món lúc 22:00 hàng ngày',
-    menuHeroTitle: 'Tinh hoa từ hạt',
-    menuHeroSubtitle: 'Khám phá thực đơn sữa hạt nguyên chất, thiết kế cho từng mục tiêu sức khỏe.',
-    footerCopy: '© 2024 SUN Nut Milk. Tinh hoa từ hạt, trọn vẹn yêu thương.',
-    banners: []
-  };
-  var s = Object.assign({}, d, raw || {});
-  memberPortalSettings = s;
-  var setTxt = function (id, v) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = v != null ? String(v) : '';
-  };
-  setTxt('mem-disp-brand-title', s.brandTitle);
-  setTxt('mem-disp-brand-tag', s.brandTagline);
-  setTxt('mem-disp-login-title', s.loginCardTitle);
-  setTxt('mem-disp-login-sub', s.loginCardSubtitle);
-  setTxt('mem-disp-f1t', s.heroFeature1Title);
-  setTxt('mem-disp-f1x', s.heroFeature1Text);
-  setTxt('mem-disp-f2t', s.heroFeature2Title);
-  setTxt('mem-disp-f2x', s.heroFeature2Text);
-  setTxt('mem-disp-f3t', s.heroFeature3Title);
-  setTxt('mem-disp-f3x', s.heroFeature3Text);
-  setTxt('mem-disp-ai-name', s.aiBotName);
-  setTxt('mem-disp-sched-hint', s.scheduleLockHint);
-  setTxt('mem-disp-menu-hero-title', s.menuHeroTitle);
-  setTxt('mem-disp-menu-hero-sub', s.menuHeroSubtitle);
-  var hi = document.getElementById('mem-disp-hero-img');
-  if (hi && s.heroImageUrl) hi.src = s.heroImageUrl;
-  var carouselBanners = Array.isArray(s.banners) && s.banners.length ? s.banners : d.banners;
-  buildMemCarouselSlides(carouselBanners);
-  var carWrap = document.getElementById('mem-carousel-wrap');
-  if (carWrap) carWrap.style.display = (carouselBanners && carouselBanners.length) ? '' : 'none';
-  var heroReg = document.getElementById('mem-disp-hero-register-img');
-  if (heroReg && s.heroRegisterImageUrl) {
-    heroReg.src = s.heroRegisterImageUrl;
-    heroReg.style.display = 'block';
-  }
-  var menuHero = document.querySelector('.mem-menu-hero');
-  if (menuHero && s.menuHeroBgUrl) {
-    menuHero.style.backgroundImage = 'linear-gradient(105deg, rgba(124,45,18,.82), rgba(154,52,18,.72)), url(' + String(s.menuHeroBgUrl).replace(/'/g, '%27') + ')';
-    menuHero.style.backgroundSize = 'cover';
-    menuHero.style.backgroundPosition = 'center';
-  }
-  var th = document.getElementById('mem-ai-thread');
-  var inp = document.getElementById('mem-ai-input');
-  if (inp) inp.placeholder = s.aiPlaceholder || d.aiPlaceholder;
-  if (th) th.innerHTML = '<div class="mem-bubble-bot">' + esc(s.aiWelcome || d.aiWelcome) + '</div>';
-  var phone = String(s.supportPhone || '').trim();
-  var zalo = String(s.supportZalo || '').trim();
-  var sp = document.getElementById('mem-support-phone');
-  if (sp && phone) sp.href = 'tel:' + phone.replace(/\s/g, '');
-  var sl = document.getElementById('mem-support-zalo');
-  if (sl && zalo) sl.href = zalo.indexOf('http') === 0 ? zalo : ('https://zalo.me/' + zalo.replace(/\D/g, ''));
-  var lab = document.getElementById('mem-support-label');
-  if (lab && phone) lab.textContent = 'Liên hệ & Góp ý · ' + phone;
-}
-
-(function () {
-  var U = 'https://i.ibb.co/8LV0snn8/logo-sun-web.png';
-  if (typeof window.setFaviconUrl !== 'function') {
-    window.SUN_FAVICON_URL = U;
-    window.setFaviconUrl = function (url) {
-      var u = url || window.SUN_FAVICON_URL || U;
-      function ensure(rel, mime) {
-        var link = document.querySelector('link[rel="' + rel + '"]');
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = rel;
-          if (mime) link.type = mime;
-          document.head.appendChild(link);
-        }
-        link.href = u;
-      }
-      ensure('icon', 'image/png');
-      ensure('apple-touch-icon', null);
-    };
-  }
-  if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
-  window.setFaviconUrl(window.SUN_FAVICON_URL);
-})();
-</script>
 <script>
 (function (global) {
   'use strict';
@@ -3471,11 +3323,13 @@ function applyMemberPortalFromSettings(raw) {
   function paintSizes(parts, defIdx) {
     var el = $('mem-sheet-size-options');
     if (!el || !parts.length) return;
+    var bp = currentProduct ? (parseFloat(currentProduct.basePrice) || 0) : 0;
     var html = '';
     for (var j = 0; j < parts.length; j++) {
       var q = parts[j];
+      var showPrice = fmt(Math.max(0, bp + q.price));
       html += '<button type="button" class="size-btn' + (j === defIdx ? ' active' : '') + '" data-val="' + escAttr(q.val) + '" data-price="' + q.price + '">' +
-        '<span class="sz-icon">' + q.icon + '</span><div class="sz-name">' + esc(q.label) + '</div><div class="sz-price">' + esc(q.sub) + '</div></button>';
+        '<span class="sz-name">' + esc(q.label) + '</span><span class="sz-price">' + esc(showPrice) + '</span></button>';
     }
     el.innerHTML = html;
     el.querySelectorAll('.size-btn').forEach(function (btn) {
@@ -3789,31 +3643,31 @@ function applyMemberPortalFromSettings(raw) {
     }
     var isTop = (p.category || '').toLowerCase().indexOf('topping') >= 0;
     var sizeG = $('mem-sheet-size-group');
-    var tempG = $('mem-sheet-temp-group');
     var iceG = $('mem-sheet-ice-group');
-    var packG = $('mem-sheet-pack-group');
+    var addonG = $('mem-nut-opt-group');
     var famRow = $('mem-family-pack-toggle-row');
     if (isTop) {
       if (sizeG) sizeG.style.display = 'none';
-      if (tempG) tempG.style.display = 'none';
       if (iceG) iceG.style.display = 'none';
-      if (packG) packG.style.display = 'none';
+      if (addonG) addonG.style.display = 'none';
       currentOptions.size = 'Tiêu chuẩn';
     } else {
       if (sizeG) sizeG.style.display = '';
-      if (tempG) tempG.style.display = '';
-      if (packG) packG.style.display = '';
+      if (iceG) iceG.style.display = '';
+      if (addonG) addonG.style.display = '';
       if (famRow) famRow.style.display = hasFamily(p) ? '' : 'none';
       var famCb = $('mem-family-pack-toggle');
       if (famCb) { famCb.checked = false; currentOptions.familyPack = false; }
       renderSizeGrid();
-      document.querySelectorAll('#mem-sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var tCold = document.querySelector('#mem-sheet-temp-options .opt-btn[data-temp="cold_steep"]');
-      if (tCold) tCold.classList.add('active');
-      if (iceG) iceG.style.display = 'none';
-      document.querySelectorAll('#mem-sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var pPaper = document.querySelector('#mem-sheet-pack-options .opt-btn[data-pack="paper"]');
-      if (pPaper) pPaper.classList.add('active');
+      if (iceG) {
+        iceG.querySelectorAll('.opt-btn').forEach(function (b) { b.classList.remove('active'); });
+        var iceMid = iceG.querySelector('.opt-btn[data-ice="Vừa"]');
+        if (iceMid) iceMid.classList.add('active');
+      }
+      currentOptions.ice = 'Vừa';
+      currentOptions.serveTemp = 'iced';
+      currentOptions.packaging = 'paper';
+      currentOptions.packagingPrice = 0;
     }
     document.querySelectorAll('#mem-product-modal .opt-btn[data-sweet]').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-sweet') === 'Ngọt vừa');
@@ -5134,1829 +4988,6 @@ function applyMemberPortalFromSettings(raw) {
 </script>
 
 <script>
-(function (global) {
-  'use strict';
-  var mixHatList = [];
-  var cart = [];
-  var currentProduct = null;
-  var currentQty = 1;
-  var currentOptions = {
-    size: 'Thường (350ml)', sizePrice: 0, ice: 'Không đá', sweetness: 'Ngọt vừa',
-    addons: [], addonPrices: [], serveTemp: 'cold_steep', packaging: 'paper',
-    packagingPrice: 0, familyPack: false
-  };
-  var discount = 0;
-  var appliedPromo = '';
-  var pendingPromo = '';
-  var fulfillment = 'pickup';
-  var pay = 'Thanh toán khi nhận';
-  var zonesLoaded = false;
-  var wired = false;
-  // ----- Đơn nhóm (kiểu GrabFood) -----
-  var group = null;              // trạng thái nhóm từ server {groupId, hostPhone, status, members, total, ...}
-  var groupPollTimer = null;
-  var groupSyncTimer = null;
-  var groupSyncBusy = false;
-  var groupSyncAgain = false;
-  var pendingGroupCode = '';
-  // Màn hình chờ nhận nước (thành viên nhóm, sau khi trưởng nhóm gửi đơn)
-  var awaitInfo = null;          // {orderId, groupId, groupName, name, items, stage, ts}
-  var awaitPollTimer = null;
-
-  function $(id) { return document.getElementById(id); }
-  function esc(s) {
-    if (global.esc) return global.esc(s);
-    var d = document.createElement('div');
-    d.textContent = s == null ? '' : s;
-    return d.innerHTML;
-  }
-  function escAttr(s) {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
-  }
-  function fmt(n) {
-    return global.fmt ? global.fmt(n) : (Math.round(n || 0).toLocaleString('vi-VN') + '₫');
-  }
-  function toast(m) {
-    if (global.showToast) global.showToast(m);
-    else {
-      var t = $('mem-pd-toast');
-      if (t) { t.textContent = m; t.classList.add('show'); setTimeout(function () { t.classList.remove('show'); }, 2800); }
-    }
-  }
-  function api() {
-    var args = Array.prototype.slice.call(arguments);
-    return global.api.apply(null, args);
-  }
-  function phone() {
-    return global.SUN_MEM && global.SUN_MEM.state ? global.SUN_MEM.state.phone : '';
-  }
-  function normalizeMemCategory(raw) {
-    var orig = String(raw || '').trim();
-    var s = orig.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-    if (!s) return '';
-    if (/topping/.test(s)) return 'Topping';
-    if (/mix/.test(s) || /sua mix/.test(s)) return 'Mix hạt';
-    if (/coffee|cafe|ca phe|caphe/.test(s)) return 'Coffee';
-    if (/matcha/.test(s)) return 'Matcha';
-    if (/tra trai cay|tra trai|tra/.test(s)) return 'Trà trái cây';
-    if (/sua|hat|sua don|sua hat|sua don/.test(s)) return 'Sữa hạt';
-    var exact = ['Sữa hạt', 'Mix hạt', 'Coffee', 'Topping', 'Matcha', 'Trà trái cây'];
-    if (exact.indexOf(orig) >= 0) return orig;
-    return 'Sữa hạt';
-  }
-  var MEM_CAT_LIST = ['Sữa hạt', 'Mix hạt', 'Coffee', 'Topping', 'Matcha', 'Trà trái cây'];
-  function menuRaw() {
-    var st = global.SUN_MEM && global.SUN_MEM.state;
-    if (st && st.menu && st.menu.length) return st.menu;
-    return global.__memMenuCache || [];
-  }
-
-  function normalizeCupSizeLabel(s) {
-    return String(s || '').replace(/\s+/g, ' ').trim();
-  }
-  function serveTempLabel(st) {
-    if (st === 'hot') return 'Sữa nóng';
-    if (st === 'iced') return 'Đá';
-    return 'Sữa ủ lạnh';
-  }
-  function lineUnit(item) {
-    var o = item.options || {};
-    var addonTotal = (o.addonPrices || []).reduce(function (a, p) { return a + p; }, 0);
-    return (item.basePrice || 0) + (o.sizePrice || 0) + addonTotal + (o.packagingPrice || 0);
-  }
-  function cartSubtotal() {
-    return cart.reduce(function (s, it) { return s + lineUnit(it) * (it.quantity || 1); }, 0);
-  }
-  function cartQty() {
-    return cart.reduce(function (s, it) { return s + (it.quantity || 1); }, 0);
-  }
-  function cartForPromoApi() {
-    return cart.map(function (it) {
-      return { id: it.id, name: it.name, qty: it.quantity, quantity: it.quantity, price: lineUnit(it) };
-    }).concat(groupOthersItemsForApi());
-  }
-  function cartSummaryJson() {
-    return JSON.stringify(cart.map(function (it) {
-      return { id: it.id, quantity: it.quantity || 1 };
-    }).concat(groupOthersItemsForApi().map(function (it) {
-      return { id: it.id, quantity: it.quantity || 1 };
-    })));
-  }
-  function buildOptsParts(item) {
-    var o = item.options || {};
-    if (normalizeCupSizeLabel(o.size) === 'Tiêu chuẩn') {
-      return [o.sweetness].concat(o.addons || []).filter(Boolean);
-    }
-    var parts = [o.size];
-    var st = o.serveTemp || 'cold_steep';
-    if (st === 'iced' && o.ice) parts.push('Đá: ' + o.ice);
-    else parts.push(serveTempLabel(st));
-    if (o.sweetness) parts.push(o.sweetness);
-    if (o.packaging === 'plastic') parts.push('Chai nhựa');
-    else if (o.packaging === 'paper') parts.push('Ly giấy');
-    return parts.concat(o.addons || []).filter(Boolean);
-  }
-
-  function familyUnit500(p) {
-    var sell = parseFloat(p.familySell500) || 0;
-    if (sell > 0) return sell;
-    var ex = parseFloat(p.familyPackExtra500) || 0;
-    return ex > 0 ? (parseFloat(p.basePrice) || 0) + ex : 0;
-  }
-  function familyUnit1L(p) {
-    var sell = parseFloat(p.familySell1L) || 0;
-    if (sell > 0) return sell;
-    var ex = parseFloat(p.familyPackExtra1L) || 0;
-    return ex > 0 ? (parseFloat(p.basePrice) || 0) + ex : 0;
-  }
-  function hasFamily(p) {
-    return familyUnit500(p) > 0 || familyUnit1L(p) > 0;
-  }
-  function cupParts(p) {
-    var smallDisc = Math.max(0, parseFloat(p.smallCupDiscount) || 0);
-    var large = parseFloat(p.largeCupExtra);
-    if (isNaN(large)) large = 8000;
-    var parts = [];
-    if (p.enableSmall) parts.push({ label: 'Nhỏ', sub: '250ml', val: 'Nhỏ (250ml)', price: -smallDisc, icon: '🥛' });
-    if (p.enableRegular !== false) parts.push({ label: 'Thường', sub: '350ml', val: 'Thường (350ml)', price: 0, icon: '🥤' });
-    if (p.enableLarge !== false) parts.push({ label: 'Lớn', sub: '+' + fmt(large), val: 'Lớn (450ml)', price: large, icon: '🧃' });
-    if (!parts.length) parts.push({ label: 'Thường', sub: '350ml', val: 'Thường (350ml)', price: 0, icon: '🥤' });
-    return parts;
-  }
-  function familyParts(p) {
-    var parts = [];
-    var u5 = familyUnit500(p);
-    var u1 = familyUnit1L(p);
-    var bp = parseFloat(p.basePrice) || 0;
-    if (u5 > 0) parts.push({ label: 'Chai 500ml', sub: fmt(u5), val: 'Chai gia đình 500ml', price: Math.round(u5 - bp), icon: '🧴' });
-    if (u1 > 0) parts.push({ label: 'Chai 1 lít', sub: fmt(u1), val: 'Chai gia đình 1 lít', price: Math.round(u1 - bp), icon: '🧴' });
-    return parts;
-  }
-  function paintSizes(parts, defIdx) {
-    var el = $('mem-sheet-size-options');
-    if (!el || !parts.length) return;
-    var html = '';
-    for (var j = 0; j < parts.length; j++) {
-      var q = parts[j];
-      html += '<button type="button" class="size-btn' + (j === defIdx ? ' active' : '') + '" data-val="' + escAttr(q.val) + '" data-price="' + q.price + '">' +
-        '<span class="sz-icon">' + q.icon + '</span><div class="sz-name">' + esc(q.label) + '</div><div class="sz-price">' + esc(q.sub) + '</div></button>';
-    }
-    el.innerHTML = html;
-    el.querySelectorAll('.size-btn').forEach(function (btn) {
-      btn.onclick = function () {
-        el.querySelectorAll('.size-btn').forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        currentOptions.size = btn.getAttribute('data-val');
-        currentOptions.sizePrice = parseFloat(btn.getAttribute('data-price')) || 0;
-        if (String(currentOptions.size).indexOf('Chai gia đình') === 0) currentOptions.familyPack = true;
-        else currentOptions.familyPack = false;
-        updateModalPrice();
-      };
-    });
-    currentOptions.size = parts[defIdx].val;
-    currentOptions.sizePrice = parts[defIdx].price;
-  }
-  function renderSizeGrid() {
-    var p = currentProduct;
-    if (!p) return;
-    var parts = currentOptions.familyPack ? familyParts(p) : cupParts(p);
-    if (currentOptions.familyPack && !parts.length) {
-      currentOptions.familyPack = false;
-      var cb = $('mem-family-pack-toggle');
-      if (cb) cb.checked = false;
-      parts = cupParts(p);
-    }
-    var defIdx = 0;
-    var want = currentOptions.familyPack ? 'Chai gia đình 500ml' : 'Thường (350ml)';
-    for (var i = 0; i < parts.length; i++) { if (parts[i].val === want) { defIdx = i; break; } }
-    paintSizes(parts, defIdx);
-  }
-  function renderNutMix(p, isTopping) {
-    var grp = $('mem-nut-opt-group');
-    var chips = $('mem-nut-chips');
-    if (!grp || !chips) return;
-    if (!p || isTopping) { grp.style.display = 'none'; return; }
-    var list = mixHatList.filter(function (x) { return x && x.enabled !== false && x.name; });
-    if (!list.length) { grp.style.display = 'none'; return; }
-    grp.style.display = '';
-    chips.innerHTML = list.map(function (n) {
-      var mixP = Math.round(parseFloat(n.price) || 0);
-      var img = String(n.imageUrl || '').trim();
-      var imgH = img ? ('<img class="nut-chip-img" src="' + escAttr(img) + '" alt="" loading="lazy" decoding="async">') : '<div class="nut-chip-img nut-chip-ph">🌰</div>';
-      return '<button type="button" class="opt-btn opt-nut-chip" data-addon="' + escAttr(n.name) + '" data-price="' + mixP + '">' + imgH +
-        '<div class="nut-chip-meta"><div class="nut-chip-name">' + esc(n.name) + '</div><div class="nut-chip-price">' + (mixP > 0 ? '+' + fmt(mixP) : '') + '</div></div></button>';
-    }).join('');
-    chips.querySelectorAll('.opt-nut-chip').forEach(function (btn) {
-      btn.onclick = function () { toggleAddon(btn, btn.getAttribute('data-addon'), parseFloat(btn.getAttribute('data-price')) || 0); };
-    });
-  }
-  function escWithBr(s) {
-    return String(s || '').split('\n').map(function (line) { return esc(line); }).join('<br>');
-  }
-  function textNeedsExpandMore(s) {
-    s = String(s || '').trim();
-    if (!s) return false;
-    if (s.length > 110) return true;
-    if ((s.match(/\n/g) || []).length >= 2) return true;
-    return false;
-  }
-  function previewPlainText(s) {
-    var t = String(s || '').replace(/\s+/g, ' ').trim();
-    if (t.length <= 110) return t;
-    var cut = 110;
-    var sp = t.lastIndexOf(' ', 110);
-    if (sp > 55) cut = sp;
-    return t.slice(0, cut) + '…';
-  }
-  function buildExpandableTextCard(title, fullRaw) {
-    var full = String(fullRaw || '').trim();
-    if (!full) return '';
-    if (!textNeedsExpandMore(full)) {
-      return '<div class="mem-pd-meta-card"><div class="mem-pd-meta-t">' + esc(title) + '</div><div class="mem-pd-meta-b">' + escWithBr(full) + '</div></div>';
-    }
-    var prev = full.indexOf('\n') >= 0 ? (full.split('\n')[0].trim() + '…') : previewPlainText(full);
-    return '<div class="mem-pd-meta-card mem-pd-desc-card" data-expanded="0">' +
-      '<div class="mem-pd-meta-t">' + esc(title) + '</div>' +
-      '<div class="mem-pd-desc-preview">' + esc(prev) + '</div>' +
-      '<div class="mem-pd-desc-full" style="display:none">' + escWithBr(full) + '</div>' +
-      '<button type="button" class="mem-pd-desc-toggle-btn">Xem thêm</button></div>';
-  }
-  function buildPrimaryNarrativeCard(title, fullRaw, hasExtra) {
-    var full = String(fullRaw || '').trim();
-    if (!full) return '';
-    if (!hasExtra) return buildExpandableTextCard(title, fullRaw);
-    if (textNeedsExpandMore(full)) {
-      var prev = full.indexOf('\n') >= 0 ? (full.split('\n')[0].trim() + '…') : previewPlainText(full);
-      return '<div class="mem-pd-meta-card mem-pd-desc-card mem-pd-primary-desc" data-expanded="0">' +
-        '<div class="mem-pd-meta-t">' + esc(title) + '</div>' +
-        '<div class="mem-pd-desc-preview">' + esc(prev) + '</div>' +
-        '<div class="mem-pd-desc-full" style="display:none">' + escWithBr(full) + '</div></div>';
-    }
-    return '<div class="mem-pd-meta-card"><div class="mem-pd-meta-t">' + esc(title) + '</div><div class="mem-pd-meta-b">' + escWithBr(full) + '</div></div>';
-  }
-  function wireMemProductMetaReveal(box) {
-    var revealBtn = document.getElementById('mem-pd-meta-reveal-btn');
-    var extraEl = document.getElementById('mem-product-detail-meta-extra');
-    if (!box || !revealBtn || !extraEl) return;
-    revealBtn.addEventListener('click', function () {
-      var expanded = box.getAttribute('data-detail-expanded') === '1';
-      expanded = !expanded;
-      box.setAttribute('data-detail-expanded', expanded ? '1' : '0');
-      extraEl.style.display = expanded ? 'block' : 'none';
-      revealBtn.textContent = expanded ? 'Thu gọn' : 'Xem thêm';
-      var primaryDesc = box.querySelector('.mem-pd-primary-desc');
-      if (primaryDesc) {
-        var prev = primaryDesc.querySelector('.mem-pd-desc-preview');
-        var full = primaryDesc.querySelector('.mem-pd-desc-full');
-        if (prev && full) {
-          prev.style.display = expanded ? 'none' : '';
-          full.style.display = expanded ? '' : 'none';
-        }
-      }
-    });
-  }
-  function wireMemProductDescToggles(box) {
-    if (!box) return;
-    var extraWrap = box.querySelector('.mem-pd-meta-extra-wrap');
-    var btns = extraWrap
-      ? extraWrap.querySelectorAll('.mem-pd-desc-card .mem-pd-desc-toggle-btn')
-      : box.querySelectorAll('.mem-pd-desc-card .mem-pd-desc-toggle-btn');
-    for (var bi = 0; bi < btns.length; bi++) {
-      btns[bi].addEventListener('click', function (ev) {
-        var btn = ev.currentTarget;
-        var card = btn.closest('.mem-pd-desc-card');
-        if (!card) return;
-        var expanded = card.getAttribute('data-expanded') === '1';
-        expanded = !expanded;
-        card.setAttribute('data-expanded', expanded ? '1' : '0');
-        var prev = card.querySelector('.mem-pd-desc-preview');
-        var full = card.querySelector('.mem-pd-desc-full');
-        if (prev) prev.style.display = expanded ? 'none' : '';
-        if (full) full.style.display = expanded ? '' : 'none';
-        btn.textContent = expanded ? 'Thu gọn' : 'Xem thêm';
-      });
-    }
-  }
-  function renderMeta(p) {
-    var box = $('mem-product-detail-meta');
-    if (!box || !p) return;
-    var desc = String(p.description || '').trim();
-    var note = String(p.note || '').trim();
-    var k = p.nutritionKcal || 0, pr = p.nutritionProteinG || 0, ft = p.nutritionFatG || 0;
-    var benFull = String(p.benefits || '').trim();
-    var mark = 'Mở rộng cho admin';
-    var ix = benFull.toLowerCase().indexOf(mark.toLowerCase());
-    var benCust = ix >= 0 ? benFull.slice(0, ix).trim() : benFull;
-    var benAdm = ix >= 0 ? benFull.slice(ix).trim() : '';
-    var ingList = [];
-    if (Array.isArray(p.ingredientNames) && p.ingredientNames.length) {
-      ingList = p.ingredientNames.map(function (x) { return String(x || '').trim(); }).filter(Boolean);
-    } else if (Array.isArray(p.ingredients)) {
-      p.ingredients.forEach(function (i) {
-        if (!i) return;
-        var nm = typeof i === 'string' ? i.trim() : (i.name && String(i.name).trim());
-        if (nm) ingList.push(nm);
-      });
-    }
-    var seen = {};
-    ingList = ingList.filter(function (n) { if (seen[n]) return false; seen[n] = true; return true; });
-
-    var extraParts = [];
-    if (desc && note && note !== desc) {
-      extraParts.push(buildExpandableTextCard('Ghi chú (menu)', note));
-    }
-    if (k || pr || ft) {
-      extraParts.push(
-        '<div class="mem-pd-meta-card"><div class="mem-pd-meta-t"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Dinh dưỡng (ước)</div><div class="mem-pd-meta-pills">' +
-        (k ? '<span class="mem-pd-meta-pill"><i class="fa-solid fa-fire-flame-simple" aria-hidden="true"></i> Calo ~' + esc(String(k)) + '</span>' : '') +
-        (pr ? '<span class="mem-pd-meta-pill"><i class="fa-solid fa-drumstick-bite" aria-hidden="true"></i> Protein ~' + esc(String(pr)) + 'g</span>' : '') +
-        (ft ? '<span class="mem-pd-meta-pill"><i class="fa-solid fa-droplet" aria-hidden="true"></i> Béo ~' + esc(String(ft)) + 'g</span>' : '') +
-        '</div></div>'
-      );
-    }
-    if (benCust) {
-      extraParts.push('<div class="mem-pd-meta-card"><div class="mem-pd-meta-t"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Công dụng</div><div class="mem-pd-meta-b">' + escWithBr(benCust) + '</div></div>');
-    }
-    if (benAdm) {
-      extraParts.push('<div class="mem-pd-meta-card mem-pd-meta-card--muted"><div class="mem-pd-meta-t"><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Tham khảo thêm</div><div class="mem-pd-meta-b">' + escWithBr(benAdm) + '</div></div>');
-    }
-    if (ingList.length) {
-      extraParts.push('<div class="mem-pd-meta-card"><div class="mem-pd-meta-t"><i class="fa-solid fa-seedling" aria-hidden="true"></i> Thành phần</div><ul class="mem-pd-meta-ing">' +
-        ingList.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>');
-    }
-
-    var hasExtra = extraParts.length > 0;
-    var primary = '';
-    if (desc) {
-      primary = buildPrimaryNarrativeCard('Mô tả', desc, hasExtra);
-    } else if (note) {
-      primary = buildPrimaryNarrativeCard('Ghi chú', note, hasExtra);
-    } else if (hasExtra) {
-      primary = '<div class="mem-pd-meta-card mem-pd-meta-muted">Chưa có mô tả ngắn trên menu.</div>';
-    }
-
-    var html = '';
-    if (!primary && !hasExtra) {
-      box.innerHTML = '<p class="mem-pd-meta-muted">Chưa có mô tả chi tiết.</p>';
-      return;
-    }
-
-    html = '<div class="mem-pd-meta-layout" id="mem-pd-meta-layout-root" data-detail-expanded="0">' +
-      '<div class="mem-pd-meta-primary">' + primary + '</div>';
-    if (hasExtra) {
-      html += '<button type="button" class="mem-pd-meta-reveal-btn" id="mem-pd-meta-reveal-btn">Xem thêm</button>' +
-        '<div class="mem-pd-meta-extra-wrap" id="mem-product-detail-meta-extra" style="display:none">' + extraParts.join('') + '</div>';
-    }
-    html += '</div>';
-    box.innerHTML = html;
-    var root = document.getElementById('mem-pd-meta-layout-root');
-    wireMemProductMetaReveal(root || box);
-    wireMemProductDescToggles(root || box);
-  }
-  function updateModalPrice() {
-    if (!currentProduct) return;
-    var addonTotal = currentOptions.addonPrices.reduce(function (s, p) { return s + p; }, 0);
-    var unit = currentProduct.basePrice + currentOptions.sizePrice + addonTotal + (currentOptions.packagingPrice || 0);
-    var total = unit * currentQty;
-    var sp = $('mem-sheet-price'); if (sp) sp.textContent = fmt(unit);
-    var at = $('mem-sheet-add-total'); if (at) at.textContent = fmt(total);
-  }
-  function selectOpt(groupEl, group, value, price) {
-    if (group === 'ice' || group === 'sweetness') {
-      groupEl.parentNode.querySelectorAll('.opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      groupEl.classList.add('active');
-      currentOptions[group] = value;
-    }
-    updateModalPrice();
-  }
-  function toggleAddon(el, value, price) {
-    var idx = currentOptions.addons.indexOf(value);
-    if (idx > -1) {
-      currentOptions.addons.splice(idx, 1);
-      currentOptions.addonPrices.splice(idx, 1);
-      el.classList.remove('active');
-    } else {
-      currentOptions.addons.push(value);
-      currentOptions.addonPrices.push(price);
-      el.classList.add('active');
-    }
-    updateModalPrice();
-  }
-  function selectServeTemp(el, mode) {
-    document.querySelectorAll('#mem-sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-    el.classList.add('active');
-    currentOptions.serveTemp = mode;
-    var iceG = $('mem-sheet-ice-group');
-    if (iceG) {
-      if (mode === 'iced') {
-        iceG.style.display = '';
-        iceG.querySelectorAll('.opt-btn').forEach(function (b) { b.classList.remove('active'); });
-        var mid = iceG.querySelector('.opt-btn[data-ice="Vừa"]');
-        if (mid) { mid.classList.add('active'); currentOptions.ice = 'Vừa'; }
-      } else {
-        iceG.style.display = 'none';
-        currentOptions.ice = 'Không đá';
-      }
-    }
-    updateModalPrice();
-  }
-  function selectPackaging(el, pack) {
-    document.querySelectorAll('#mem-sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-    el.classList.add('active');
-    currentOptions.packaging = pack;
-    currentOptions.packagingPrice = (pack === 'plastic' && currentProduct) ? (parseFloat(currentProduct.plasticBottleExtra) || 0) : 0;
-    updateModalPrice();
-  }
-  function changeQty(d) {
-    currentQty = Math.max(1, currentQty + d);
-    var qd = $('mem-qty-display'); if (qd) qd.textContent = currentQty;
-    updateModalPrice();
-  }
-  function closeModal(e) {
-    if (e && e.target && e.target.id !== 'mem-product-modal' && e.target.id !== 'mem-pd-close') return;
-    var m = $('mem-product-modal');
-    if (m) {
-      m.classList.remove('open');
-      m.classList.add('mem-hidden');
-      m.setAttribute('hidden', '');
-      m.setAttribute('aria-hidden', 'true');
-    }
-    document.body.style.overflow = '';
-  }
-  function openProduct(p) {
-    if (!p) return;
-    currentProduct = p;
-    currentQty = 1;
-    currentOptions = {
-      size: 'Thường (350ml)', sizePrice: 0, ice: 'Không đá', sweetness: 'Ngọt vừa',
-      addons: [], addonPrices: [], serveTemp: 'cold_steep', packaging: 'paper',
-      packagingPrice: 0, familyPack: false
-    };
-    var nm = $('mem-sheet-name'); if (nm) nm.textContent = p.name || '';
-    var qd = $('mem-qty-display'); if (qd) qd.textContent = '1';
-    var note = $('mem-modal-note'); if (note) note.value = '';
-    var hero = $('mem-sheet-hero');
-    var emoji = $('mem-sheet-hero-emoji');
-    var url = p.coverImageUrl || p.imageUrl || '';
-    if (hero) {
-      hero.querySelectorAll('img.hero-img').forEach(function (e) { e.remove(); });
-      if (url) {
-        if (emoji) emoji.style.display = 'none';
-        var img = document.createElement('img');
-        img.className = 'hero-img';
-        img.src = url;
-        img.alt = p.name || '';
-        hero.insertBefore(img, hero.firstChild);
-      } else {
-        if (emoji) { emoji.style.display = 'flex'; emoji.textContent = '🥛'; }
-      }
-    }
-    var isTop = (p.category || '').toLowerCase().indexOf('topping') >= 0;
-    var sizeG = $('mem-sheet-size-group');
-    var tempG = $('mem-sheet-temp-group');
-    var iceG = $('mem-sheet-ice-group');
-    var packG = $('mem-sheet-pack-group');
-    var famRow = $('mem-family-pack-toggle-row');
-    if (isTop) {
-      if (sizeG) sizeG.style.display = 'none';
-      if (tempG) tempG.style.display = 'none';
-      if (iceG) iceG.style.display = 'none';
-      if (packG) packG.style.display = 'none';
-      currentOptions.size = 'Tiêu chuẩn';
-    } else {
-      if (sizeG) sizeG.style.display = '';
-      if (tempG) tempG.style.display = '';
-      if (packG) packG.style.display = '';
-      if (famRow) famRow.style.display = hasFamily(p) ? '' : 'none';
-      var famCb = $('mem-family-pack-toggle');
-      if (famCb) { famCb.checked = false; currentOptions.familyPack = false; }
-      renderSizeGrid();
-      document.querySelectorAll('#mem-sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var tCold = document.querySelector('#mem-sheet-temp-options .opt-btn[data-temp="cold_steep"]');
-      if (tCold) tCold.classList.add('active');
-      if (iceG) iceG.style.display = 'none';
-      document.querySelectorAll('#mem-sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var pPaper = document.querySelector('#mem-sheet-pack-options .opt-btn[data-pack="paper"]');
-      if (pPaper) pPaper.classList.add('active');
-    }
-    document.querySelectorAll('#mem-product-modal .opt-btn[data-sweet]').forEach(function (b) {
-      b.classList.toggle('active', b.getAttribute('data-sweet') === 'Ngọt vừa');
-    });
-    renderNutMix(p, isTop);
-    renderMeta(p);
-    updateModalPrice();
-    var modal = $('mem-product-modal');
-    if (modal) {
-      modal.classList.add('open');
-      modal.classList.remove('mem-hidden');
-      modal.removeAttribute('hidden');
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    }
-  }
-  function openProductById(id) {
-    var sid = String(id || '');
-    var p = menuRaw().find(function (x) { return String(x.id) === sid; });
-    if (p) { openProduct(p); return true; }
-    return false;
-  }
-  function addToCart() {
-    if (!currentProduct) return;
-    var noteEl = $('mem-modal-note');
-    var note = noteEl ? String(noteEl.value || '').trim() : '';
-    var ex = cart.find(function (i) {
-      return i.id === currentProduct.id &&
-        !!i.options.familyPack === !!currentOptions.familyPack &&
-        i.options.ice === currentOptions.ice &&
-        i.options.sweetness === currentOptions.sweetness &&
-        (i.options.serveTemp || 'cold_steep') === (currentOptions.serveTemp || 'cold_steep') &&
-        (i.options.packaging || 'paper') === (currentOptions.packaging || 'paper') &&
-        normalizeCupSizeLabel(i.options.size) === normalizeCupSizeLabel(currentOptions.size) &&
-        JSON.stringify(i.options.addons) === JSON.stringify(currentOptions.addons) &&
-        i.note === note;
-    });
-    if (ex) ex.quantity += currentQty;
-    else {
-      cart.push({
-        id: currentProduct.id,
-        name: currentProduct.name,
-        imageUrl: currentProduct.imageUrl || '',
-        basePrice: currentProduct.basePrice,
-        options: {
-          size: currentOptions.size,
-          sizePrice: currentOptions.sizePrice,
-          ice: currentOptions.ice,
-          sweetness: currentOptions.sweetness,
-          addons: currentOptions.addons.slice(),
-          addonPrices: currentOptions.addonPrices.slice(),
-          serveTemp: currentOptions.serveTemp,
-          packaging: currentOptions.packaging,
-          packagingPrice: currentOptions.packagingPrice || 0,
-          familyPack: !!currentOptions.familyPack
-        },
-        note: note,
-        quantity: currentQty
-      });
-    }
-    closeModal();
-    qrOrderLock = null;
-    if (awaitInfo) clearAwait(); // bắt đầu đơn mới thì rời màn hình chờ nhận nước
-    syncNavBadge();
-    scheduleGroupSync();
-    if (appliedPromo) applyPromo(appliedPromo, true);
-    toast('✅ Đã thêm ' + currentProduct.name);
-    // Khách mời trong nhóm: thêm món xong đưa thẳng sang màn Đơn nhóm để hoàn tất
-    if (isGuest() && inGroup() && global.SUN_MEM && global.SUN_MEM.goCart) {
-      setTimeout(function () { global.SUN_MEM.goCart(); }, 450);
-    }
-  }
-
-  // ============================================================
-  // ĐƠN NHÓM (kiểu GrabFood): 1 người tạo nhóm, bạn bè vào bằng
-  // link/mã, mỗi người tự thêm món, trưởng nhóm chốt & thanh toán.
-  // ============================================================
-  function inGroup() { return !!(group && group.groupId); }
-  /** Chuẩn hoá SĐT (Sheets có thể cắt mất số 0 đầu ở dữ liệu cũ). */
-  function normPh(p) {
-    var d = String(p || '').replace(/\D/g, '');
-    if (d.indexOf('84') === 0 && d.length >= 10) d = '0' + d.slice(2);
-    if (d.length === 9 && d.charAt(0) !== '0') d = '0' + d;
-    return d;
-  }
-  function isHost() { return inGroup() && phone() && normPh(group.hostPhone) === normPh(phone()); }
-  function groupLocked() { return inGroup() && group.status === 'locked'; }
-  // Khách mời không cần SĐT: định danh bằng guest id lưu trên thiết bị (localStorage)
-  function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
-  function lsSet(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) { } }
-  function guestId() { return lsGet('sun_guest_id'); }
-  function guestName() { return lsGet('sun_guest_name'); }
-  function ensureGuestId() {
-    var g = guestId();
-    if (!g) {
-      g = 'g_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
-      lsSet('sun_guest_id', g);
-    }
-    return g;
-  }
-  function isGuest() { return !phone() && !!guestId(); }
-  function memberId() { return phone() || guestId(); }
-  function myName() {
-    var nm = $('mem-cart-name');
-    if (nm && nm.value.trim()) return nm.value.trim();
-    var portal = global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.portal;
-    var pName = (portal && portal.profile && portal.profile.name) || '';
-    return pName || (phone() ? '' : guestName());
-  }
-  function groupOthers() {
-    if (!inGroup()) return [];
-    var mid = memberId();
-    return (group.members || []).filter(function (m) { return (m.id || m.phone) !== mid; });
-  }
-  /** Tổng số món cả nhóm (gồm giỏ local của mình phòng khi chưa kịp sync). */
-  function groupTotalQty() {
-    var others = groupOthers().reduce(function (s, m) {
-      return s + (m.items || []).reduce(function (a, it) { return a + (parseInt(it.quantity, 10) || 1); }, 0);
-    }, 0);
-    return others + cartQty();
-  }
-  function groupOthersItemsForApi() {
-    var out = [];
-    groupOthers().forEach(function (m) {
-      (m.items || []).forEach(function (it) {
-        var q = parseInt(it.quantity, 10) || 1;
-        out.push({ id: it.id, name: it.name, qty: q, quantity: q, price: parseFloat(it.price) || 0 });
-      });
-    });
-    return out;
-  }
-  function groupOthersSubtotal() {
-    return groupOthersItemsForApi().reduce(function (s, it) { return s + it.price * it.quantity; }, 0);
-  }
-  function myItemsForApi() {
-    return cart.map(function (it) {
-      return {
-        id: it.id, name: it.name, quantity: it.quantity || 1,
-        price: lineUnit(it), basePrice: it.basePrice || 0,
-        note: it.note || '', options: it.options || {}
-      };
-    });
-  }
-  function saveGroupSession(gid) {
-    lsSet('sun_group_id', gid || '');
-    try {
-      if (gid) sessionStorage.setItem('sun_group_id', gid);
-      else sessionStorage.removeItem('sun_group_id');
-    } catch (e) { }
-  }
-  function savedGroupId() {
-    var gid = lsGet('sun_group_id');
-    if (gid) return gid;
-    try { return sessionStorage.getItem('sun_group_id') || ''; } catch (e) { return ''; }
-  }
-  function shareGroupUrl() {
-    if (!inGroup()) return '';
-    var base = global.posBase ? global.posBase() : location.href.split('?')[0];
-    return base + '/member&group=' + group.groupId;
-  }
-  function applyGroupState(st, opts) {
-    opts = opts || {};
-    if (!st || st.ok === false) return;
-    var ended = st.status === 'ordered' || st.status === 'cancelled' || st.status === 'expired';
-    if (ended && !opts.keepEnded) {
-      // Thành viên (không phải trưởng nhóm): chuyển sang màn hình chờ nhận nước
-      if (st.status === 'ordered' && !isHost() && st.orderId) {
-        enterAwaitMode(st, opts);
-        return;
-      }
-      var msg = st.status === 'ordered'
-        ? ('🎉 Trưởng nhóm đã đặt đơn ' + (st.orderId || '') + ' - cảm ơn bạn!')
-        : (st.status === 'cancelled' ? 'Nhóm đã bị hủy' : 'Nhóm đã hết hạn');
-      exitGroupLocal();
-      if (!opts.silent) toast(msg);
-      renderGroupCard();
-      renderCartList();
-      return;
-    }
-    group = st;
-    saveGroupSession(st.groupId);
-    if (opts.adoptMyItems) {
-      var mid = memberId();
-      var mine = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
-      if (mine && (mine.items || []).length && !cart.length) {
-        cart = mine.items.map(function (it) {
-          return {
-            id: it.id, name: it.name, imageUrl: '',
-            basePrice: it.basePrice || (parseFloat(it.price) || 0) -
-              ((it.options && ((parseFloat(it.options.sizePrice) || 0) + (parseFloat(it.options.packagingPrice) || 0) +
-                ((it.options.addonPrices || []).reduce(function (a, p) { return a + (parseFloat(p) || 0); }, 0)))) || 0),
-            options: it.options || {}, note: it.note || '', quantity: parseInt(it.quantity, 10) || 1
-          };
-        });
-      }
-    }
-    startGroupPolling();
-    renderGroupCard();
-    renderCartList();
-    syncNavBadge();
-    applyGroupModeUi();
-  }
-  function exitGroupLocal() {
-    group = null;
-    saveGroupSession('');
-    stopGroupPolling();
-    applyGroupModeUi();
-  }
-  // ===== Chờ nhận nước: sau khi trưởng nhóm gửi đơn, thành viên xem món của mình + trạng thái bếp =====
-  function loadAwait() {
-    try { awaitInfo = JSON.parse(lsGet('sun_group_await') || 'null'); } catch (e) { awaitInfo = null; }
-    if (awaitInfo && (!awaitInfo.orderId || Date.now() - (awaitInfo.ts || 0) > 6 * 3600 * 1000)) awaitInfo = null;
-    if (awaitInfo) startAwaitPolling();
-  }
-  function saveAwait() { lsSet('sun_group_await', awaitInfo ? JSON.stringify(awaitInfo) : ''); }
-  function hasAwait() { return !!awaitInfo; }
-  function enterAwaitMode(st, opts) {
-    var mid = memberId();
-    var me = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
-    awaitInfo = {
-      orderId: st.orderId || '', groupId: st.groupId || '', groupName: st.groupName || '',
-      name: myName(), items: (me && me.items) || [], stage: 'making', status: '', ts: Date.now()
-    };
-    saveAwait();
-    exitGroupLocal();
-    cart = [];
-    syncNavBadge();
-    startAwaitPolling();
-    renderCartPage();
-    if (!opts || !opts.silent) {
-      toast('🎉 Trưởng nhóm đã gửi đơn - nước của bạn đang được pha!');
-      if (global.SUN_MEM && global.SUN_MEM.goCart) global.SUN_MEM.goCart();
-    }
-  }
-  function clearAwait() {
-    awaitInfo = null;
-    saveAwait();
-    stopAwaitPolling();
-    document.body.classList.remove('mem-await-mode');
-  }
-  function pollAwaitStatus() {
-    if (!awaitInfo || !awaitInfo.orderId) { stopAwaitPolling(); return; }
-    if (awaitInfo.stage !== 'making') { stopAwaitPolling(); return; } // đã xong/hủy thì thôi
-    var oid = awaitInfo.orderId;
-    var done = function (r) {
-      if (!awaitInfo || awaitInfo.orderId !== oid || !r || r.ok === false) return;
-      var s = String(r.status || '');
-      awaitInfo.status = s;
-      // % voucher góp ý theo cấu hình Khuyến mãi (0 = tắt, không hứa ưu đãi)
-      if (r.fbPercent != null) {
-        var fp = parseFloat(r.fbPercent) || 0;
-        if (fp !== awaitInfo.fbPercent) { awaitInfo.fbPercent = fp; saveAwait(); }
-      }
-      var stage = awaitInfo.stage;
-      if (s.indexOf('Hủy') >= 0) stage = 'cancelled';
-      else if (s.indexOf('hoàn tất chế biến') >= 0 || s.indexOf('giao') >= 0 || s.indexOf('nhận hàng') >= 0 || s.indexOf('Hoàn thành') >= 0) stage = 'ready';
-      if (stage !== awaitInfo.stage) {
-        awaitInfo.stage = stage;
-        saveAwait();
-        renderGroupCard();
-        if (stage === 'ready') toast('✅ Nước của bạn pha xong rồi - chuẩn bị nhận nhé!');
-      }
-    };
-    var base = global.posBase ? global.posBase() : '';
-    if (base) {
-      var sep = base.indexOf('?') === -1 ? '?' : '&';
-      fetch(('/api/order-status?order=' + encodeURIComponent(oid), { cache: 'no-store', credentials: 'same-origin' })
-        .then(function (r) { return r.json(); }).then(done)
-        .catch(function () { api('getOnlineOrderStatusPublic', oid).then(done).catch(function () { }); });
-    } else {
-      api('getOnlineOrderStatusPublic', oid).then(done).catch(function () { });
-    }
-  }
-  function startAwaitPolling() {
-    if (awaitPollTimer) return;
-    pollAwaitStatus();
-    awaitPollTimer = setInterval(pollAwaitStatus, 8000);
-  }
-  function stopAwaitPolling() {
-    if (awaitPollTimer) { clearInterval(awaitPollTimer); awaitPollTimer = null; }
-  }
-  /** Thẻ chờ nhận nước: món của tôi + animation + nút Đã nhận nước + góp ý (voucher theo cấu hình KM). */
-  function renderAwaitCard(blk) {
-    document.body.classList.add('mem-await-mode');
-    startAwaitPolling();
-    var stg = awaitInfo.stage;
-    var itemsHtml = (awaitInfo.items || []).map(function (it) {
-      var q = parseInt(it.quantity, 10) || 1;
-      var u = parseFloat(it.price) || 0;
-      var o = it.options || {};
-      var parts = [];
-      if (o.size && o.size !== 'Tiêu chuẩn') parts.push(o.size);
-      if (o.sweetness) parts.push(o.sweetness);
-      return '<div class="mem-await-item"><span>' + esc(it.name) + ' × ' + q +
-        (parts.length ? '<em>' + esc(parts.join(' · ')) + '</em>' : '') + '</span><span>' + fmt(u * q) + '</span></div>';
-    }).join('') || '<div class="mem-await-item"><span>Bạn chưa chọn món nào trong đơn này</span></div>';
-    var anim, statusHtml, extra = '';
-    if (stg === 'cancelled') {
-      anim = '<div class="mem-await-anim">😥</div>';
-      statusHtml = '<div class="mem-await-status err">Đơn đã bị hủy - liên hệ trưởng nhóm hoặc quán nhé</div>';
-      extra = '<button type="button" class="btn mem-await-new" id="mem-await-new"><i class="fa-solid fa-mug-hot"></i> Đặt đơn mới</button>';
-    } else if (stg === 'making') {
-      anim = '<div class="mem-await-anim making"><span class="mem-await-steam s1"></span><span class="mem-await-steam s2"></span><span class="mem-await-steam s3"></span>🥤</div>';
-      statusHtml = '<div class="mem-await-status">Bếp đang pha chế món của bạn<span class="mem-await-dots"><i>.</i><i>.</i><i>.</i></span></div>' +
-        '<p class="mem-await-hint">Màn hình tự cập nhật khi bếp pha xong - bạn cứ thư giãn ☕</p>';
-    } else if (stg === 'ready') {
-      anim = '<div class="mem-await-anim ready">🛎️</div>';
-      statusHtml = '<div class="mem-await-status ok">Nước đã pha xong - chờ giao / tới quầy nhận nhé!</div>';
-      extra = '<button type="button" class="btn mem-await-got" id="mem-await-got"><i class="fa-solid fa-hand-holding-heart"></i> Đã nhận nước</button>';
-    } else if (stg === 'feedback') {
-      // Ưu đãi góp ý chỉ hiện khi admin đã bật rule feedback_reward trong Khuyến mãi
-      var fbPct = parseFloat(awaitInfo.fbPercent) || 0;
-      anim = '<div class="mem-await-anim ready">💬</div>';
-      statusHtml = '<div class="mem-await-status ok">Tuyệt! Nước hôm nay thế nào?</div>';
-      extra = '<div class="mem-await-fb">' +
-        '<textarea id="mem-fb-msg" rows="3" maxlength="500" placeholder="Góp ý của bạn giúp SUN pha ngon hơn nữa…"></textarea>' +
-        (fbPct > 0
-          ? ('<input type="tel" id="mem-fb-phone" inputmode="numeric" maxlength="10" placeholder="SĐT của bạn - nhận voucher giảm ' + fbPct + '%">' +
-            '<p class="mem-await-fb-hint"><i class="fa-solid fa-gift"></i> Để lại SĐT khi góp ý = nhận <strong>voucher giảm ' + fbPct + '%</strong> cho đơn tiếp theo (hạn 7 ngày).</p>')
-          : '<input type="tel" id="mem-fb-phone" inputmode="numeric" maxlength="10" placeholder="SĐT của bạn (không bắt buộc)">') +
-        '<div class="mem-await-fb-actions">' +
-        '<button type="button" class="btn" id="mem-fb-send"><i class="fa-solid fa-paper-plane"></i> Gửi góp ý</button>' +
-        '<button type="button" class="btn btn-ghost" id="mem-fb-skip">Bỏ qua</button>' +
-        '</div></div>';
-    } else { // thanks - trang cảm ơn, CTA quay về trang hội viên
-      anim = '<div class="mem-await-anim ready thanks">💛</div>';
-      statusHtml = '<div class="mem-await-status ok mem-await-thanks-t">Cảm ơn bạn đã tin chọn SUN Nut Milk!</div>' +
-        '<p class="mem-await-hint">Góp ý của bạn giúp SUN pha những ly sau ngon hơn nữa 🥰</p>' +
-        (awaitInfo.voucherCode
-          ? ('<div class="mem-await-voucher"><div class="mem-await-voucher-t"><i class="fa-solid fa-gift"></i> Voucher góp ý của bạn</div>' +
-            '<div class="mem-await-voucher-code">' + esc(awaitInfo.voucherCode) + '</div>' +
-            '<div class="mem-await-voucher-d">Giảm <strong>' + (parseFloat(awaitInfo.reward) || 0) + '%</strong> cho đơn tiếp theo - nhập mã vào ô <strong>Khuyến mãi</strong> khi đặt' +
-            (awaitInfo.voucherExpires ? ' · HSD <strong>' + esc(awaitInfo.voucherExpires) + '</strong>' : '') + '</div></div>')
-          : '');
-      extra = '<button type="button" class="btn mem-await-new" id="mem-await-home"><i class="fa-solid fa-house"></i> Về trang hội viên</button>' +
-        '<p class="mem-await-hint mem-await-home-hint">Đăng nhập bằng SĐT tại trang hội viên để đặt đơn tiếp theo nhé.</p>';
-    }
-    blk.innerHTML = '<div class="card mem-await-card">' + anim + statusHtml +
-      '<div class="mem-await-order">Đơn <strong>' + esc(awaitInfo.orderId) + '</strong>' +
-      (awaitInfo.groupName ? ' · nhóm «' + esc(awaitInfo.groupName) + '»' : '') + '</div>' +
-      '<div class="mem-await-items"><div class="mem-await-items-t"><i class="fa-solid fa-mug-hot"></i> Món của bạn</div>' + itemsHtml + '</div>' +
-      extra + '</div>';
-    var got = $('mem-await-got');
-    if (got) got.onclick = function () {
-      awaitInfo.stage = 'feedback';
-      saveAwait();
-      renderGroupCard();
-    };
-    var send = $('mem-fb-send');
-    if (send) send.onclick = function () {
-      var msgEl = $('mem-fb-msg');
-      var phEl = $('mem-fb-phone');
-      var msg = msgEl ? String(msgEl.value || '').trim() : '';
-      var ph = phEl ? String(phEl.value || '').replace(/\D/g, '') : '';
-      if (!msg && !ph) { toast('Nhập góp ý giúp SUN nhé'); return; }
-      send.disabled = true;
-      api('submitDrinkFeedback', {
-        orderId: awaitInfo.orderId, groupId: awaitInfo.groupId, groupName: awaitInfo.groupName,
-        name: awaitInfo.name || myName(), phone: ph, message: msg
-      }).then(function (r) {
-        awaitInfo.stage = 'thanks';
-        awaitInfo.reward = (r && r.reward) ? parseFloat(r.reward) || 0 : 0;
-        awaitInfo.voucherCode = (r && r.voucherCode) || '';
-        awaitInfo.voucherExpires = (r && r.voucherExpires) || '';
-        saveAwait();
-        renderGroupCard();
-      }).catch(function (e) {
-        toast((e && e.message) || 'Không gửi được góp ý - thử lại nhé');
-        send.disabled = false;
-      });
-    };
-    var skip = $('mem-fb-skip');
-    if (skip) skip.onclick = function () {
-      awaitInfo.stage = 'thanks';
-      awaitInfo.reward = 0;
-      awaitInfo.voucherCode = '';
-      saveAwait();
-      renderGroupCard();
-    };
-    var nw = $('mem-await-new');
-    if (nw) nw.onclick = function () {
-      clearAwait();
-      renderCartPage();
-      if (global.SUN_MEM && global.SUN_MEM.goOrder) global.SUN_MEM.goOrder();
-    };
-    var hm = $('mem-await-home');
-    if (hm) hm.onclick = function () {
-      clearAwait();
-      renderCartPage();
-      // Về trang hội viên bình thường: khách mời sẽ thấy màn đăng nhập bằng SĐT
-      if (global.SUN_MEM && global.SUN_MEM.backToMemberGate) global.SUN_MEM.backToMemberGate();
-      else if (global.SUN_MEM && global.SUN_MEM.goOrder) global.SUN_MEM.goOrder();
-    };
-  }
-  function createGroup() {
-    if (!phone()) { toast('Đăng nhập SĐT để tạo nhóm (chỉ trưởng nhóm cần đăng nhập)'); return; }
-    var nameInp = $('mem-group-name-input');
-    var gname = nameInp ? String(nameInp.value || '').trim() : '';
-    var btn = $('mem-group-create');
-    if (btn) btn.disabled = true;
-    api('createGroupOrder', phone(), myName(), gname).then(function (st) {
-      applyGroupState(st);
-      scheduleGroupSync();
-      toast('✅ Đã tạo «' + (st.groupName || 'đơn nhóm') + '» - chia sẻ link cho bạn bè nhé');
-    }).catch(function (e) {
-      toast(e.message || 'Không tạo được nhóm');
-    }).finally(function () { if (btn) btn.disabled = false; });
-  }
-  /** Vào nhóm: hội viên dùng SĐT; khách chỉ cần tên (guestNameIn) - không cần đăng nhập. */
-  function joinGroup(code, guestNameIn) {
-    var c = String(code || '').trim().toUpperCase();
-    if (!c) { toast('Nhập mã nhóm'); return Promise.resolve(false); }
-    var mid, nm;
-    if (phone()) {
-      mid = phone();
-      nm = myName();
-    } else {
-      nm = String(guestNameIn || '').trim() || guestName();
-      if (!nm) {
-        pendingGroupCode = c;
-        lsSet('sun_group_pending', c);
-        return Promise.resolve('need-name');
-      }
-      mid = ensureGuestId();
-      lsSet('sun_guest_name', nm);
-    }
-    return api('joinGroupOrder', c, mid, nm, '').then(function (st) {
-      // Món của đơn nhóm chỉ tính từ lúc bấm link vào nhóm - giỏ chọn trước đó KHÔNG đưa vào nhóm
-      var meSt = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
-      var freshJoin = !(meSt && (meSt.items || []).length);
-      if (freshJoin && cart.length) {
-        cart = [];
-        syncNavBadge();
-        toast('🧺 Giỏ được làm mới - món cho đơn nhóm tính từ lúc này nhé');
-      }
-      applyGroupState(st, { adoptMyItems: true });
-      scheduleGroupSync();
-      toast('✅ Đã vào «' + (st.groupName || ('nhóm của ' + (st.hostName || 'bạn bè'))) + '»');
-      return true;
-    }).catch(function (e) {
-      toast(e.message || 'Không vào được nhóm');
-      return false;
-    });
-  }
-  function leaveGroup() {
-    if (!inGroup()) return;
-    var gid = group.groupId;
-    var host = isHost();
-    if (host && !confirm('Hủy đơn nhóm này? Giỏ của các thành viên sẽ không được đặt.')) return;
-    if (!host && !confirm('Rời nhóm này?')) return;
-    api('leaveGroupOrder', gid, memberId()).then(function () {
-      exitGroupLocal();
-      toast(host ? 'Đã hủy đơn nhóm' : 'Đã rời nhóm');
-      renderGroupCard();
-      renderCartList();
-    }).catch(function (e) { toast(e.message || 'Lỗi'); });
-  }
-  function toggleGroupLock() {
-    if (!isHost()) return;
-    var want = group.status !== 'locked';
-    api('setGroupOrderLock', group.groupId, phone(), want).then(function (st) {
-      applyGroupState(st);
-      toast(want ? '🔒 Đã khóa nhóm - thành viên không sửa giỏ được nữa' : '🔓 Đã mở khóa nhóm');
-    }).catch(function (e) { toast(e.message || 'Lỗi'); });
-  }
-  function scheduleGroupSync() {
-    if (!inGroup()) return;
-    clearTimeout(groupSyncTimer);
-    groupSyncTimer = setTimeout(function () { groupSyncNow(); }, 700);
-  }
-  function groupSyncNow() {
-    if (!inGroup() || !memberId()) return Promise.resolve();
-    if (groupSyncBusy) { groupSyncAgain = true; return Promise.resolve(); }
-    groupSyncBusy = true;
-    return api('syncGroupCart', group.groupId, memberId(), myName(), myItemsForApi()).then(function (st) {
-      applyGroupState(st);
-    }).catch(function (e) {
-      var msg = String((e && e.message) || '');
-      if (msg.indexOf('khóa') >= 0 || msg.indexOf('chưa ở trong nhóm') >= 0) toast(msg);
-    }).finally(function () {
-      groupSyncBusy = false;
-      if (groupSyncAgain) { groupSyncAgain = false; scheduleGroupSync(); }
-    });
-  }
-  function pollGroupState() {
-    if (!inGroup()) return;
-    var gid = group.groupId;
-    var base = global.posBase ? global.posBase() : '';
-    var done = function (st) {
-      if (st && st.groupId === gid && inGroup() && group.groupId === gid) applyGroupState(st);
-    };
-    if (base) {
-      var sep = base.indexOf('?') === -1 ? '?' : '&';
-      fetch(('/api/group-order?group=' + encodeURIComponent(gid), { cache: 'no-store', credentials: 'same-origin' })
-        .then(function (r) { return r.json(); }).then(done)
-        .catch(function () { api('getGroupOrder', gid).then(done).catch(function () { }); });
-    } else {
-      api('getGroupOrder', gid).then(done).catch(function () { });
-    }
-  }
-  function startGroupPolling() {
-    if (groupPollTimer) return;
-    groupPollTimer = setInterval(pollGroupState, 6000);
-  }
-  function stopGroupPolling() {
-    if (groupPollTimer) { clearInterval(groupPollTimer); groupPollTimer = null; }
-  }
-  function restoreGroupSession() {
-    var gid = savedGroupId();
-    if (!gid || inGroup()) return Promise.resolve(false);
-    return api('getGroupOrder', gid).then(function (st) {
-      if (!st || st.ok === false) { saveGroupSession(''); return false; }
-      var mid = memberId();
-      var iAmIn = (st.members || []).some(function (m) { return (m.id || m.phone) === mid; });
-      if (!iAmIn) { saveGroupSession(''); return false; }
-      var ended = st.status === 'ordered' || st.status === 'cancelled' || st.status === 'expired';
-      if (ended) {
-        // Đơn đã đặt khi mình vắng mặt: vẫn cho thành viên theo dõi chờ nhận nước
-        var amHost = phone() && normPh(st.hostPhone) === normPh(phone());
-        if (st.status === 'ordered' && st.orderId && !amHost && !awaitInfo) {
-          enterAwaitMode(st, { silent: true });
-          return true;
-        }
-        saveGroupSession('');
-        return false;
-      }
-      applyGroupState(st, { adoptMyItems: true, silent: true });
-      return true;
-    }).catch(function () { return false; });
-  }
-  function pendingGroup() {
-    return pendingGroupCode || lsGet('sun_group_pending') || (function () {
-      try { return sessionStorage.getItem('sun_group_pending') || ''; } catch (e) { return ''; }
-    })();
-  }
-  function clearPendingGroup() {
-    pendingGroupCode = '';
-    lsSet('sun_group_pending', '');
-    try { sessionStorage.removeItem('sun_group_pending'); } catch (e) { }
-  }
-  function consumePendingGroupJoin(guestNameIn) {
-    var c = pendingGroup();
-    if (!c) return Promise.resolve(false);
-    if (!phone() && !String(guestNameIn || '').trim() && !guestName()) return Promise.resolve('need-name');
-    return joinGroup(c, guestNameIn).then(function (r) {
-      if (r === true) clearPendingGroup();
-      return r;
-    });
-  }
-  /** Ẩn/hiện phần thanh toán theo vai trò trong nhóm + đổi chữ nút đặt đơn. */
-  function applyGroupModeUi() {
-    var memberOnly = inGroup() && !isHost();
-    var checkoutCard = document.querySelector('.mem-cart-checkout-card');
-    if (checkoutCard) checkoutCard.style.display = memberOnly ? 'none' : '';
-    var promoBlock = document.querySelector('.mem-cart-promo-block');
-    if (promoBlock) promoBlock.style.display = memberOnly ? 'none' : '';
-    // Thanh toán đang tạm ẩn cho đơn thường; riêng trưởng nhóm mở lại để chọn
-    // Chuyển khoản → hệ thống show QR sau khi chốt đơn
-    var payBlock = $('mem-cart-pay-block');
-    if (payBlock) payBlock.style.display = (inGroup() && isHost()) ? '' : 'none';
-    var wait = $('mem-group-wait');
-    if (wait) wait.style.display = memberOnly ? '' : 'none';
-    var sub = $('mem-cart-submit');
-    if (sub) {
-      if (inGroup() && isHost()) {
-        sub.innerHTML = '<i class="fa-solid fa-user-group"></i> Đặt đơn nhóm (' + fmt(cartFinalTotal()) + ')';
-      } else {
-        sub.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đơn';
-      }
-    }
-    document.body.classList.toggle('mem-group-mode', inGroup());
-    document.body.classList.toggle('mem-group-guest', isGuest() && inGroup());
-  }
-  function ensureGroupBlock() {
-    var blk = $('mem-group-block');
-    if (blk) return blk;
-    var itemsBox = $('mem-cart-items');
-    if (!itemsBox || !itemsBox.parentNode) return null;
-    blk = document.createElement('div');
-    blk.id = 'mem-group-block';
-    itemsBox.parentNode.insertBefore(blk, itemsBox);
-    return blk;
-  }
-  function renderGroupCard() {
-    var blk = ensureGroupBlock();
-    if (!blk) return;
-    if (awaitInfo) { renderAwaitCard(blk); return; }
-    document.body.classList.remove('mem-await-mode');
-    if (!inGroup()) {
-      var canCreate = !!phone();
-      blk.innerHTML =
-        '<div class="card mem-group-card">' +
-        '<div class="mem-group-head"><i class="fa-solid fa-user-group"></i> Đơn nhóm</div>' +
-        '<p class="mem-group-hint">Rủ bạn bè cùng đặt: mỗi người tự chọn món, trưởng nhóm chốt đơn một lần.</p>' +
-        (canCreate
-          ? ('<div class="mem-group-create-row">' +
-            '<input type="text" id="mem-group-name-input" placeholder="Tên đơn nhóm (VD: Team Văn phòng) - bỏ trống dùng tên bạn" maxlength="60" autocomplete="off">' +
-            '<button type="button" class="btn btn-sm" id="mem-group-create"><i class="fa-solid fa-plus"></i> Tạo đơn nhóm</button>' +
-            '</div>')
-          : '') +
-        '<div class="mem-group-join"><input type="text" id="mem-group-code-input" placeholder="Có mã nhóm? Nhập tại đây (VD: AB12CD)" maxlength="8" autocomplete="off">' +
-        '<button type="button" class="btn btn-sm btn-ghost" id="mem-group-join-btn">Vào nhóm</button></div>' +
-        '</div>';
-      var cbtn = $('mem-group-create');
-      if (cbtn) cbtn.onclick = createGroup;
-      var doJoin = function (code) {
-        joinGroup(code).then(function (r) {
-          if (r === 'need-name' && global.SUN_MEM && global.SUN_MEM.openGuestGate) global.SUN_MEM.openGuestGate(code);
-        });
-      };
-      var jbtn = $('mem-group-join-btn');
-      var jinp = $('mem-group-code-input');
-      if (jbtn) jbtn.onclick = function () { doJoin(jinp ? jinp.value : ''); };
-      if (jinp) jinp.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Enter') { ev.preventDefault(); doJoin(jinp.value); }
-      });
-      applyGroupModeUi();
-      return;
-    }
-    var host = isHost();
-    var locked = groupLocked();
-    var members = group.members || [];
-    var statusTxt = locked
-      ? '<span class="mem-group-st mem-group-st-locked"><i class="fa-solid fa-lock"></i> Đã khóa - chờ trưởng nhóm đặt</span>'
-      : '<span class="mem-group-st mem-group-st-open"><i class="fa-solid fa-circle-dot"></i> Đang mở - mọi người thêm món nhé</span>';
-    var meLabel = isGuest() ? ('Bạn: <strong>' + esc(guestName() || 'Khách') + '</strong>' + (host ? '' : ' (khách mời - không cần đăng nhập)')) : '';
-    var html =
-      '<div class="card mem-group-card mem-group-on">' +
-      '<div class="mem-group-top">' +
-      '<div class="mem-group-title-wrap">' +
-      '<div class="mem-group-head"><i class="fa-solid fa-user-group"></i> ' + esc(group.groupName || ('Đơn nhóm của ' + (group.hostName || 'bạn'))) + '</div>' +
-      '<div class="mem-group-substatus">' + statusTxt + '<span class="mem-group-badge">' + members.length + ' người</span><span class="mem-group-total-badge">' + fmt(group.total || 0) + '</span>' +
-      (groupDiscPct() > 0 ? '<span class="mem-group-disc-badge">🎁 Ưu đãi nhóm −' + groupDiscPct() + '%</span>' : '') + '</div>' +
-      (meLabel ? ('<div class="mem-group-me">' + meLabel + '</div>') : '') +
-      '</div>' +
-      '<div class="mem-group-code-box"><span>Mã nhóm</span><strong class="mem-group-code">' + esc(group.groupId) + '</strong></div>' +
-      '</div>' +
-      '<div class="mem-group-actions">' +
-      '<button type="button" class="btn btn-sm" id="mem-group-share"><i class="fa-solid fa-share-nodes"></i> Chia sẻ link mời</button>';
-    if (host) {
-      html += '<button type="button" class="btn btn-sm btn-ghost" id="mem-group-lock"><i class="fa-solid ' + (locked ? 'fa-lock-open' : 'fa-lock') + '"></i> ' + (locked ? 'Mở khóa' : 'Khóa nhóm') + '</button>';
-      html += '<button type="button" class="btn btn-sm btn-ghost mem-group-leave" id="mem-group-leave"><i class="fa-solid fa-xmark"></i> Hủy nhóm</button>';
-    } else {
-      html += '<button type="button" class="btn btn-sm btn-ghost mem-group-leave" id="mem-group-leave"><i class="fa-solid fa-right-from-bracket"></i> Rời nhóm</button>';
-    }
-    html += '</div>';
-    if (host) {
-      // Nút chốt đơn nổi bật ngay trong thẻ nhóm - gửi thẳng cho bếp (giá đã trừ ưu đãi nhóm)
-      var gSub = group.total || 0;
-      var gPay = Math.max(0, gSub - Math.min(gSub, Math.max(groupAutoDiscount(gSub), discount)));
-      html += '<button type="button" class="btn mem-group-finalize-btn" id="mem-group-finalize">' +
-        '<i class="fa-solid fa-utensils"></i> Chốt đơn & gửi bếp - ' + fmt(gPay) +
-        ' <span class="mem-group-finalize-n">(' + groupTotalQty() + ' món' + (groupDiscPct() > 0 ? ' · đã giảm ' + groupDiscPct() + '%' : '') + ')</span></button>' +
-        '<div class="mem-group-finalize-hint"><i class="fa-solid fa-circle-info"></i> Muốn <strong>chuyển khoản</strong>? Chọn ở khung <strong>Thanh toán</strong> bên dưới - mã QR sẽ hiện ngay sau khi chốt đơn.</div>';
-    }
-    html += '<div id="mem-group-wait" class="mem-group-wait" style="display:none;">' +
-      '<i class="fa-solid fa-hourglass-half"></i> Món của bạn tự lưu vào nhóm - trưởng nhóm sẽ chốt đơn và thanh toán.' +
-      '<button type="button" class="btn btn-sm mem-group-done-btn" id="mem-group-done"><i class="fa-solid fa-check"></i> Hoàn tất chọn món</button>' +
-      '<button type="button" class="btn btn-sm btn-ghost mem-group-more-btn" id="mem-group-more"><i class="fa-solid fa-plus"></i> Chọn thêm món</button>' +
-      '</div>' +
-      '</div>';
-    blk.innerHTML = html;
-    var fz = $('mem-group-finalize');
-    if (fz) fz.onclick = function () {
-      if (!groupTotalQty()) { toast('Nhóm chưa có món nào - mọi người thêm món trước nhé'); return; }
-      var cSub = group.total || 0;
-      var cPay = Math.max(0, cSub - Math.min(cSub, Math.max(groupAutoDiscount(cSub), discount)));
-      if (!confirm('Chốt đơn nhóm «' + (group.groupName || '') + '» - ' + groupTotalQty() + ' món, thanh toán ' + fmt(cPay) + (groupDiscPct() > 0 && groupAutoDiscount(cSub) >= discount ? ' (đã giảm ' + groupDiscPct() + '%)' : '') + ' và gửi cho bếp?')) return;
-      fz.disabled = true;
-      fz.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi đơn cho bếp…';
-      var p = submitOrder();
-      var restore = function () { if (inGroup()) renderGroupCard(); };
-      if (p && typeof p.then === 'function') p.then(restore, restore);
-      else restore();
-    };
-    var sh = $('mem-group-share');
-    if (sh) sh.onclick = function () {
-      var url = shareGroupUrl();
-      var txt = 'Vào «' + (group.groupName || 'đơn nhóm SUN Nut Milk') + '» đặt nước cùng mình nhé! Mã nhóm: ' + group.groupId + ' - ' + url;
-      if (navigator.share) {
-        navigator.share({ title: group.groupName || 'Đơn nhóm SUN Nut Milk', text: txt, url: url }).catch(function () { });
-      } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt).then(function () { toast('📋 Đã copy link mời - gửi cho bạn bè nhé'); });
-      } else {
-        prompt('Copy link mời bạn bè:', url);
-      }
-    };
-    var lk = $('mem-group-lock');
-    if (lk) lk.onclick = toggleGroupLock;
-    var lv = $('mem-group-leave');
-    if (lv) lv.onclick = leaveGroup;
-    var mr = $('mem-group-more');
-    if (mr) mr.onclick = function () {
-      if (global.SUN_MEM && global.SUN_MEM.goOrder) global.SUN_MEM.goOrder();
-    };
-    var dn = $('mem-group-done');
-    if (dn) dn.onclick = function () {
-      if (!cart.length) { toast('Bạn chưa chọn món nào - chọn tại tab Đặt hàng nhé'); return; }
-      dn.disabled = true;
-      groupSyncNow().then(function () {
-        toast('✅ Đã lưu ' + cartQty() + ' món của bạn vào nhóm - chờ trưởng nhóm chốt đơn');
-      }).finally(function () { dn.disabled = false; });
-    };
-    applyGroupModeUi();
-  }
-  function renderGroupMembersList() {
-    if (!inGroup()) return '';
-    var others = groupOthers();
-    if (!others.length) {
-      return '<div class="mem-group-members-empty"><i class="fa-solid fa-user-plus"></i> Chưa có bạn nào vào nhóm - chia sẻ link để mời nhé</div>';
-    }
-    return '<div class="mem-group-members-grid">' + others.map(function (m) {
-      var items = m.items || [];
-      var rows = items.length
-        ? items.map(function (it) {
-          var opts = [];
-          var o = it.options || {};
-          if (o.size && o.size !== 'Tiêu chuẩn') opts.push(o.size);
-          if (o.sweetness) opts.push(o.sweetness);
-          var optsHtml = opts.length ? '<div class="mem-ci-opts">' + esc(opts.join(' · ')) + '</div>' : '';
-          return '<div class="mem-group-mi"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
-            '<span>' + fmt((parseFloat(it.price) || 0) * (parseInt(it.quantity, 10) || 1)) + '</span>' + optsHtml + '</div>';
-        }).join('')
-        : '<div class="mem-group-mi mem-group-mi-empty">Đang chọn món…</div>';
-      return '<div class="mem-group-member"><div class="mem-group-member-head"><i class="fa-solid fa-circle-user"></i> ' +
-        esc(m.name || ('KH ' + String(m.id || m.phone).slice(-4))) +
-        '<span>' + fmt(m.subtotal || 0) + '</span></div>' + rows + '</div>';
-    }).join('') + '</div>';
-  }
-
-  function syncNavBadge() {
-    var n = cartQty();
-    ['mem-nav-cart-badge', 'mem-nav-cart-badge-dt'].forEach(function (id) {
-      var badge = $(id);
-      if (badge) {
-        badge.textContent = n;
-        badge.style.display = n > 0 ? 'inline-flex' : 'none';
-      }
-    });
-    syncOrderCta();
-  }
-  /** Thanh CTA nổi ở tab Đặt hàng: luôn thấy nút đi tiếp sau khi chọn món (kể cả đơn nhóm). */
-  function ensureOrderCtaBar() {
-    var bar = $('mem-order-cta');
-    if (bar) return bar;
-    var sec = document.getElementById('sec-order');
-    if (!sec) return null;
-    bar = document.createElement('div');
-    bar.id = 'mem-order-cta';
-    bar.className = 'mem-order-cta';
-    sec.appendChild(bar);
-    return bar;
-  }
-  function syncOrderCta() {
-    var bar = ensureOrderCtaBar();
-    if (!bar) return;
-    var n = cartQty();
-    if (!n) { bar.style.display = 'none'; return; }
-    bar.style.display = 'flex';
-    var label;
-    if (inGroup() && isHost()) label = 'Xem nhóm & đặt đơn';
-    else if (inGroup()) label = 'Hoàn tất chọn món';
-    else label = 'Xem giỏ & gửi đơn';
-    bar.innerHTML =
-      '<div class="mem-order-cta-sum">' + n + ' món · ' + fmt(cartSubtotal()) +
-      (inGroup() ? ' <span class="mem-order-cta-grp"><i class="fa-solid fa-user-group"></i> nhóm</span>' : '') + '</div>' +
-      '<button type="button" class="mem-order-cta-btn" id="mem-order-cta-btn">' + label + ' <i class="fa-solid fa-arrow-right"></i></button>';
-    var b = $('mem-order-cta-btn');
-    if (b) b.onclick = function () {
-      if (inGroup() && !isHost()) {
-        groupSyncNow().then(function () { toast('✅ Đã lưu ' + cartQty() + ' món của bạn vào nhóm'); });
-      }
-      if (global.SUN_MEM && global.SUN_MEM.goCart) global.SUN_MEM.goCart();
-    };
-  }
-  // ----- Ưu đãi đơn nhóm: % động theo cấu hình Khuyến mãi (rule group_order) - không cộng dồn mã KM -----
-  function groupDiscPct() {
-    var p = group && group.discountPct != null ? parseFloat(group.discountPct) : NaN;
-    return isNaN(p) ? 0 : Math.max(0, p);
-  }
-  function groupAutoDiscount(sub) {
-    var pct = groupDiscPct();
-    return inGroup() && pct > 0 ? Math.round(sub * pct / 100) : 0;
-  }
-  function effectiveDiscount(sub) {
-    return Math.min(sub, Math.max(discount, groupAutoDiscount(sub)));
-  }
-  function syncCartTotals() {
-    var sub = cartSubtotal() + groupOthersSubtotal();
-    var disc = effectiveDiscount(sub);
-    var total = Math.max(0, sub - disc);
-    // Đơn vừa gửi xong (giỏ đã dọn): giữ số tiền của đơn đó để khách đối chiếu khi quét QR
-    if (qrOrderLock && !sub) {
-      sub = qrOrderLock.subtotal || qrOrderLock.amount;
-      disc = qrOrderLock.discount || 0;
-      total = qrOrderLock.amount;
-    }
-    var elSub = $('mem-cart-sub'); if (elSub) elSub.textContent = fmt(sub);
-    var elDisc = $('mem-cart-disc');
-    if (elDisc) {
-      elDisc.textContent = fmt(disc);
-      var gWin = inGroup() && groupAutoDiscount(sub) > 0 && groupAutoDiscount(sub) >= discount && disc > 0;
-      elDisc.title = gWin ? ('Ưu đãi đơn nhóm −' + groupDiscPct() + '%') : '';
-      var lbl = elDisc.parentElement ? elDisc.parentElement.querySelector('span:first-child') : null;
-      if (lbl) lbl.innerHTML = gWin ? ('Giảm KM <em class="mem-group-disc-tag">🎁 nhóm −' + groupDiscPct() + '%</em>') : 'Giảm KM';
-    }
-    var elTot = $('mem-cart-total'); if (elTot) elTot.textContent = fmt(total);
-    var elPkSub = $('pk-sub'); if (elPkSub) elPkSub.textContent = fmt(sub);
-    var elPkDisc = $('pk-disc'); if (elPkDisc) elPkDisc.textContent = fmt(disc);
-    var elPkTot = $('pk-total'); if (elPkTot) elPkTot.textContent = fmt(total);
-    updateCartQr();
-  }
-  // ----- QR chuyển khoản (VietQR - MB Bank): chỉ hiện SAU khi gửi đơn thành công -----
-  var BANK_QR = { bin: '970422', acc: '8511585115', name: 'LAM VAN TIN', label: 'MB Bank' };
-  var qrOrderLock = null; // {amount, memo} - set khi đơn đã gửi thành công
-  function cartFinalTotal() {
-    var sub = cartSubtotal() + groupOthersSubtotal();
-    return Math.max(0, sub - effectiveDiscount(sub));
-  }
-  function updateCartQr() {
-    var box = $('mem-cart-qr');
-    if (!box) return;
-    var pre = $('mem-cart-qr-pre');
-    if (pay !== 'Chuyển khoản') {
-      box.style.display = 'none';
-      if (pre) pre.style.display = 'none';
-      return;
-    }
-    if (!qrOrderLock) {
-      // Chưa gửi đơn: chỉ nhắc, QR sẽ hiện kèm mã đơn sau khi Gửi đơn
-      box.style.display = 'none';
-      if (pre) pre.style.display = '';
-      return;
-    }
-    if (pre) pre.style.display = 'none';
-    var amt = qrOrderLock.amount;
-    var memo = qrOrderLock.memo;
-    box.style.display = '';
-    var img = $('mem-cart-qr-img');
-    if (img) {
-      img.src = 'https://img.vietqr.io/image/' + BANK_QR.bin + '-' + BANK_QR.acc + '-compact2.png' +
-        '?amount=' + Math.max(0, Math.round(amt)) +
-        '&addInfo=' + encodeURIComponent(memo) +
-        '&accountName=' + encodeURIComponent(BANK_QR.name);
-    }
-    var a = $('mem-cart-qr-amt'); if (a) a.textContent = fmt(amt);
-    var ab = $('mem-cart-qr-amt-big'); if (ab) ab.textContent = fmt(amt);
-    var m = $('mem-cart-qr-memo'); if (m) m.textContent = memo;
-    var h = $('mem-cart-qr-hint');
-    if (h) {
-      h.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--green,#15803D);"></i> Đơn <strong>' + esc(memo) + '</strong> đã gửi cho quán - quét QR để hoàn tất chuyển khoản nhé.';
-    }
-    var pb = $('mem-cart-qr-print');
-    if (pb) pb.onclick = printMemberBill;
-  }
-  /** Snapshot món cho bill (chụp TRƯỚC khi dọn giỏ) - đơn nhóm gồm món mọi người. */
-  function buildBillItemsSnapshot() {
-    var out = cart.map(function (it) {
-      var u = lineUnit(it);
-      return {
-        name: it.name, qty: it.quantity || 1, unit: u, total: u * (it.quantity || 1),
-        opts: buildOptsParts(it).join(' · '), note: it.note || '',
-        member: inGroup() ? (myName() || 'Trưởng nhóm') : ''
-      };
-    });
-    if (inGroup()) {
-      groupOthers().forEach(function (mb) {
-        (mb.items || []).forEach(function (it) {
-          var q = parseInt(it.quantity, 10) || 1;
-          var u = parseFloat(it.price) || 0;
-          var o = it.options || {};
-          var parts = [];
-          if (o.size && o.size !== 'Tiêu chuẩn') parts.push(o.size);
-          if (o.sweetness) parts.push(o.sweetness);
-          out.push({
-            name: it.name, qty: q, unit: u, total: u * q,
-            opts: parts.join(' · '), note: String(it.note || ''),
-            member: mb.name || ('KH ' + String(mb.id || mb.phone || '').slice(-4))
-          });
-        });
-      });
-    }
-    return out;
-  }
-  /** In bill: chi tiết đơn + số tiền, QR thanh toán ở dưới (khổ 72mm như bill POS). */
-  function printMemberBill() {
-    if (!qrOrderLock) { toast('Chưa có đơn để in'); return; }
-    var L = qrOrderLock;
-    var w = window.open('', '_blank', 'width=420,height=720');
-    if (!w) { toast('Trình duyệt chặn cửa sổ in - cho phép popup rồi thử lại nhé'); return; }
-    var n = function (v) { return Math.round(v).toLocaleString('vi-VN'); };
-    var qrSrc = 'https://img.vietqr.io/image/' + BANK_QR.bin + '-' + BANK_QR.acc + '-compact2.png' +
-      '?amount=' + Math.max(0, Math.round(L.amount)) +
-      '&addInfo=' + encodeURIComponent(L.memo) +
-      '&accountName=' + encodeURIComponent(BANK_QR.name);
-    var now = new Date();
-    var dateStr = now.toLocaleDateString('vi-VN');
-    var timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    var rows = (L.items || []).map(function (it) {
-      var subParts = [];
-      if (it.member) subParts.push('👤 ' + it.member);
-      if (it.opts) subParts.push(it.opts);
-      if (it.note) subParts.push('Ghi chú: ' + it.note);
-      var sub = subParts.length ? '<div style="font-size:8px;color:#222;margin:1px 0 0;line-height:1.25;">' + esc(subParts.join(' · ')) + '</div>' : '';
-      return '<tr><td style="text-align:left;padding:3px 1px 3px 0;border-bottom:1px dashed #888;vertical-align:top;word-break:break-word;">' + esc(it.name || '') + sub + '</td>' +
-        '<td style="text-align:right;padding:3px 2px;border-bottom:1px dashed #888;white-space:nowrap;">' + it.qty + '</td>' +
-        '<td style="text-align:right;padding:3px 2px;border-bottom:1px dashed #888;white-space:nowrap;">' + n(it.unit) + '</td>' +
-        '<td style="text-align:right;padding:3px 0 3px 2px;border-bottom:1px dashed #888;white-space:nowrap;">' + n(it.total) + '</td></tr>';
-    }).join('');
-    var totalQty = (L.items || []).reduce(function (s, it) { return s + (it.qty || 1); }, 0);
-    var extraRows = (L.discount > 0)
-      ? '<tr><td colspan="3" style="padding:2px 0;font-size:10px;">Giảm giá' + (L.groupName ? ' (ưu đãi đơn nhóm)' : '') + '</td><td style="text-align:right;font-size:10px;color:#15803d;">-' + n(L.discount) + '</td></tr>'
-      : '';
-    var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>HĐ ' + esc(L.memo) + '</title>' +
-      '<style>' +
-      '@page { size: 72mm auto; margin: 2mm; }' +
-      'body,table,td,th{font-family:Arial,Helvetica,sans-serif;max-width:72mm;margin:0 auto;padding:6px 4px 12px;color:#000;font-size:11px;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
-      '.brand{font-weight:800;font-size:13px;text-transform:uppercase;margin:0 0 2px;text-align:center;}' +
-      '.rule{border:none;border-top:2px solid #000;margin:6px 0;}' +
-      '.rule-light{border:none;border-top:1px solid #000;margin:4px 0;}' +
-      '.hd{text-align:center;font-weight:800;font-size:12px;letter-spacing:0.5px;margin:4px 0;}' +
-      '.meta{font-size:9px;display:flex;justify-content:space-between;gap:6px;margin-bottom:4px;}' +
-      '.meta-col{flex:1;min-width:0;}' +
-      'table.items{width:100%;border-collapse:collapse;font-size:10px;margin:4px 0;}' +
-      'table.items th{text-align:left;font-weight:800;border-bottom:2px solid #000;padding:3px 1px;font-size:9px;}' +
-      'table.items th.n{text-align:right;}' +
-      '.tot-big{font-size:22px;font-weight:900;text-align:center;margin:10px 0 4px;letter-spacing:-0.5px;}' +
-      '.pay-big{font-size:13px;font-weight:800;text-align:center;margin:0 0 6px;}' +
-      '.ty{text-align:center;font-weight:700;font-size:11px;margin:10px 0 6px;}' +
-      '.foot{font-size:8px;text-align:center;color:#333;line-height:1.4;}' +
-      'img.qr{display:block;margin:8px auto 2px;max-width:180px;}' +
-      '.qr-amt{text-align:center;font-size:14px;font-weight:900;margin:0 0 4px;}' +
-      '@media print{body{padding:2mm;}}' +
-      '</style></head><body>' +
-      '<div class="brand">SUN Nut Milk</div>' +
-      '<hr class="rule">' +
-      '<div class="hd">HÓA ĐƠN THANH TOÁN</div>' +
-      (L.groupName ? '<div style="text-align:center;font-size:10px;font-weight:800;margin:0 0 4px;">👥 Đơn nhóm «' + esc(L.groupName) + '»</div>' : '') +
-      '<div class="meta"><div class="meta-col">Số HĐ: ' + esc(L.memo) + '<br>Ngày: ' + esc(dateStr) + '<br>KH: ' + esc(L.customerName || 'Khách') + '</div>' +
-      '<div class="meta-col" style="text-align:right;">' + esc(timeStr) + '<br>SĐT: ' + esc(L.customerPhone || '--') + '</div></div>' +
-      '<table class="items"><thead><tr><th>TÊN HÀNG</th><th class="n">SL</th><th class="n">ĐG</th><th class="n">T.TIỀN</th></tr></thead><tbody>' +
-      rows +
-      '<tr><td colspan="3" style="padding:4px 0 2px;font-weight:800;border-top:2px solid #000;">T.CỘNG: ' + totalQty + '</td><td style="text-align:right;font-weight:800;border-top:2px solid #000;padding:4px 0 2px;">' + n(L.amount) + '</td></tr>' +
-      extraRows +
-      '</tbody></table>' +
-      '<hr class="rule-light">' +
-      '<div class="tot-big">' + n(L.amount) + ' <span style="font-size:12px;font-weight:800;">VND</span></div>' +
-      '<div class="pay-big">CHUYỂN KHOẢN</div>' +
-      '<hr class="rule-light">' +
-      '<div class="foot">Quét QR để thanh toán - ' + esc(BANK_QR.label) + '<br>STK: <strong>' + esc(BANK_QR.acc) + '</strong> · ' + esc(BANK_QR.name) + '<br>Nội dung CK: <strong>' + esc(L.memo) + '</strong></div>' +
-      '<img class="qr" src="' + qrSrc + '" alt="QR CK">' +
-      '<div class="qr-amt">' + n(L.amount) + ' VND</div>' +
-      '<div class="ty">Cảm ơn quý khách - Hẹn gặp lại!</div>' +
-      '</body></html>';
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(function () { try { w.print(); } catch (e) { } }, 400);
-  }
-  function renderCartList() {
-    var box = $('mem-cart-items');
-    if (!box) return;
-    var groupHtml = '';
-    if (inGroup()) {
-      groupHtml = '<div class="mem-group-section-label"><i class="fa-solid fa-mug-hot"></i> Món của bạn</div>';
-    }
-    if (!cart.length) {
-      box.innerHTML = groupHtml +
-        '<p class="mem-cart-empty"><i class="fa-solid fa-basket-shopping"></i> Giỏ trống - chọn món tại tab Đặt hàng</p>' +
-        (inGroup() ? ('<div class="mem-group-section-label"><i class="fa-solid fa-users"></i> Món của bạn bè</div>' + renderGroupMembersList()) : '');
-      syncCartTotals();
-      return;
-    }
-    box.innerHTML = groupHtml + cart.map(function (it, idx) {
-      var parts = buildOptsParts(it);
-      var opts = parts.length ? ('<div class="mem-ci-opts">' + esc(parts.join(' · ')) + '</div>') : '';
-      var note = it.note ? ('<div class="mem-ci-note">' + esc(it.note) + '</div>') : '';
-      return '<div class="mem-cart-item" data-idx="' + idx + '">' +
-        '<div class="mem-ci-top"><strong>' + esc(it.name) + '</strong><span>' + fmt(lineUnit(it) * it.quantity) + '</span></div>' +
-        opts + note +
-        '<div class="mem-ci-qty">' +
-        '<button type="button" class="mem-ci-btn" data-act="minus" data-idx="' + idx + '">−</button>' +
-        '<span>' + it.quantity + '</span>' +
-        '<button type="button" class="mem-ci-btn" data-act="plus" data-idx="' + idx + '">+</button>' +
-        '<button type="button" class="mem-ci-del" data-act="del" data-idx="' + idx + '"><i class="fa-solid fa-trash"></i></button>' +
-        '</div></div>';
-    }).join('') +
-      (inGroup() ? ('<div class="mem-group-section-label"><i class="fa-solid fa-users"></i> Món của bạn bè</div>' + renderGroupMembersList()) : '');
-    box.querySelectorAll('[data-act]').forEach(function (btn) {
-      btn.onclick = function () {
-        var idx = parseInt(btn.getAttribute('data-idx'), 10);
-        var act = btn.getAttribute('data-act');
-        if (act === 'del') cart.splice(idx, 1);
-        else if (act === 'plus') cart[idx].quantity++;
-        else if (act === 'minus') {
-          cart[idx].quantity--;
-          if (cart[idx].quantity < 1) cart.splice(idx, 1);
-        }
-        if (appliedPromo) applyPromo(appliedPromo, true);
-        renderCartList();
-        syncNavBadge();
-        scheduleGroupSync();
-        refreshPromoOptions();
-      };
-    });
-    syncCartTotals();
-  }
-  function applyPromo(code, silent) {
-    var c = String(code || '').trim().toUpperCase();
-    if (!c) { discount = 0; appliedPromo = ''; syncCartTotals(); return Promise.resolve(); }
-    if (!cart.length && !groupOthersItemsForApi().length) {
-      if (!silent) toast('Thêm món vào giỏ trước');
-      return Promise.resolve();
-    }
-    return api('applyPickupPromo', c, phone(), cartForPromoApi()).then(function (r) {
-      if (r && r.ok) {
-        discount = parseFloat(r.discount) || 0;
-        appliedPromo = c;
-        if (!silent) toast('✅ ' + (r.message || 'Đã áp mã'));
-      } else {
-        discount = 0;
-        appliedPromo = '';
-        if (!silent) toast('❌ ' + ((r && r.message) || 'Mã không hợp lệ'));
-      }
-      syncCartTotals();
-      renderPromoApplied();
-      refreshPromoOptions();
-    }).catch(function (e) {
-      discount = 0;
-      appliedPromo = '';
-      if (!silent) toast(e.message || 'Lỗi áp mã');
-      syncCartTotals();
-    });
-  }
-  function renderPromoApplied() {
-    var ap = $('mem-cart-promo-applied');
-    if (!ap) return;
-    if (appliedPromo && discount > 0) {
-      ap.textContent = 'Đã áp mã ' + appliedPromo + ' - giảm ' + fmt(discount);
-      ap.classList.remove('mem-hidden');
-    } else if (appliedPromo) {
-      ap.textContent = 'Mã ' + appliedPromo;
-      ap.classList.remove('mem-hidden');
-    } else ap.classList.add('mem-hidden');
-  }
-  var promoDebounce = null;
-  function refreshPromoOptions() {
-    if (!phone() || (cart.length < 1 && !groupOthersItemsForApi().length)) {
-      var box = $('mem-cart-promo-list');
-      if (box) box.innerHTML = '';
-      return;
-    }
-    clearTimeout(promoDebounce);
-    promoDebounce = setTimeout(function () {
-      api('getCheckoutPromoOptions', phone(), cartSummaryJson(), cartSubtotal()).then(function (res) {
-        var list = $('mem-cart-promo-list');
-        if (!list) return;
-        var opts = (res && res.options) ? res.options.filter(function (o) { return o && o.kind === 'promo' && o.code; }) : [];
-        if (!opts.length) {
-          list.innerHTML = '<p class="mem-cart-promo-hint">Chưa có khuyến mãi phù hợp - nhập mã bên dưới</p>';
-          return;
-        }
-        list.innerHTML = opts.map(function (o) {
-          var on = appliedPromo === o.code ? ' mem-promo-on' : '';
-          return '<button type="button" class="mem-promo-pick' + on + '" data-code="' + escAttr(o.code) + '">' +
-            '<span class="mem-promo-pick-t">' + esc(o.title || o.code) + '</span>' +
-            '<span class="mem-promo-pick-s">' + esc(o.subtitle || '') + (o.discount > 0 ? (' · −' + fmt(o.discount)) : '') + '</span></button>';
-        }).join('');
-        list.querySelectorAll('.mem-promo-pick').forEach(function (btn) {
-          btn.onclick = function () {
-            var code = btn.getAttribute('data-code');
-            if (appliedPromo === code) { discount = 0; appliedPromo = ''; syncCartTotals(); renderPromoApplied(); refreshPromoOptions(); return; }
-            applyPromo(code, false);
-          };
-        });
-      }).catch(function () {});
-    }, 400);
-  }
-  function loadZones() {
-    if (zonesLoaded) return;
-    zonesLoaded = true;
-    api('getMemberDeliveryZones').then(function (z) {
-      var sel = $('mem-cart-zone');
-      if (!sel) return;
-      (z.zones || []).forEach(function (zone) {
-        (zone.wards || []).forEach(function (w) {
-          var o = document.createElement('option');
-          o.value = w;
-          o.textContent = w + ' - ' + (zone.province || '');
-          sel.appendChild(o);
-        });
-      });
-    }).catch(function () {});
-  }
-  function renderCartPage() {
-    var ph = $('mem-cart-phone');
-    if (ph) ph.value = phone();
-    var portal = global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.portal;
-    var prof = portal && portal.profile ? portal.profile : {};
-    var nm = $('mem-cart-name');
-    if (nm && !nm.value) nm.value = prof.name || '';
-    renderGroupCard();
-    renderCartList();
-    renderPromoApplied();
-    refreshPromoOptions();
-    loadZones();
-    syncCartTotals();
-    if (inGroup()) pollGroupState();
-  }
-  function submitOrder() {
-    if (!phone()) {
-      toast(inGroup() ? 'Chỉ trưởng nhóm mới đặt đơn - món của bạn đã lưu vào nhóm' : 'Đăng nhập SĐT trước');
-      return;
-    }
-    if (inGroup() && !isHost()) { toast('Chỉ trưởng nhóm mới đặt đơn - món của bạn đã lưu vào nhóm'); return; }
-    if (!cart.length && !(inGroup() && groupOthersItemsForApi().length)) { toast('Giỏ trống'); return; }
-    if (fulfillment === 'delivery' && !($('mem-cart-addr') && $('mem-cart-addr').value.trim())) {
-      toast('Nhập địa chỉ giao hàng'); return;
-    }
-    var subtotal = cartSubtotal();
-    var btn = $('mem-cart-submit');
-    if (btn) btn.disabled = true;
-    var promoP = appliedPromo ? applyPromo(appliedPromo, true) : Promise.resolve();
-    return promoP.then(function () {
-      var checkout = {
-        customerPhone: phone(),
-        customerName: ($('mem-cart-name') && $('mem-cart-name').value) || '',
-        discount: discount,
-        paymentMethod: pay,
-        fulfillment: fulfillment,
-        addressDetail: ($('mem-cart-addr') && $('mem-cart-addr').value) || '',
-        deliveryZone: ($('mem-cart-zone') && $('mem-cart-zone').value) || '',
-        promoCode: appliedPromo,
-        note: 'Member portal'
-      };
-      if (inGroup() && isHost()) {
-        // Chốt đơn nhóm: đồng bộ giỏ của mình lần cuối rồi để server gộp món tất cả thành viên
-        return groupSyncNow().then(function () {
-          return api('finalizeGroupOrder', group.groupId, phone(), checkout);
-        });
-      }
-      var items = cart.map(function (it) {
-        var u = lineUnit(it);
-        return {
-          id: it.id, name: it.name, quantity: it.quantity, qty: it.quantity,
-          price: u, totalPrice: u * it.quantity, options: it.options, note: it.note || ''
-        };
-      });
-      checkout.items = items;
-      checkout.totalAmount = subtotal;
-      checkout.finalAmount = Math.max(0, subtotal - discount);
-      return api('savePickupOnlineOrder', checkout);
-    }).then(function (res) {
-      toast('✅ Đã gửi đơn ' + (res && res.orderId ? res.orderId : ''));
-      if (pay === 'Chuyển khoản') {
-        // Giữ QR + snapshot chi tiết đơn (để hiện số tiền và in bill sau khi giỏ đã dọn)
-        // Ưu tiên số tiền server chốt - chính xác cả với đơn nhóm
-        var srvAmt = res && parseFloat(res.finalAmount);
-        var billSub = cartSubtotal() + groupOthersSubtotal();
-        var billAmt = (srvAmt && srvAmt > 0) ? srvAmt : cartFinalTotal();
-        qrOrderLock = {
-          amount: billAmt,
-          memo: res && res.orderId ? String(res.orderId) : ('SUN ' + phone()),
-          subtotal: billSub,
-          discount: Math.max(0, billSub - billAmt),
-          customerName: ($('mem-cart-name') && $('mem-cart-name').value) || myName() || '',
-          customerPhone: phone(),
-          groupName: inGroup() ? (group.groupName || '') : '',
-          items: buildBillItemsSnapshot()
-        };
-      }
-      if (inGroup()) exitGroupLocal();
-      cart = [];
-      discount = 0;
-      appliedPromo = '';
-      var inp = $('mem-cart-promo-input'); if (inp) inp.value = '';
-      renderCartPage();
-      syncNavBadge();
-      if (qrOrderLock) {
-        var qb = $('mem-cart-qr');
-        if (qb) setTimeout(function () { qb.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
-      }
-    }).catch(function (e) {
-      toast(e.message || 'Lỗi gửi đơn');
-    }).finally(function () {
-      if (btn) btn.disabled = false;
-    });
-  }
-  function wireOnce() {
-    if (wired) return;
-    wired = true;
-    var closeBtn = $('mem-pd-close');
-    if (closeBtn) closeBtn.onclick = function () { closeModal(); };
-    var modal = $('mem-product-modal');
-    if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(e); });
-    document.querySelectorAll('#mem-sheet-temp-options .opt-btn').forEach(function (b) {
-      b.onclick = function () { selectServeTemp(b, b.getAttribute('data-temp')); };
-    });
-    document.querySelectorAll('#mem-sheet-pack-options .opt-btn').forEach(function (b) {
-      b.onclick = function () { selectPackaging(b, b.getAttribute('data-pack')); };
-    });
-    document.querySelectorAll('#mem-sheet-ice-group .opt-btn').forEach(function (b) {
-      b.onclick = function () { selectOpt(b, 'ice', b.getAttribute('data-ice')); };
-    });
-    document.querySelectorAll('#mem-product-modal .opt-btn[data-sweet]').forEach(function (b) {
-      b.onclick = function () { selectOpt(b, 'sweetness', b.getAttribute('data-sweet')); };
-    });
-    document.querySelectorAll('#mem-sugar-sub-options .opt-btn[data-addon]').forEach(function (b) {
-      b.onclick = function () { toggleAddon(b, b.getAttribute('data-addon'), 0); };
-    });
-    document.querySelectorAll('#mem-product-modal .opt-btn[data-addon]:not(.opt-nut-chip)').forEach(function (b) {
-      b.onclick = function () { toggleAddon(b, b.getAttribute('data-addon'), parseFloat(b.getAttribute('data-price')) || 0); };
-    });
-    var sugarToggle = $('mem-sugar-toggle');
-    if (sugarToggle) sugarToggle.onclick = function () {
-      var sub = $('mem-sugar-sub-options');
-      if (sub) sub.classList.toggle('show');
-      sugarToggle.classList.toggle('active');
-    };
-    var famCb = $('mem-family-pack-toggle');
-    if (famCb) famCb.onchange = function () {
-      currentOptions.familyPack = !!famCb.checked;
-      renderSizeGrid();
-      updateModalPrice();
-    };
-    var qm = $('mem-qty-minus'); if (qm) qm.onclick = function () { changeQty(-1); };
-    var qp = $('mem-qty-plus'); if (qp) qp.onclick = function () { changeQty(1); };
-    var addBtn = $('mem-sheet-add-btn');
-    if (addBtn) addBtn.onclick = addToCart;
-    document.querySelectorAll('#mem-cart-fulfillment button').forEach(function (b) {
-      b.onclick = function () {
-        document.querySelectorAll('#mem-cart-fulfillment button').forEach(function (x) { x.classList.remove('on'); });
-        b.classList.add('on');
-        fulfillment = b.getAttribute('data-f');
-        var ab = $('mem-cart-addr-block');
-        if (ab) ab.style.display = fulfillment === 'delivery' ? 'block' : 'none';
-      };
-    });
-    document.querySelectorAll('#mem-cart-pay button').forEach(function (b) {
-      b.onclick = function () {
-        document.querySelectorAll('#mem-cart-pay button').forEach(function (x) { x.classList.remove('on'); });
-        b.classList.add('on');
-        pay = b.getAttribute('data-p');
-        qrOrderLock = null;
-        updateCartQr();
-      };
-    });
-    var qc = $('mem-cart-qr-copy');
-    if (qc) qc.onclick = function () {
-      var done = function () { toast('📋 Đã copy số tài khoản ' + BANK_QR.acc); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(BANK_QR.acc).then(done);
-      else { prompt('Copy số tài khoản:', BANK_QR.acc); }
-    };
-    var pa = $('mem-cart-promo-apply');
-    if (pa) pa.onclick = function () {
-      var inp = $('mem-cart-promo-input');
-      applyPromo(inp ? inp.value : '', false);
-    };
-    var sub = $('mem-cart-submit');
-    if (sub) sub.onclick = submitOrder;
-  }
-
-  function bootstrap() {
-    wireOnce();
-    api('getMixHats').then(function (list) {
-      mixHatList = Array.isArray(list) ? list : [];
-    }).catch(function () { mixHatList = []; });
-    if (memberId()) restoreGroupSession();
-  }
-
-  global.MemOrder = {
-    bootstrap: bootstrap,
-    createGroup: createGroup,
-    joinGroup: joinGroup,
-    leaveGroup: leaveGroup,
-    inGroup: inGroup,
-    isHost: isHost,
-    isGuest: isGuest,
-    guestName: guestName,
-    groupState: function () { return group; },
-    pendingGroup: pendingGroup,
-    consumePendingGroupJoin: consumePendingGroupJoin,
-    restoreGroupSession: restoreGroupSession,
-    setPendingGroupCode: function (code) {
-      pendingGroupCode = String(code || '').trim().toUpperCase();
-      lsSet('sun_group_pending', pendingGroupCode);
-      try { sessionStorage.setItem('sun_group_pending', pendingGroupCode); } catch (e) { }
-    },
-    openProduct: openProduct,
-    openProductById: openProductById,
-    openProductByIdOrFetch: function (id) {
-      if (openProductById(id)) return Promise.resolve(true);
-      return api('getMenu').then(function (list) {
-        global.__memMenuCache = list || [];
-        if (global.SUN_MEM && global.SUN_MEM.state) global.SUN_MEM.state.menu = list || [];
-        return openProductById(id);
-      });
-    },
-    renderCartPage: renderCartPage,
-    syncNavBadge: syncNavBadge,
-    cartQty: cartQty,
-    setPendingPromo: function (code) { pendingPromo = String(code || '').trim().toUpperCase(); },
-    consumePendingPromo: function () {
-      var c = pendingPromo;
-      pendingPromo = '';
-      if (c) {
-        var inp = $('mem-cart-promo-input');
-        if (inp) inp.value = c;
-        toast('Thêm món rồi chọn hoặc áp mã ' + c);
-      }
-    },
-    hasAwait: hasAwait,
-    normalizeCategory: normalizeMemCategory,
-    categoryList: function () { return MEM_CAT_LIST.slice(); }
-  };
-  loadAwait();
-})(typeof window !== 'undefined' ? window : this);
-</script>
-  <script>
   /**
    * Dự phòng khi Apps Script không ghép được MemberScriptsCore.html (placeholder trống / tên file sai).
    * Gán lên window để script portal gọi được normPhone, wireTopLinks, api, …
@@ -7009,26 +5040,20 @@ function applyMemberPortalFromSettings(raw) {
       });
     };
     window.portalMemberLookupHttp = function (phone) {
-      var base = window.posBase();
-      if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-      var sep = base.indexOf('?') === -1 ? '?' : '&';
-      var url = ('/api/member/portal?phone=' + encodeURIComponent(String(phone || ''));
-      return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-        .then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json();
-        });
+      return fetch('/api/member/portal?phone=' + encodeURIComponent(String(phone || '')), {
+        method: 'GET', credentials: 'same-origin', cache: 'no-store',
+      }).then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      });
     };
     window.portalMemberBootstrapHttp = function () {
-      var base = window.posBase();
-      if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-      var sep = base.indexOf('?') === -1 ? '?' : '&';
-      var url = ('/api/member/bootstrap';
-      return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-        .then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json();
-        });
+      return fetch('/api/member/bootstrap', {
+        method: 'GET', credentials: 'same-origin', cache: 'no-store',
+      }).then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      });
     };
     window.showToast = function (msg) {
       var el = document.getElementById('toast');
@@ -9680,7 +7705,18 @@ function applyMemberPortalFromSettings(raw) {
       /** Đọc mã đơn nhóm từ URL (?group=CODE) - hỗ trợ cả iframe GAS. */
       function detectGroupParam(cb) {
         var g = '';
-        try { g = new URLSearchParams(location.search).get('group') || ''; } catch (e) { }
+        try {
+          var params = new URLSearchParams(location.search);
+          if (params.get('tab') === 'group') {
+            cb('__OPEN_GROUP__');
+            return;
+          }
+          g = params.get('group') || '';
+        } catch (e) { }
+        if (g === '1') {
+          cb('__OPEN_GROUP__');
+          return;
+        }
         if (g) { cb(g); return; }
         try {
           if (window.google && google.script && google.script.url && google.script.url.getLocation) {
@@ -9790,12 +7826,15 @@ function applyMemberPortalFromSettings(raw) {
           try { localStorage.setItem('sun_member_phone', saved); } catch (eLs2) { }
         }
         detectGroupParam(function (g) {
+          if (g === '__OPEN_GROUP__') {
+            setTimeout(function () { goGroup(); }, 400);
+            return;
+          }
           if (!g) return;
           var code = String(g).trim().toUpperCase();
           if (window.MemOrder && MemOrder.setPendingGroupCode) MemOrder.setPendingGroupCode(code);
           else { try { sessionStorage.setItem('sun_group_pending', code); } catch (eG) { } }
           if (!isPhone10(saved) && !state.phone) {
-            // Khách mời: chỉ cần nhập tên, không cần đăng nhập
             openGuestGate(code);
           }
         });

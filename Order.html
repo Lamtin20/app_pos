@@ -2306,39 +2306,48 @@
       box-shadow: 0 8px 18px rgba(0,0,0,.18);
     }
 
-    /* Size toggle (large) */
+    /* Size pills — horizontal like TCH */
     .size-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .size-btn {
-      padding: 12px 10px;
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 12px 14px;
       border: 1.5px solid var(--border2);
-      border-radius: var(--radius-sm);
+      border-radius: 999px;
       cursor: pointer;
       text-align: center;
       transition: all 0.18s;
-      background: var(--surface2);
+      background: #fff;
     }
 
-    .size-btn .sz-icon {
-      font-size: 24px;
-      display: block;
-      margin-bottom: 4px;
-    }
+    .size-btn .sz-icon { display: none; }
 
     .size-btn .sz-name {
       font-size: 13px;
       font-weight: 700;
       color: var(--text);
+      display: inline;
     }
 
     .size-btn .sz-price {
-      font-size: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 0;
+      display: inline;
+    }
+
+    .size-btn .sz-price::before { content: ': '; }
+
+    .size-sub-hint {
+      font-size: 12px;
       color: var(--text-3);
-      margin-top: 2px;
+      margin: -4px 0 10px;
     }
 
     .size-btn:hover {
@@ -3869,7 +3878,8 @@
         <div class="product-detail-opts">
         <!-- SIZE -->
         <div class="opt-group" id="sheet-size-group" style="display:none;">
-          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size</div>
+          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size <span style="color:var(--red);">*</span></div>
+          <div class="size-sub-hint">Chọn 1 loại size</div>
           <div class="size-grid" id="sheet-size-options"></div>
         </div>
 
@@ -3883,34 +3893,15 @@
           </div>
         </div>
 
-        <!-- CÁCH DÙNG (ủ lạnh / nóng / đá) -->
-        <div class="opt-group" id="sheet-temp-group">
-          <div class="opt-label"><i class="fa-solid fa-temperature-half"></i> Cách dùng</div>
-          <div class="opt-grid" id="sheet-temp-options">
-            <div class="opt-btn active" onclick="selectServeTemp(this,'cold_steep')">Sữa ủ lạnh</div>
-            <div class="opt-btn" onclick="selectServeTemp(this,'hot')">Sữa nóng</div>
-            <div class="opt-btn" onclick="selectServeTemp(this,'iced')">Đá</div>
-          </div>
-        </div>
-
-        <!-- MỨC ĐÁ — chỉ khi chọn "Đá" -->
-        <div class="opt-group" id="sheet-ice-group" style="display:none;">
-          <div class="opt-label"><i class="fa-solid fa-snowflake"></i> Mức đá</div>
-          <div class="opt-grid">
+        <!-- LƯỢNG ĐÁ -->
+        <div class="opt-group" id="sheet-ice-group">
+          <div class="opt-label"><i class="fa-solid fa-snowflake"></i> Lượng đá</div>
+          <div class="opt-grid" id="sheet-ice-options">
             <div class="opt-btn" onclick="selectOption(this,'ice','Không đá')">Không đá</div>
             <div class="opt-btn" onclick="selectOption(this,'ice','Ít đá')">Ít đá</div>
             <div class="opt-btn active" onclick="selectOption(this,'ice','Vừa')">Vừa</div>
             <div class="opt-btn" onclick="selectOption(this,'ice','Nhiều')">Nhiều</div>
             <div class="opt-btn" onclick="selectOption(this,'ice','Để riêng')">Để riêng</div>
-          </div>
-        </div>
-
-        <!-- ĐÓNG GÓI -->
-        <div class="opt-group" id="sheet-pack-group">
-          <div class="opt-label"><i class="fa-solid fa-mug-hot"></i> Đóng gói</div>
-          <div class="opt-grid" id="sheet-pack-options">
-            <div class="opt-btn active" onclick="selectPackaging(this,'paper')">Ly giấy</div>
-            <div class="opt-btn" onclick="selectPackaging(this,'plastic')">Chai nhựa</div>
           </div>
         </div>
 
@@ -3925,14 +3916,8 @@
           </div>
         </div>
 
-        <!-- TOPPINGS -->
-        <div class="opt-group" id="sheet-topping-group">
-          <div class="opt-label"><i class="fa-solid fa-plus"></i> Topping</div>
-          <div class="opt-grid" id="sheet-topping-options"></div>
-        </div>
-
-        <!-- ADDONS (legacy sugar) -->
-        <div class="opt-group" id="sheet-addon-group" style="display:none;">
+        <!-- THÊM ĐƯỜNG / SỮA -->
+        <div class="opt-group" id="sheet-addon-group">
           <div class="opt-label"><i class="fa-solid fa-plus"></i> Thêm đường / sữa</div>
           <div class="opt-grid">
             <div class="opt-btn" onclick="toggleSubOptions(this,'sugar')">Đường</div>

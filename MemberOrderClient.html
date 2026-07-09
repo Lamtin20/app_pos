@@ -160,11 +160,13 @@
   function paintSizes(parts, defIdx) {
     var el = $('mem-sheet-size-options');
     if (!el || !parts.length) return;
+    var bp = currentProduct ? (parseFloat(currentProduct.basePrice) || 0) : 0;
     var html = '';
     for (var j = 0; j < parts.length; j++) {
       var q = parts[j];
+      var showPrice = fmt(Math.max(0, bp + q.price));
       html += '<button type="button" class="size-btn' + (j === defIdx ? ' active' : '') + '" data-val="' + escAttr(q.val) + '" data-price="' + q.price + '">' +
-        '<span class="sz-icon">' + q.icon + '</span><div class="sz-name">' + esc(q.label) + '</div><div class="sz-price">' + esc(q.sub) + '</div></button>';
+        '<span class="sz-name">' + esc(q.label) + '</span><span class="sz-price">' + esc(showPrice) + '</span></button>';
     }
     el.innerHTML = html;
     el.querySelectorAll('.size-btn').forEach(function (btn) {
@@ -478,31 +480,31 @@
     }
     var isTop = (p.category || '').toLowerCase().indexOf('topping') >= 0;
     var sizeG = $('mem-sheet-size-group');
-    var tempG = $('mem-sheet-temp-group');
     var iceG = $('mem-sheet-ice-group');
-    var packG = $('mem-sheet-pack-group');
+    var addonG = $('mem-nut-opt-group');
     var famRow = $('mem-family-pack-toggle-row');
     if (isTop) {
       if (sizeG) sizeG.style.display = 'none';
-      if (tempG) tempG.style.display = 'none';
       if (iceG) iceG.style.display = 'none';
-      if (packG) packG.style.display = 'none';
+      if (addonG) addonG.style.display = 'none';
       currentOptions.size = 'Tiêu chuẩn';
     } else {
       if (sizeG) sizeG.style.display = '';
-      if (tempG) tempG.style.display = '';
-      if (packG) packG.style.display = '';
+      if (iceG) iceG.style.display = '';
+      if (addonG) addonG.style.display = '';
       if (famRow) famRow.style.display = hasFamily(p) ? '' : 'none';
       var famCb = $('mem-family-pack-toggle');
       if (famCb) { famCb.checked = false; currentOptions.familyPack = false; }
       renderSizeGrid();
-      document.querySelectorAll('#mem-sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var tCold = document.querySelector('#mem-sheet-temp-options .opt-btn[data-temp="cold_steep"]');
-      if (tCold) tCold.classList.add('active');
-      if (iceG) iceG.style.display = 'none';
-      document.querySelectorAll('#mem-sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var pPaper = document.querySelector('#mem-sheet-pack-options .opt-btn[data-pack="paper"]');
-      if (pPaper) pPaper.classList.add('active');
+      if (iceG) {
+        iceG.querySelectorAll('.opt-btn').forEach(function (b) { b.classList.remove('active'); });
+        var iceMid = iceG.querySelector('.opt-btn[data-ice="Vừa"]');
+        if (iceMid) iceMid.classList.add('active');
+      }
+      currentOptions.ice = 'Vừa';
+      currentOptions.serveTemp = 'iced';
+      currentOptions.packaging = 'paper';
+      currentOptions.packagingPrice = 0;
     }
     document.querySelectorAll('#mem-product-modal .opt-btn[data-sweet]').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-sweet') === 'Ngọt vừa');

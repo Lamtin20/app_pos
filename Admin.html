@@ -1667,41 +1667,25 @@ if(typeof SCRIPT_URL==='undefined')var SCRIPT_URL='';
 // CORE SYSTEM ARCHITECTURE
 // ========================
 
-// 1. API Service Layer (Wraps Google Apps Script in Promises)
-const api = {
-  call: (method, ...args) => new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new Error('⏱️ Timeout: API quá lâu không phản hồi'));
-    }, 15000);
-    try {
-      const runner = google.script.run
-        .withSuccessHandler(result => {
-          clearTimeout(timeout);
-          resolve(result);
-        })
-        .withFailureHandler((err) => {
-          clearTimeout(timeout);
-          console.error(`API Error [${method}]:`, err);
-          showToast(`❌ System Error: ${err.message}`, 'error');
-          reject(err);
-        });
-      runner[method].apply(runner, args);
-    } catch(e) {
-      clearTimeout(timeout);
-      reject(e);
-    }
-  }),
-  callLong: (method, ms, ...args) => new Promise((resolve, reject) => {
-    const wait = ms || 60000;
-    const timeout = setTimeout(() => reject(new Error('⏱️ Timeout')), wait);
-    try {
-      const runner = google.script.run
-        .withSuccessHandler(r => { clearTimeout(timeout); resolve(r); })
-        .withFailureHandler(err => { clearTimeout(timeout); reject(err); });
-      runner[method].apply(runner, args);
-    } catch (e) { clearTimeout(timeout); reject(e); }
-  })
-};
+// 1. API Service Layer — dùng fetch RPC qua sun-api-client.js
+if (window.__SUN_INSTALL_API__) __SUN_INSTALL_API__();
+if (!window.api) {
+  window.api = {
+    call: function (method) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return (window.SUN_API && window.SUN_API.call)
+        ? window.SUN_API.call.apply(window.SUN_API, [method].concat(args))
+        : Promise.reject(new Error('SUN_API chưa sẵn sàng'));
+    },
+    callLong: function (method, ms) {
+      var args = Array.prototype.slice.call(arguments, 2);
+      return (window.SUN_API && window.SUN_API.call)
+        ? window.SUN_API.call(method, args, ms || 60000)
+        : Promise.reject(new Error('SUN_API chưa sẵn sàng'));
+    },
+  };
+}
+const api = window.api;
 
 const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n || 0);
 

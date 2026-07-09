@@ -1057,9 +1057,8 @@
       var act = j === defIdx ? ' active' : '';
       var showPrice = fmt(Math.max(0, bp + q.price));
       szHtml += '<div class="size-btn' + act + '" onclick="selectSizeBtn(this,\'' + escAttr(q.val) + '\',' + q.price + ')">' +
-        '<span class="sz-icon">' + q.icon + '</span>' +
-        '<div class="sz-name">' + esc(q.label) + '</div>' +
-        '<div class="sz-price">' + esc(showPrice) + '</div></div>';
+        '<span class="sz-name">' + esc(q.label) + '</span>' +
+        '<span class="sz-price">' + esc(showPrice) + '</span></div>';
     }
     sizeOptions.innerHTML = szHtml;
     currentOptions.size = parts[defIdx].val;
@@ -1199,20 +1198,22 @@
     var iceG = document.getElementById('sheet-ice-group');
     var packG = document.getElementById('sheet-pack-group');
     var sizeGroup = document.getElementById('sheet-size-group');
-    var sizeOptions = document.getElementById('sheet-size-options');
+    var addonG = document.getElementById('sheet-addon-group');
     var isTopping = (p.category || '').toLowerCase().indexOf('topping') !== -1;
+
+    if (tempG) tempG.style.display = 'none';
+    if (packG) packG.style.display = 'none';
 
     if (isTopping) {
       sizeGroup.style.display = 'none';
-      if (tempG) tempG.style.display = 'none';
       if (iceG) iceG.style.display = 'none';
-      if (packG) packG.style.display = 'none';
+      if (addonG) addonG.style.display = 'none';
       currentOptions.size = 'Tiêu chuẩn';
       currentOptions.sizePrice = 0;
     } else {
       sizeGroup.style.display = 'block';
-      if (tempG) tempG.style.display = '';
-      if (packG) packG.style.display = '';
+      if (iceG) iceG.style.display = '';
+      if (addonG) addonG.style.display = '';
       var famRow = document.getElementById('family-pack-toggle-row');
       var famCb = document.getElementById('family-pack-toggle');
       if (famRow && famCb) {
@@ -1228,20 +1229,13 @@
       }
       renderProductSizeGrid();
 
-      document.querySelectorAll('#sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var tCold = document.querySelector('#sheet-temp-options .opt-btn[onclick*="cold_steep"]');
-      if (tCold) tCold.classList.add('active');
-      currentOptions.serveTemp = 'cold_steep';
       if (iceG) {
-        iceG.style.display = 'none';
-        document.querySelectorAll('#sheet-ice-group .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-        var iceMid = document.querySelector('#sheet-ice-group .opt-btn[onclick*="Vừa"]');
+        document.querySelectorAll('#sheet-ice-options .opt-btn, #sheet-ice-group .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+        var iceMid = document.querySelector('#sheet-ice-options .opt-btn[onclick*="Vừa"], #sheet-ice-group .opt-btn[onclick*="Vừa"]');
         if (iceMid) iceMid.classList.add('active');
       }
-      currentOptions.ice = 'Không đá';
-      document.querySelectorAll('#sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
-      var pPaper = document.querySelector('#sheet-pack-options .opt-btn[onclick*="paper"]');
-      if (pPaper) pPaper.classList.add('active');
+      currentOptions.ice = 'Vừa';
+      currentOptions.serveTemp = 'iced';
       currentOptions.packaging = 'paper';
       currentOptions.packagingPrice = 0;
     }
@@ -1250,7 +1244,6 @@
     if (sweetDefault) sweetDefault.classList.add('active');
 
     renderNutMixOptions(p, isTopping);
-    renderProductToppings(p);
 
     renderProductDetailMeta(p);
 
@@ -2398,7 +2391,7 @@
   // ====== ADMIN / NAV ======
   function goToAdmin() { window.open('/admin', '_blank'); }
   function goToMemberPage() { window.location.href = '/member'; }
-  function goToGroupOrder() { window.location.href = '/member?group=1'; }
+  function goToGroupOrder() { window.location.href = '/member?tab=group'; }
   function getInfoAdmin() { goToAdmin(); }
 
   // ====== UTILS ======

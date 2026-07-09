@@ -18,7 +18,7 @@ const LEGACY_CSS = `
 .legacy-page-root{height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .legacy-page-root .topbar,.legacy-page-root .bottom-nav{flex-shrink:0}
 .legacy-page-root .pos-layout,.legacy-page-root .mem-shell{flex:1;min-height:0}
-.legacy-page-root .products-scroll,.legacy-page-root .mem-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
+.legacy-page-root .products-scroll,.legacy-page-root .mem-main,.legacy-page-root .mem-portal-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;flex:1}
 </style>`;
 
 function read(name) {
@@ -54,8 +54,12 @@ function transform(html, opts = {}) {
     "('/api/member/portal?phone='"
   );
   s = s.replace(
-    /base \+ sep \+ 'api=memberPortalBootstrap'/g,
-    "('/api/member/bootstrap'"
+    /var url = base \+ sep \+ 'api=memberPortalBootstrap'/g,
+    "var url = '/api/member/bootstrap'"
+  );
+  s = s.replace(
+    /base \+ sep \+ 'api=memberPortal&phone='/g,
+    "'/api/member/portal?phone='"
   );
   s = s.replace(
     /var url = base \+ sep \+ 'api=memberBootstrap'/g,
