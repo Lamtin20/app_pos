@@ -24,6 +24,8 @@ Mở http://localhost:3000
 3. Thêm **Environment Variables** (giống `.env.example`)
 4. Deploy — `npm run build` chạy `next build`
 
+> **Quy trình sau mỗi lần fix:** commit + `git push origin main` lên GitHub → Vercel tự redeploy (hoặc bấm Redeploy thủ công).
+
 ### ⚠️ Lỗi `npm run build exited with 1` trên Vercel
 
 Thường do repo GitHub **thiếu thư mục Next.js**. Repo phải có đủ:

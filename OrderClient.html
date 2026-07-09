@@ -24,12 +24,14 @@
   })();
 
   // ====== API WRAPPER ======
-  // Lưu ý: không được xuống dòng trước [method] — ASI sẽ chèn ; và gọi server hỏng.
   const api = {
     call: function (method) {
       var args = Array.prototype.slice.call(arguments, 1);
+      if (window.SUN_API && window.SUN_API.api) {
+        return window.SUN_API.api.apply(null, [method].concat(args));
+      }
       return new Promise(function (resolve, reject) {
-        var timeout = setTimeout(function () { reject(new Error('⏱️ Timeout')); }, 10000);
+        var timeout = setTimeout(function () { reject(new Error('⏱️ Timeout')); }, 30000);
         try {
           var runner = google.script.run
             .withSuccessHandler(function (r) { clearTimeout(timeout); resolve(r); })
@@ -40,6 +42,9 @@
     },
     callLong: function (method, ms) {
       var args = Array.prototype.slice.call(arguments, 2);
+      if (window.SUN_API && window.SUN_API.apiLong) {
+        return window.SUN_API.apiLong.apply(null, [method, ms || 90000].concat(args));
+      }
       var wait = ms || 90000;
       return new Promise(function (resolve, reject) {
         var timeout = setTimeout(function () { reject(new Error('⏱️ Timeout')); }, wait);
@@ -52,6 +57,31 @@
       });
     }
   };
+
+  function showSheetStatus(kind, msg) {
+    var el = document.getElementById('sheet-sync-banner');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'sheet-sync-banner';
+      el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 18px;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 8px 24px rgba(60,40,25,.15);transition:opacity .35s,transform .35s;pointer-events:none;';
+      document.body.appendChild(el);
+    }
+    if (kind === 'hide') {
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(-50%) translateY(-8px)';
+      return;
+    }
+    var styles = {
+      loading: 'background:#fff7ed;color:#9a3412;border:1px solid rgba(154,52,18,.2);',
+      ok: 'background:#ecfdf5;color:#15803d;border:1px solid rgba(21,128,61,.25);',
+      err: 'background:#fef2f2;color:#b91c1c;border:1px solid rgba(185,28,28,.2);'
+    };
+    el.style.cssText += styles[kind] || styles.loading;
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+    el.innerHTML = msg;
+    if (kind === 'ok') setTimeout(function () { showSheetStatus('hide'); }, 2200);
+  }
 
   // ====== STATE ======
   let menuData = [], inventoryData = [], customersData = [], promotionsData = [];
@@ -459,9 +489,8 @@
   // ====== INIT ======
   async function loadData() {
     renderSkeletons();
+    showSheetStatus('loading', '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang đồng bộ Google Sheet…');
     try {
-      // Ưu tiên: lấy danh sách Mix Hạt (Admin cấu hình) càng sớm càng tốt
-      // Sau đó sẽ refresh bỏ cache để cập nhật ngay sau khi admin chỉnh.
       var fastMixP = api.callLong('getMixHats', 20000, false);
 
       const [menuResult, invResult, digestResult] = await Promise.allSettled([
@@ -469,9 +498,19 @@
         api.call('getInventory'),
         api.call('getTodayPromoDigest')
       ]);
-      menuData = menuResult.status === 'fulfilled' && menuResult.value ? menuResult.value : getFallbackMenu();
+      var menuFromSheet = menuResult.status === 'fulfilled' && Array.isArray(menuResult.value) ? menuResult.value : null;
+      menuData = menuFromSheet && menuFromSheet.length ? menuFromSheet : getFallbackMenu();
+      if (menuFromSheet && !menuFromSheet.length) {
+        showToast('⚠️ Sheet Menu trống — đang dùng menu mẫu');
+      }
       inventoryData = invResult.status === 'fulfilled' && invResult.value ? invResult.value : [];
       renderMenu(); renderCategories();
+      if (menuResult.status === 'rejected') {
+        showSheetStatus('err', '⚠️ Chưa kết nối Sheet — dùng menu mẫu');
+        showToast('⚠️ ' + (menuResult.reason && menuResult.reason.message ? menuResult.reason.message : 'Không tải được menu từ Sheet'));
+      } else {
+        showSheetStatus('ok', '✅ Đã tải ' + menuData.length + ' món từ Google Sheet');
+      }
       if (digestResult.status === 'fulfilled' && digestResult.value) renderHeaderPromoDigest(digestResult.value);
       else {
         lastPromoDigestCache = { activePromos: [], ordersWithPromoToday: 0, totalPromoCostToday: 0 };
@@ -512,6 +551,8 @@
     } catch (e) {
       menuData = getFallbackMenu();
       renderMenu(); renderCategories();
+      showSheetStatus('err', '⚠️ Lỗi kết nối Sheet');
+      showToast('⚠️ ' + (e && e.message ? e.message : 'Lỗi tải dữ liệu'));
     }
   }
 
@@ -3077,7 +3118,10 @@
   };
 
   // ====== BOOT ======
-  window.addEventListener('load', () => {
+  var _posBooted = false;
+  function bootPos() {
+    if (_posBooted) return;
+    _posBooted = true;
     try {
       if (typeof window.speechSynthesis !== 'undefined') {
         window.speechSynthesis.getVoices();
@@ -3091,11 +3135,17 @@
     if (navigator.bluetooth && navigator.bluetooth.getDevices) {
       tryReconnectLabelPrinter(true).then(function (ok) { if (ok) updateLabelPrinterUi(); });
     }
-  });
+  }
+  window.__SUN_POS_BOOT__ = bootPos;
+  if (document.readyState === 'complete') {
+    bootPos();
+  } else {
+    window.addEventListener('load', bootPos);
+  }
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       const g = document.getElementById('products-grid');
       if (g && (g.children.length === 0 || g.querySelector('.skel-img'))) { menuData = getFallbackMenu(); renderMenu(); renderCategories(); }
-    }, 8000);
+    }, 12000);
   });
 </script>
