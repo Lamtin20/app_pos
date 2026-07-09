@@ -118,7 +118,14 @@ export default function LegacyPage({ src, title }) {
       <div
         ref={hostRef}
         className="legacy-page-root"
-        style={{ minHeight: '100vh', width: '100%' }}
+        style={{
+          minHeight: '100dvh',
+          height: '100dvh',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
       />
     </>
   );

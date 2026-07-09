@@ -613,8 +613,8 @@
           <div class="form-group" style="grid-column:span 3;">
             <label>Cỡ ly hiển thị trên POS (chỉ cỡ được tích mới hiện)</label>
             <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:8px;font-size:13px;">
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="menu-en-small"> Nhỏ (250ml)</label>
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="menu-en-regular" checked> Thường (350ml)</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="menu-en-small" checked> Nhỏ (250ml)</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="menu-en-regular" checked> Vừa (350ml)</label>
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="menu-en-large" checked> Lớn (450ml)</label>
             </div>
           </div>
@@ -639,6 +639,11 @@
           </div>
           <div class="form-group"><label>Giá vốn (₫)</label><input type="number" class="form-control" id="menu-cost" placeholder="0" oninput="previewMargin()"></div>
           <div class="form-group"><label>Chi phí vận hành (₫)</label><input type="number" class="form-control" id="menu-opex" placeholder="0" oninput="previewMargin()"></div>
+          <div class="form-group" style="grid-column:span 3;">
+            <label>Topping theo sản phẩm (JSON)</label>
+            <textarea class="form-control" id="menu-toppings-json" rows="3" placeholder='[{"name":"Đường","price":0},{"name":"Sữa đặc","price":3000},{"name":"Không thêm topping","price":0,"noTopping":true}]'></textarea>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;">Để trống sẽ dùng topping mặc định theo danh mục (Sữa hạt, Coffee, …).</div>
+          </div>
           <div class="form-group" style="grid-column:span 3;">
             <label>Định mức nguyên liệu thêm khi ly lớn (JSON, tuỳ chọn, đồng bộ từ tab Giá)</label>
             <textarea class="form-control" id="menu-size-json" rows="2" placeholder='[{"name":"Óc chó","qty":12}]'></textarea>
@@ -1857,8 +1862,7 @@ function logout() {
 // NAVIGATE
 // ========================
 function goToOrder() {
-  if (!SCRIPT_URL) { showToast('⚠️ Không thể mở trang bán hàng!', 'error'); return; }
-  window.open(SCRIPT_URL.split('?')[0], '_blank');
+  window.open('/order', '_blank');
 }
 
 // ========================
@@ -3501,6 +3505,12 @@ function openEditMenuItem(idx) {
       mj.value = (item.sizeRecipeExtra && item.sizeRecipeExtra.length) ? JSON.stringify(item.sizeRecipeExtra) : '';
     } catch (e) { mj.value = ''; }
   }
+  const mtj = document.getElementById('menu-toppings-json');
+  if (mtj) {
+    try {
+      mtj.value = (item.toppings && item.toppings.length) ? JSON.stringify(item.toppings) : '';
+    } catch (e2) { mtj.value = ''; }
+  }
   previewMargin();
   const formCard = document.getElementById('menu-form-card');
   if (formCard) formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3572,7 +3582,11 @@ async function addMenuItem() {
     familySell1L: Math.max(0, parseFloat(document.getElementById('menu-fam-sell-1l').value) || 0),
     nutritionKcal: (function () { var el = document.getElementById('menu-nut-kcal'); return el && el.value !== '' ? parseFloat(el.value) : 0; })(),
     nutritionProteinG: (function () { var el = document.getElementById('menu-nut-prot'); return el && el.value !== '' ? parseFloat(el.value) : 0; })(),
-    nutritionFatG: (function () { var el = document.getElementById('menu-nut-fat'); return el && el.value !== '' ? parseFloat(el.value) : 0; })()
+    nutritionFatG: (function () { var el = document.getElementById('menu-nut-fat'); return el && el.value !== '' ? parseFloat(el.value) : 0; })(),
+    toppingsJson: (function () {
+      var el = document.getElementById('menu-toppings-json');
+      return el ? el.value.trim() : '';
+    })(),
   };
 
   try {

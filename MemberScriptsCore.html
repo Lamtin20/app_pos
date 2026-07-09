@@ -2,15 +2,21 @@
 try { var SCRIPT_URL = __SUN_URL_INJECT__; } catch (e) { var SCRIPT_URL = ''; }
 if (typeof SCRIPT_URL === 'undefined') var SCRIPT_URL = '';
 function posBase() {
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    return window.location.origin;
+  }
   var u = (typeof SCRIPT_URL === 'string' && SCRIPT_URL) ? SCRIPT_URL.split('?')[0] : '';
-  return u || window.location.href.split('?')[0].replace(/[?#].*$/, '');
+  return u || '';
 }
-function memPage(p) { return posBase() + '?page=' + p; }
+function memPage(p) {
+  var m = { admin: '/admin', order: '/order', member: '/member', pickup: '/pickup' };
+  return m[p] || ('/' + p);
+}
 function wireTopLinks() {
   var lp = document.getElementById('link-pos');
-  if (lp) lp.href = posBase() + '?page=order';
+  if (lp) lp.href = '/order';
   var pk = document.getElementById('link-pickup');
-  if (pk) pk.href = posBase() + '?page=pickup';
+  if (pk) pk.href = '/pickup';
 }
 function gsErrMessage(e) {
   if (e == null) return 'Lỗi không xác định';
@@ -43,32 +49,25 @@ function apiLong(method, ms) {
     } catch (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); }
   });
 }
-/**
- * Tra cứu hội viên qua GET JSON (cùng origin với Web App).
- * Dùng khi google.script.run không gọi được / treo im lặng trên một số trình duyệt hoặc bản triển khai.
- */
 function portalMemberLookupHttp(phone) {
-  var base = posBase();
-  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-  var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = base + sep + 'api=memberPortal&phone=' + encodeURIComponent(String(phone || ''));
-  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-    .then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    });
+  return fetch('/api/member/portal?phone=' + encodeURIComponent(String(phone || '')), {
+    method: 'GET',
+    credentials: 'same-origin',
+    cache: 'no-store',
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
 }
-/** Một GET: settings + menu + packages (một lần thực thi server, nhanh hơn 3× google.script.run). */
 function portalMemberBootstrapHttp() {
-  var base = posBase();
-  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-  var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = base + sep + 'api=memberPortalBootstrap';
-  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-    .then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    });
+  return fetch('/api/member/bootstrap', {
+    method: 'GET',
+    credentials: 'same-origin',
+    cache: 'no-store',
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
 }
 function showToast(msg) {
   var el = document.getElementById('toast');
@@ -108,7 +107,7 @@ function buildMemCarouselSlides(banners) {
   stopMemCarousel();
   var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
   list = list.filter(function (b) { return b && String(b.image || '').trim(); });
-  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
+  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=800&q=70&auto=format', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
   box.innerHTML = list.map(function (b, i) {
     var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
     var bd = esc(b.badge || '');
@@ -143,7 +142,7 @@ function applyMemberPortalFromSettings(raw) {
     brandTagline: 'Tinh hoa từ hạt, trọn vẹn yêu thương.',
     loginCardTitle: 'Cổng vào Hội viên',
     loginCardSubtitle: 'Đăng nhập bằng số điện thoại để xem gói, lịch uống và ưu đãi.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=900&q=80',
+    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=800&q=70&auto=format',
     heroFeature1Title: 'Thực đơn cá nhân hóa',
     heroFeature1Text: 'Lộ trình sữa hạt phù hợp thể trạng và mục tiêu sức khỏe của bạn.',
     heroFeature2Title: 'Ưu đãi thành viên',

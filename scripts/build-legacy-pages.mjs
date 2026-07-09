@@ -13,6 +13,14 @@ const OUT = path.join(ROOT, 'public', 'legacy');
 
 const FAVICON = 'https://i.ibb.co/8LV0snn8/logo-sun-web.png';
 
+const LEGACY_CSS = `
+<style id="sun-legacy-root-css">
+.legacy-page-root{height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.legacy-page-root .topbar,.legacy-page-root .bottom-nav{flex-shrink:0}
+.legacy-page-root .pos-layout,.legacy-page-root .mem-shell{flex:1;min-height:0}
+.legacy-page-root .products-scroll,.legacy-page-root .mem-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
+</style>`;
+
 function read(name) {
   return fs.readFileSync(path.join(ROOT, name), 'utf8');
 }
@@ -20,7 +28,6 @@ function read(name) {
 function transform(html, opts = {}) {
   let s = html;
 
-  // Merge includes
   if (s.includes('<!--SUN_ORDER_CLIENT_JS-->')) {
     s = s.replace('<!--SUN_ORDER_CLIENT_JS-->', read('OrderClient.html'));
   }
@@ -31,75 +38,78 @@ function transform(html, opts = {}) {
     s = s.replace('<!--MEMBER_ORDER_CLIENT-->', read('MemberOrderClient.html'));
   }
 
-  // Favicon / URL inject tokens
   s = s.split('__SUN_FAVICON_URL__').join(FAVICON);
   s = s.split('__SUN_URL_INJECT__').join('""');
 
-  // Route rewrites
   const routeMap = [
     [/\?page=admin/gi, '/admin'],
     [/\?page=order/gi, '/order'],
     [/\?page=member/gi, '/member'],
     [/\?page=pickup/gi, '/pickup'],
-    [/api=memberPortalBootstrap/gi, 'api=memberBootstrap'],
-    [/api=memberPortal&/gi, 'api=memberPortal&'],
   ];
   for (const [re, rep] of routeMap) s = s.replace(re, rep);
 
-  // HTTP JSON fallbacks → REST endpoints
   s = s.replace(
     /base \+ sep \+ 'api=memberPortal&phone='/g,
-    "base + '/api/member/portal?phone='"
+    "('/api/member/portal?phone='"
   );
   s = s.replace(
     /base \+ sep \+ 'api=memberPortalBootstrap'/g,
-    "base + '/api/member/bootstrap'"
+    "('/api/member/bootstrap'"
+  );
+  s = s.replace(
+    /var url = base \+ sep \+ 'api=memberBootstrap'/g,
+    "var url = '/api/member/bootstrap'"
   );
   s = s.replace(
     /base \+ sep \+ 'api=groupOrder&group='/g,
-    "base + '/api/group-order?group='"
+    "('/api/group-order?group='"
   );
   s = s.replace(
     /base \+ sep \+ 'api=orderStatus&order='/g,
-    "base + '/api/order-status?order='"
+    "('/api/order-status?order='"
   );
   s = s.replace(
     /base \+ sep \+ 'api=menu'/g,
-    "base + '/api/menu'"
+    "('/api/menu'"
   );
 
-  // memPage / posBase helpers
   s = s.replace(
     /function memPage\(p\) \{ return posBase\(\) \+ '\?page=' \+ p; \}/g,
     "function memPage(p) { var m = { admin:'/admin', order:'/order', member:'/member', pickup:'/pickup' }; return m[p] || ('/' + p); }"
   );
   s = s.replace(
-    /lp\.href = posBase\(\) \+ '\?page=order'/g,
-    "lp.href = '/order'"
+    /window\.memPage = function \(p\) \{ return window\.posBase\(\) \+ '\?page=' \+ p; \};/g,
+    "window.memPage = function (p) { var m = { admin:'/admin', order:'/order', member:'/member', pickup:'/pickup' }; return m[p] || ('/' + p); };"
+  );
+  s = s.replace(/lp\.href = posBase\(\) \+ '\?page=order'/g, "lp.href = '/order'");
+  s = s.replace(/pk\.href = posBase\(\) \+ '\?page=pickup'/g, "pk.href = '/pickup'");
+  s = s.replace(
+    /if \(lp\) lp\.href = window\.posBase\(\) \+ '\?page=order'/g,
+    "if (lp) lp.href = '/order'"
   );
   s = s.replace(
-    /pk\.href = posBase\(\) \+ '\?page=pickup'/g,
-    "pk.href = '/pickup'"
+    /if \(pk\) pk\.href = window\.posBase\(\) \+ '\?page=pickup'/g,
+    "if (pk) pk.href = '/pickup'"
   );
 
-  // Replace Admin api layer with fetch-based (after sun-api-client loads)
   s = s.replace(
     /const api = \{[\s\S]*?callLong:[\s\S]*?\}\s*\};/,
     'if (window.__SUN_INSTALL_API__) __SUN_INSTALL_API__();'
   );
 
-  // Inject sun-api-client before first script
   const inject = '<script src="/sun-api-client.js"></script>\n  ';
   if (!s.includes('sun-api-client.js')) {
     s = s.replace(/<head>/i, '<head>\n  ' + inject);
-    // Also before body scripts if head injection missed inline scripts at top
     s = s.replace(/<script>\s*try \{ var SCRIPT_URL/i, inject + '<script>try { var SCRIPT_URL');
   }
 
-  // Remove GAS-only tags
+  if (!s.includes('sun-legacy-root-css')) {
+    s = s.replace(/<head>/i, '<head>\n  ' + LEGACY_CSS);
+  }
+
   s = s.replace(/<base target="_top">\s*/gi, '');
 
-  // Pickup back link
   s = s.replace(/id="pk-back" href="#"/g, 'id="pk-back" href="/member"');
 
   if (opts.title) {

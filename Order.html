@@ -970,9 +970,32 @@
     .products-scroll {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
       padding: 18px 16px 20px;
       scrollbar-width: thin;
       scrollbar-color: var(--border2) transparent;
+      min-height: 0;
+    }
+
+    .legacy-page-root {
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .legacy-page-root .topbar,
+    .legacy-page-root .bottom-nav {
+      flex-shrink: 0;
+    }
+
+    .legacy-page-root .pos-layout {
+      flex: 1;
+      min-height: 0;
     }
 
     .products-scroll::-webkit-scrollbar {
@@ -3846,7 +3869,7 @@
         <div class="product-detail-opts">
         <!-- SIZE -->
         <div class="opt-group" id="sheet-size-group" style="display:none;">
-          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Kích cỡ</div>
+          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size</div>
           <div class="size-grid" id="sheet-size-options"></div>
         </div>
 
@@ -3902,8 +3925,14 @@
           </div>
         </div>
 
-        <!-- ADDONS -->
-        <div class="opt-group">
+        <!-- TOPPINGS -->
+        <div class="opt-group" id="sheet-topping-group">
+          <div class="opt-label"><i class="fa-solid fa-plus"></i> Topping</div>
+          <div class="opt-grid" id="sheet-topping-options"></div>
+        </div>
+
+        <!-- ADDONS (legacy sugar) -->
+        <div class="opt-group" id="sheet-addon-group" style="display:none;">
           <div class="opt-label"><i class="fa-solid fa-plus"></i> Thêm đường / sữa</div>
           <div class="opt-grid">
             <div class="opt-btn" onclick="toggleSubOptions(this,'sugar')">Đường</div>
@@ -3946,7 +3975,7 @@
 
       <button type="button" class="sheet-add-btn" onclick="addToCart()">
         <i class="fa-solid fa-cart-plus"></i>
-        Thêm vào đơn -&nbsp;<span id="sheet-add-total">0₫</span>
+        Chọn -&nbsp;<span id="sheet-add-total">0₫</span>
       </button>
     </div>
   </div>

@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+  
+<style id="sun-legacy-root-css">
+.legacy-page-root{height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.legacy-page-root .topbar,.legacy-page-root .bottom-nav{flex-shrink:0}
+.legacy-page-root .pos-layout,.legacy-page-root .mem-shell{flex:1;min-height:0}
+.legacy-page-root .products-scroll,.legacy-page-root .mem-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
+</style>
   <script src="/sun-api-client.js"></script>
   
   <meta charset="UTF-8">
@@ -2287,6 +2294,16 @@
       </div>
       <div class="mem-home-menu-grid menu-grid portal-menu-pro" id="mem-home-menu-grid"></div>
     </div>
+
+    <div class="card mem-home-register-cta" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1px solid #fed7aa;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:800;color:var(--primary-dk);font-size:15px;margin-bottom:4px;"><i class="fa-solid fa-gift"></i> Gói giao sữa thành viên</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.45;">Đăng ký gói tuần/tháng · Lịch uống cá nhân · Giao sáng tận nơi</div>
+        </div>
+        <button type="button" class="btn" id="btn-home-register-pkg"><i class="fa-solid fa-user-plus"></i> Xem &amp; đăng ký gói</button>
+      </div>
+    </div>
     </div>
 
   </section>
@@ -2824,15 +2841,21 @@
   <script>try { var SCRIPT_URL = ""; } catch (e) { var SCRIPT_URL = ''; }
 if (typeof SCRIPT_URL === 'undefined') var SCRIPT_URL = '';
 function posBase() {
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    return window.location.origin;
+  }
   var u = (typeof SCRIPT_URL === 'string' && SCRIPT_URL) ? SCRIPT_URL.split('?')[0] : '';
-  return u || window.location.href.split('?')[0].replace(/[?#].*$/, '');
+  return u || '';
 }
-function memPage(p) { var m = { admin:'/admin', order:'/order', member:'/member', pickup:'/pickup' }; return m[p] || ('/' + p); }
+function memPage(p) {
+  var m = { admin: '/admin', order: '/order', member: '/member', pickup: '/pickup' };
+  return m[p] || ('/' + p);
+}
 function wireTopLinks() {
   var lp = document.getElementById('link-pos');
-  if (lp) lp.href = posBase() + '/order';
+  if (lp) lp.href = '/order';
   var pk = document.getElementById('link-pickup');
-  if (pk) pk.href = posBase() + '/pickup';
+  if (pk) pk.href = '/pickup';
 }
 function gsErrMessage(e) {
   if (e == null) return 'Lỗi không xác định';
@@ -2865,32 +2888,25 @@ function apiLong(method, ms) {
     } catch (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); }
   });
 }
-/**
- * Tra cứu hội viên qua GET JSON (cùng origin với Web App).
- * Dùng khi google.script.run không gọi được / treo im lặng trên một số trình duyệt hoặc bản triển khai.
- */
 function portalMemberLookupHttp(phone) {
-  var base = posBase();
-  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-  var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = base + '/api/member/portal?phone=' + encodeURIComponent(String(phone || ''));
-  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-    .then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    });
+  return fetch('/api/member/portal?phone=' + encodeURIComponent(String(phone || '')), {
+    method: 'GET',
+    credentials: 'same-origin',
+    cache: 'no-store',
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
 }
-/** Một GET: settings + menu + packages (một lần thực thi server, nhanh hơn 3× google.script.run). */
 function portalMemberBootstrapHttp() {
-  var base = posBase();
-  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
-  var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = base + sep + 'api=memberBootstrap';
-  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
-    .then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    });
+  return fetch('/api/member/bootstrap', {
+    method: 'GET',
+    credentials: 'same-origin',
+    cache: 'no-store',
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
 }
 function showToast(msg) {
   var el = document.getElementById('toast');
@@ -2930,7 +2946,7 @@ function buildMemCarouselSlides(banners) {
   stopMemCarousel();
   var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
   list = list.filter(function (b) { return b && String(b.image || '').trim(); });
-  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
+  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=800&q=70&auto=format', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
   box.innerHTML = list.map(function (b, i) {
     var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
     var bd = esc(b.badge || '');
@@ -2965,7 +2981,7 @@ function applyMemberPortalFromSettings(raw) {
     brandTagline: 'Tinh hoa từ hạt, trọn vẹn yêu thương.',
     loginCardTitle: 'Cổng vào Hội viên',
     loginCardSubtitle: 'Đăng nhập bằng số điện thoại để xem gói, lịch uống và ưu đãi.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=900&q=80',
+    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=800&q=70&auto=format',
     heroFeature1Title: 'Thực đơn cá nhân hóa',
     heroFeature1Text: 'Lộ trình sữa hạt phù hợp thể trạng và mục tiêu sức khỏe của bạn.',
     heroFeature2Title: 'Ưu đãi thành viên',
@@ -3110,7 +3126,7 @@ function portalMemberLookupHttp(phone) {
   var base = posBase();
   if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
   var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = base + '/api/member/portal?phone=' + encodeURIComponent(String(phone || ''));
+  var url = ('/api/member/portal?phone=' + encodeURIComponent(String(phone || ''));
   return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
     .then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -3122,7 +3138,7 @@ function portalMemberBootstrapHttp() {
   var base = posBase();
   if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
   var sep = base.indexOf('?') === -1 ? '?' : '&';
-  var url = base + sep + 'api=memberBootstrap';
+  var url = ('/api/member/bootstrap';
   return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
     .then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -4064,7 +4080,7 @@ function applyMemberPortalFromSettings(raw) {
     var base = global.posBase ? global.posBase() : '';
     if (base) {
       var sep = base.indexOf('?') === -1 ? '?' : '&';
-      fetch(base + '/api/order-status?order=' + encodeURIComponent(oid), { cache: 'no-store', credentials: 'same-origin' })
+      fetch(('/api/order-status?order=' + encodeURIComponent(oid), { cache: 'no-store', credentials: 'same-origin' })
         .then(function (r) { return r.json(); }).then(done)
         .catch(function () { api('getOnlineOrderStatusPublic', oid).then(done).catch(function () { }); });
     } else {
@@ -4291,7 +4307,7 @@ function applyMemberPortalFromSettings(raw) {
     };
     if (base) {
       var sep = base.indexOf('?') === -1 ? '?' : '&';
-      fetch(base + '/api/group-order?group=' + encodeURIComponent(gid), { cache: 'no-store', credentials: 'same-origin' })
+      fetch(('/api/group-order?group=' + encodeURIComponent(gid), { cache: 'no-store', credentials: 'same-origin' })
         .then(function (r) { return r.json(); }).then(done)
         .catch(function () { api('getGroupOrder', gid).then(done).catch(function () { }); });
     } else {
@@ -5888,7 +5904,7 @@ function applyMemberPortalFromSettings(raw) {
     var base = global.posBase ? global.posBase() : '';
     if (base) {
       var sep = base.indexOf('?') === -1 ? '?' : '&';
-      fetch(base + '/api/order-status?order=' + encodeURIComponent(oid), { cache: 'no-store', credentials: 'same-origin' })
+      fetch(('/api/order-status?order=' + encodeURIComponent(oid), { cache: 'no-store', credentials: 'same-origin' })
         .then(function (r) { return r.json(); }).then(done)
         .catch(function () { api('getOnlineOrderStatusPublic', oid).then(done).catch(function () { }); });
     } else {
@@ -6115,7 +6131,7 @@ function applyMemberPortalFromSettings(raw) {
     };
     if (base) {
       var sep = base.indexOf('?') === -1 ? '?' : '&';
-      fetch(base + '/api/group-order?group=' + encodeURIComponent(gid), { cache: 'no-store', credentials: 'same-origin' })
+      fetch(('/api/group-order?group=' + encodeURIComponent(gid), { cache: 'no-store', credentials: 'same-origin' })
         .then(function (r) { return r.json(); }).then(done)
         .catch(function () { api('getGroupOrder', gid).then(done).catch(function () { }); });
     } else {
@@ -6954,7 +6970,7 @@ function applyMemberPortalFromSettings(raw) {
       var u = (typeof SCRIPT_URL === 'string' && SCRIPT_URL) ? SCRIPT_URL.split('?')[0] : '';
       return u || window.location.href.split('?')[0].replace(/[?#].*$/, '');
     };
-    window.memPage = function (p) { return window.posBase() + '?page=' + p; };
+    window.memPage = function (p) { var m = { admin:'/admin', order:'/order', member:'/member', pickup:'/pickup' }; return m[p] || ('/' + p); };
     window.wireTopLinks = function () {
       var lp = document.getElementById('link-pos');
       if (lp) lp.href = window.posBase() + '/order';
@@ -6996,7 +7012,7 @@ function applyMemberPortalFromSettings(raw) {
       var base = window.posBase();
       if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
       var sep = base.indexOf('?') === -1 ? '?' : '&';
-      var url = base + '/api/member/portal?phone=' + encodeURIComponent(String(phone || ''));
+      var url = ('/api/member/portal?phone=' + encodeURIComponent(String(phone || ''));
       return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -7007,7 +7023,7 @@ function applyMemberPortalFromSettings(raw) {
       var base = window.posBase();
       if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
       var sep = base.indexOf('?') === -1 ? '?' : '&';
-      var url = base + sep + 'api=memberBootstrap';
+      var url = ('/api/member/bootstrap';
       return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -8091,7 +8107,7 @@ function applyMemberPortalFromSettings(raw) {
         var g = $('mem-home-menu-grid');
         if (!g) return;
         if (!state.menu.length) {
-          g.innerHTML = '<p style="color:var(--text3);font-size:13px;">Đang tải thực đơn…</p>';
+          g.innerHTML = '<p style="color:var(--text3);font-size:13px;">Chưa tải được thực đơn. <button type="button" class="mem-link-btn" onclick="location.reload()">Thử lại</button></p>';
           return;
         }
         var items = state.menu.filter(function (m) { return m.available !== false; }).slice().sort(function (a, b) {
@@ -9659,6 +9675,8 @@ function applyMemberPortalFromSettings(raw) {
 
       var bham = $('btn-home-all-menu');
       if (bham) bham.onclick = function () { goOrder(); };
+      var bhrp = $('btn-home-register-pkg');
+      if (bhrp) bhrp.onclick = function () { goRegister(); };
       /** Đọc mã đơn nhóm từ URL (?group=CODE) - hỗ trợ cả iframe GAS. */
       function detectGroupParam(cb) {
         var g = '';
@@ -9818,6 +9836,7 @@ function applyMemberPortalFromSettings(raw) {
           buildMenuFilterPills();
           renderMenu();
           if (document.body.classList.contains('mem-logged-in')) renderHomeMenuPreview();
+          else renderHomeMenuPreview();
           if (state.bootPkgMsg) {
             var pk = $('pkg-stack');
             if (pk) pk.innerHTML = state.bootPkgMsg;

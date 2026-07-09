@@ -2,6 +2,13 @@
 <html lang="vi">
 
 <head>
+  
+<style id="sun-legacy-root-css">
+.legacy-page-root{height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.legacy-page-root .topbar,.legacy-page-root .bottom-nav{flex-shrink:0}
+.legacy-page-root .pos-layout,.legacy-page-root .mem-shell{flex:1;min-height:0}
+.legacy-page-root .products-scroll,.legacy-page-root .mem-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0}
+</style>
   <script src="/sun-api-client.js"></script>
   
   <meta charset="UTF-8">
@@ -971,9 +978,32 @@
     .products-scroll {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
       padding: 18px 16px 20px;
       scrollbar-width: thin;
       scrollbar-color: var(--border2) transparent;
+      min-height: 0;
+    }
+
+    .legacy-page-root {
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .legacy-page-root .topbar,
+    .legacy-page-root .bottom-nav {
+      flex-shrink: 0;
+    }
+
+    .legacy-page-root .pos-layout {
+      flex: 1;
+      min-height: 0;
     }
 
     .products-scroll::-webkit-scrollbar {
@@ -3847,7 +3877,7 @@
         <div class="product-detail-opts">
         <!-- SIZE -->
         <div class="opt-group" id="sheet-size-group" style="display:none;">
-          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Kích cỡ</div>
+          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size</div>
           <div class="size-grid" id="sheet-size-options"></div>
         </div>
 
@@ -3903,8 +3933,14 @@
           </div>
         </div>
 
-        <!-- ADDONS -->
-        <div class="opt-group">
+        <!-- TOPPINGS -->
+        <div class="opt-group" id="sheet-topping-group">
+          <div class="opt-label"><i class="fa-solid fa-plus"></i> Topping</div>
+          <div class="opt-grid" id="sheet-topping-options"></div>
+        </div>
+
+        <!-- ADDONS (legacy sugar) -->
+        <div class="opt-group" id="sheet-addon-group" style="display:none;">
           <div class="opt-label"><i class="fa-solid fa-plus"></i> Thêm đường / sữa</div>
           <div class="opt-grid">
             <div class="opt-btn" onclick="toggleSubOptions(this,'sugar')">Đường</div>
@@ -3947,7 +3983,7 @@
 
       <button type="button" class="sheet-add-btn" onclick="addToCart()">
         <i class="fa-solid fa-cart-plus"></i>
-        Thêm vào đơn -&nbsp;<span id="sheet-add-total">0₫</span>
+        Chọn -&nbsp;<span id="sheet-add-total">0₫</span>
       </button>
     </div>
   </div>
@@ -4339,6 +4375,41 @@
   </audio>
   <script>
   var SCRIPT_URL = typeof window.__SUN_POS_URL__ === 'string' ? window.__SUN_POS_URL__ : '';
+
+  function sunImg(url, w) {
+    var u = String(url || '').trim();
+    if (!u) return '';
+    if (u.indexOf('drive.google.com') >= 0) {
+      var m = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w' + (w || 480);
+    }
+    if (u.indexOf('unsplash.com') >= 0) return u.replace(/\?.*$/, '') + '?w=' + (w || 480) + '&q=72&auto=format';
+    return u;
+  }
+
+  function defaultToppingsForCategory(cat) {
+    var c = String(cat || '').toLowerCase();
+    if (c.indexOf('sữa hạt') >= 0 || c.indexOf('mix') >= 0) {
+      return [
+        { name: 'Đường', price: 0 },
+        { name: 'Sữa đặc', price: 3000 },
+        { name: 'Không thêm topping', price: 0, noTopping: true },
+      ];
+    }
+    if (c.indexOf('coffee') >= 0 || c.indexOf('matcha') >= 0) {
+      return [
+        { name: 'Thêm sữa', price: 5000 },
+        { name: 'Không thêm topping', price: 0, noTopping: true },
+      ];
+    }
+    return [{ name: 'Không thêm topping', price: 0, noTopping: true }];
+  }
+
+  function productToppings(p) {
+    if (!p) return [];
+    if (Array.isArray(p.toppings) && p.toppings.length) return p.toppings;
+    return defaultToppingsForCategory(p.category);
+  }
   (function () {
     var U = 'https://i.ibb.co/8LV0snn8/logo-sun-web.png';
     if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
@@ -4875,7 +4946,8 @@
 
   function normalizeCupSizeLabel(s) {
     if (s === 'Tiêu chuẩn') return 'Tiêu chuẩn';
-    if (!s || s === 'Vừa' || s === 'Vừa (350ml)') return 'Thường (350ml)';
+    if (!s || s === 'Thường' || s === 'Thường (350ml)') return 'Vừa (350ml)';
+    if (s === 'Vừa') return 'Vừa (350ml)';
     return s;
   }
 
@@ -4993,7 +5065,26 @@
   }
 
   function getCatIcon(cat) {
-    const m = { 'Tất cả': '🌟', 'Sữa đơn': '🥛', 'Sữa Mix': '🌰', 'Topping': '✨', 'Nổi bật': '🔥', 'Đặc biệt': '⭐', 'Sữa đặc biệt': '💎' };
+    const m = {
+      'Tất cả': '🌟',
+      'Sữa hạt': '🥛',
+      'Mix hạt': '🌰',
+      'Matcha': '🍵',
+      'Coffee': '☕',
+      'Trà trái cây': '🍹',
+      'Sữa đơn': '🥛',
+      'Sữa Mix': '🌰',
+      'Topping': '✨',
+      'Nổi bật': '🔥',
+      'Đặc biệt': '⭐',
+      'Sữa đặc biệt': '💎',
+    };
+    var lc = String(cat || '').toLowerCase();
+    if (lc.indexOf('matcha') >= 0) return '🍵';
+    if (lc.indexOf('coffee') >= 0 || lc.indexOf('cafe') >= 0) return '☕';
+    if (lc.indexOf('trà') >= 0) return '🍹';
+    if (lc.indexOf('mix') >= 0) return '🌰';
+    if (lc.indexOf('sữa') >= 0) return '🥛';
     return m[cat] || '🥤';
   }
 
@@ -5047,8 +5138,9 @@
 
     const html = items.map((p, i) => {
       const idx = menuData.indexOf(p);
-      const imgEl = p.imageUrl
-        ? '<img src="' + esc(p.imageUrl) + '" alt="' + esc(p.name) + '" loading="lazy">'
+      const imgSrc = p.imageUrl ? sunImg(p.imageUrl, 400) : '';
+      const imgEl = imgSrc
+        ? '<img src="' + esc(imgSrc) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async">'
         : '<div class="prod-emoji">' + getEmoji(p) + '</div>';
       const popular = p.popular ? '<div class="popular-badge">Phổ biến</div>' : '';
       return '<div class="product-card" onclick="openProductByIndex(' + idx + ')" style="animation-delay:' + (i * 0.04) + 's">' +
@@ -5279,14 +5371,14 @@
     var large = parseFloat(p.largeCupExtra);
     if (isNaN(large)) large = 8000;
     if (p.largeCupExtra === '' || p.largeCupExtra === null) large = 8000;
-    var enS = !!p.enableSmall;
+    var enS = p.enableSmall !== false;
     var enR = p.enableRegular !== false;
     var enL = p.enableLarge !== false;
     var parts = [];
-    if (enS) parts.push({ label: 'Nhỏ', sub: '250ml · ' + (smallDisc > 0 ? '-' + fmt(smallDisc) : 'Giá gốc'), val: 'Nhỏ (250ml)', price: -smallDisc, icon: '🥛' });
-    if (enR) parts.push({ label: 'Thường', sub: '350ml', val: 'Thường (350ml)', price: 0, icon: '🥤' });
-    if (enL) parts.push({ label: 'Lớn', sub: '+' + fmt(large), val: 'Lớn (450ml)', price: large, icon: '🧃' });
-    if (parts.length === 0) parts.push({ label: 'Thường', sub: '350ml', val: 'Thường (350ml)', price: 0, icon: '🥤' });
+    if (enL) parts.push({ label: 'Lớn', sub: '', val: 'Lớn (450ml)', price: large, icon: '🧃' });
+    if (enR) parts.push({ label: 'Vừa', sub: '', val: 'Vừa (350ml)', price: 0, icon: '🥤' });
+    if (enS) parts.push({ label: 'Nhỏ', sub: '', val: 'Nhỏ (250ml)', price: -smallDisc, icon: '🥛' });
+    if (parts.length === 0) parts.push({ label: 'Vừa', sub: '', val: 'Vừa (350ml)', price: 0, icon: '🥤' });
     return parts;
   }
   function buildFamilySizePartsOnly(p) {
@@ -5301,14 +5393,16 @@
   function paintSizeButtons(parts, defIdx) {
     var sizeOptions = document.getElementById('sheet-size-options');
     if (!sizeOptions || !parts.length) return;
+    var bp = currentProduct ? (parseFloat(currentProduct.basePrice) || 0) : 0;
     var szHtml = '';
     for (var j = 0; j < parts.length; j++) {
       var q = parts[j];
       var act = j === defIdx ? ' active' : '';
+      var showPrice = fmt(Math.max(0, bp + q.price));
       szHtml += '<div class="size-btn' + act + '" onclick="selectSizeBtn(this,\'' + escAttr(q.val) + '\',' + q.price + ')">' +
         '<span class="sz-icon">' + q.icon + '</span>' +
         '<div class="sz-name">' + esc(q.label) + '</div>' +
-        '<div class="sz-price">' + esc(q.sub) + '</div></div>';
+        '<div class="sz-price">' + esc(showPrice) + '</div></div>';
     }
     sizeOptions.innerHTML = szHtml;
     currentOptions.size = parts[defIdx].val;
@@ -5327,11 +5421,38 @@
       parts = buildCupSizePartsOnly(p);
     }
     var defIdx = 0;
-    var want = currentOptions.familyPack ? 'Chai gia đình 500ml' : 'Thường (350ml)';
+    var want = currentOptions.familyPack ? 'Chai gia đình 500ml' : 'Vừa (350ml)';
     for (var pi = 0; pi < parts.length; pi++) {
       if (parts[pi].val === want) { defIdx = pi; break; }
     }
     paintSizeButtons(parts, defIdx);
+  }
+
+  function renderProductToppings(p) {
+    var grp = document.getElementById('sheet-topping-group');
+    var grid = document.getElementById('sheet-topping-options');
+    if (!grp || !grid) return;
+    var tops = productToppings(p);
+    if (!tops.length) { grp.style.display = 'none'; grid.innerHTML = ''; return; }
+    grp.style.display = '';
+    grid.innerHTML = tops.map(function (t) {
+      var priceTxt = t.price > 0 ? ('+' + fmt(t.price)) : (t.noTopping ? 'Không thêm' : '');
+      var oc = t.noTopping
+        ? ' onclick="selectNoTopping(this)"'
+        : (' onclick="selectOption(this,\'addon\',\'' + escAttr(t.name) + '\',' + (parseFloat(t.price) || 0) + ')"');
+      return '<div class="opt-btn opt-topping"' + oc + '>' +
+        '<div class="nut-chip-name">' + esc(t.name) + '</div>' +
+        '<div class="nut-chip-price">' + esc(priceTxt) + '</div></div>';
+    }).join('');
+  }
+
+  function selectNoTopping(btn) {
+    document.querySelectorAll('#sheet-topping-options .opt-btn.active').forEach(function (b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    currentOptions.addons = ['Không thêm topping'];
+    currentOptions.addonPrices = [0];
+    document.getElementById('sugar-sub-options').classList.remove('show');
+    updateModalPrice();
   }
 
   function renderNutMixOptions(p, isTopping) {
@@ -5385,7 +5506,7 @@
     currentProduct = p;
     currentQty = 1;
     currentOptions = {
-      size: 'Thường (350ml)', sizePrice: 0, ice: 'Không đá', sweetness: 'Ngọt vừa', addons: [], addonPrices: [],
+      size: 'Vừa (350ml)', sizePrice: 0, ice: 'Không đá', sweetness: 'Ngọt vừa', addons: [], addonPrices: [],
       serveTemp: 'cold_steep', packaging: 'paper', packagingPrice: 0, familyPack: false
     };
 
@@ -5395,7 +5516,7 @@
 
     var hero = document.getElementById('sheet-hero');
     var heroEmoji = document.getElementById('sheet-hero-emoji');
-    var heroUrl = p.coverImageUrl || p.imageUrl || '';
+    var heroUrl = sunImg(p.coverImageUrl || p.imageUrl || '', 720);
     if (heroUrl) {
       heroEmoji.style.display = 'none';
       hero.querySelectorAll('img.hero-img').forEach(function (e) { e.remove(); });
@@ -5403,6 +5524,8 @@
       img.className = 'hero-img';
       img.src = heroUrl;
       img.alt = p.name;
+      img.loading = 'lazy';
+      img.decoding = 'async';
       img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;';
       hero.insertBefore(img, hero.firstChild);
     } else {
@@ -5470,6 +5593,7 @@
     if (sweetDefault) sweetDefault.classList.add('active');
 
     renderNutMixOptions(p, isTopping);
+    renderProductToppings(p);
 
     renderProductDetailMeta(p);
 
@@ -5632,7 +5756,7 @@
 
   function quickAdd(p) {
     const isTop = (p.category || '').toLowerCase().indexOf('topping') !== -1;
-    const defSize = isTop ? 'Tiêu chuẩn' : 'Thường (350ml)';
+    const defSize = isTop ? 'Tiêu chuẩn' : 'Vừa (350ml)';
     const existing = cart.find(function (i) {
       return i.id === p.id && !i.note && normalizeCupSizeLabel(i.options.size) === defSize &&
         (i.options.serveTemp || 'cold_steep') === 'cold_steep' && (i.options.packaging || 'paper') === 'paper';
@@ -6614,21 +6738,11 @@
     }
   }
 
-  // ====== ADMIN ======
-  function goToAdmin() { if (!SCRIPT_URL) { showToast('⚠️ Không thể mở Admin!'); return; } window.open(SCRIPT_URL + '/admin', '_blank'); }
-  function goToMemberPage() {
-    if (!SCRIPT_URL) { showToast('⚠️ Không thể mở trang Hội viên!'); return; }
-    window.location.href = SCRIPT_URL + '/member';
-  }
-  /** Tab Đơn nhóm: chuyển sang trang Hội viên (nơi tạo & quản lý đơn nhóm). */
-  function goToGroupOrder() {
-    if (!SCRIPT_URL) { showToast('⚠️ Không thể mở trang Hội viên!'); return; }
-    window.location.href = SCRIPT_URL + '/member';
-  }
-  // Pickup/Display/Kiosk đã được gỡ bỏ theo yêu cầu
+  // ====== ADMIN / NAV ======
+  function goToAdmin() { window.open('/admin', '_blank'); }
+  function goToMemberPage() { window.location.href = '/member'; }
+  function goToGroupOrder() { window.location.href = '/member?group=1'; }
   function getInfoAdmin() { goToAdmin(); }
-
-  // Pickup/Display/Kiosk đã được gỡ bỏ theo yêu cầu
 
   // ====== UTILS ======
   function fmt(n) { return Math.round(n).toLocaleString('vi-VN') + '₫'; }

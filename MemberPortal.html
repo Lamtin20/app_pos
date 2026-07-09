@@ -2286,6 +2286,16 @@
       </div>
       <div class="mem-home-menu-grid menu-grid portal-menu-pro" id="mem-home-menu-grid"></div>
     </div>
+
+    <div class="card mem-home-register-cta" style="margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1px solid #fed7aa;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:800;color:var(--primary-dk);font-size:15px;margin-bottom:4px;"><i class="fa-solid fa-gift"></i> Gói giao sữa thành viên</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.45;">Đăng ký gói tuần/tháng · Lịch uống cá nhân · Giao sáng tận nơi</div>
+        </div>
+        <button type="button" class="btn" id="btn-home-register-pkg"><i class="fa-solid fa-user-plus"></i> Xem &amp; đăng ký gói</button>
+      </div>
+    </div>
     </div>
 
   </section>
@@ -6031,7 +6041,7 @@ function applyMemberPortalFromSettings(raw) {
         var g = $('mem-home-menu-grid');
         if (!g) return;
         if (!state.menu.length) {
-          g.innerHTML = '<p style="color:var(--text3);font-size:13px;">Đang tải thực đơn…</p>';
+          g.innerHTML = '<p style="color:var(--text3);font-size:13px;">Chưa tải được thực đơn. <button type="button" class="mem-link-btn" onclick="location.reload()">Thử lại</button></p>';
           return;
         }
         var items = state.menu.filter(function (m) { return m.available !== false; }).slice().sort(function (a, b) {
@@ -7599,6 +7609,8 @@ function applyMemberPortalFromSettings(raw) {
 
       var bham = $('btn-home-all-menu');
       if (bham) bham.onclick = function () { goOrder(); };
+      var bhrp = $('btn-home-register-pkg');
+      if (bhrp) bhrp.onclick = function () { goRegister(); };
       /** Đọc mã đơn nhóm từ URL (?group=CODE) - hỗ trợ cả iframe GAS. */
       function detectGroupParam(cb) {
         var g = '';
@@ -7716,8 +7728,11 @@ function applyMemberPortalFromSettings(raw) {
           var code = String(g).trim().toUpperCase();
           if (window.MemOrder && MemOrder.setPendingGroupCode) MemOrder.setPendingGroupCode(code);
           else { try { sessionStorage.setItem('sun_group_pending', code); } catch (eG) { } }
+          if (g === '1') {
+            setTimeout(function () { goGroup(); }, 400);
+            return;
+          }
           if (!isPhone10(saved) && !state.phone) {
-            // Khách mời: chỉ cần nhập tên, không cần đăng nhập
             openGuestGate(code);
           }
         });
@@ -7758,6 +7773,7 @@ function applyMemberPortalFromSettings(raw) {
           buildMenuFilterPills();
           renderMenu();
           if (document.body.classList.contains('mem-logged-in')) renderHomeMenuPreview();
+          else renderHomeMenuPreview();
           if (state.bootPkgMsg) {
             var pk = $('pkg-stack');
             if (pk) pk.innerHTML = state.bootPkgMsg;
