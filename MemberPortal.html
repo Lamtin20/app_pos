@@ -243,31 +243,10 @@
     .mem-topbar-actions { display: flex; gap: 8px; align-items: center; }
     .mem-topbar-actions a { color: var(--primary-dk); text-decoration: none; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); display: inline-flex; align-items: center; gap: 6px; }
     .mem-carousel-wrap { max-width: none; margin: 0 auto; padding: 12px 16px 0; }
-    .mem-carousel {
-      position: relative; border-radius: 20px; overflow: hidden;
-      border: 1px solid var(--border); background: #1a1410;
-      min-height: 160px;
-    }
-    .mem-carousel-track {
-      display: flex; gap: 12px; transition: transform 0.45s ease;
-      will-change: transform;
-    }
-    .mem-carousel.mem-carousel-single .mem-carousel-track { gap: 0; }
-    .mem-slide {
-      flex: 0 0 100%; min-height: 160px; background-size: cover;
-      background-position: center; position: relative; border-radius: 18px;
-      overflow: hidden;
-    }
-    @media (min-width: 900px) {
-      .mem-carousel { min-height: 180px; }
-      .mem-carousel.mem-carousel-dual .mem-slide {
-        flex: 0 0 calc(50% - 6px);
-        min-height: 180px;
-      }
-    }
-    @media (max-width: 640px) {
-      .mem-slide { min-height: 200px; border-radius: 16px; }
-    }
+    .mem-carousel { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; min-height: 200px; background: #1a1410; }
+    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 4/3; min-height: 210px; } }
+    .mem-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; background-size: cover; background-position: center; }
+    .mem-slide.on { opacity: 1; z-index: 1; }
     .mem-slide-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px; background: linear-gradient(transparent, rgba(0,0,0,.72)); color: #fff; z-index: 2; }
     .mem-slide-cap .bdg { display: inline-block; font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(234,180,60,.95); color: #1a1410; margin-bottom: 8px; }
     .mem-slide-cap h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 6px; font-family: var(--display); line-height: 1.25; }
@@ -938,13 +917,16 @@
       display: flex; align-items: center; justify-content: space-between; margin-top: 6px; gap: 8px;
     }
     .menu-card .bd .pr::after,
-    .mem-home-menu-grid .menu-card .bd .pr::after,
-    .portal-menu-pro .menu-card .bd .pr::after,
-    #sec-order .pk-card .pr::after {
+    .mem-home-menu-grid .menu-card .bd .pr::after {
       content: '+'; width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
       background: var(--primary-dk); color: #fff; font-size: 16px; font-weight: 900;
       display: inline-flex; align-items: center; justify-content: center; line-height: 1;
       box-shadow: 0 3px 8px rgba(154, 52, 18, .28);
+    }
+    .portal-menu-pro .mem-pk-footer .pr::after,
+    #sec-order .pk-card .mem-pk-footer .pr::after {
+      content: none !important;
+      display: none !important;
     }
 
     /* App shell - mobile: menu dưới | tablet/desktop (≥900px): menu trên */
@@ -967,21 +949,7 @@
     .mem-portal-main {
       width: 100%; max-width: 1200px; margin: 0 auto;
       padding: 0 14px 18px; box-sizing: border-box;
-      flex: 1; min-height: 0; overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y;
-      overscroll-behavior: contain;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
     }
-    .mem-portal-main::-webkit-scrollbar { display: none; width: 0; height: 0; }
-    .legacy-page-root {
-      height: 100dvh; display: flex; flex-direction: column;
-      overflow: hidden; min-height: 0;
-    }
-    .legacy-page-root > header,
-    .legacy-page-root > nav,
-    .legacy-page-root > .mem-bottom-nav { flex-shrink: 0; }
     @media (max-width: 899px) {
       body.mem-logged-in .mem-bottom-nav { display: flex !important; }
       body.mem-logged-in .mem-nav-desktop { display: none !important; }
@@ -1159,15 +1127,6 @@
     #sec-order .pk-card .b { padding: 9px 10px 10px; }
     #sec-order .pk-card .nm { font-size: 12.5px; font-weight: 800; line-height: 1.35; min-height: 2.3em; }
     #sec-order .pk-card .pr { color: var(--primary); font-weight: 900; font-size: 13px; margin-top: 0; font-family: var(--display); }
-    #sec-order .mem-pk-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
-    #sec-order .mem-pk-add-btn {
-      flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: none;
-      background: linear-gradient(145deg, var(--primary-dk), var(--primary));
-      color: #fff; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(124, 45, 18, .28); transition: transform .15s ease, box-shadow .15s ease;
-    }
-    #sec-order .mem-pk-add-btn:hover { transform: scale(1.06); box-shadow: 0 6px 16px rgba(124, 45, 18, .34); }
-    #sec-order .mem-pk-add-btn:active { transform: scale(.94); }
     body.mem-logged-in.mem-view-order #sec-order .pk-cart {
       position: fixed; left: 0; right: 0;
       bottom: calc(72px + env(safe-area-inset-bottom, 0px));
@@ -1380,17 +1339,11 @@
     .mem-pd-scroll .opt-btn.opt-nut-chip.active .nut-chip-img {
       border-color: rgba(255, 255, 255, 0.35);
     }
-    .mem-pd-scroll .size-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-    .mem-pd-scroll .size-sub-hint { font-size: 12px; color: var(--text3); margin: -4px 0 10px; }
+    .mem-pd-scroll .size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .mem-pd-scroll .size-btn {
-      flex: 1 1 auto; min-width: 0; border: 1.5px solid var(--border2); border-radius: 999px;
-      padding: 12px 14px; text-align: center; cursor: pointer; background: #fff; transition: all 0.18s;
+      border: 1.5px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; background: var(--surface);
     }
-    .mem-pd-scroll .size-btn .sz-name,
-    .mem-pd-scroll .size-btn .sz-price { font-size: 13px; font-weight: 700; color: var(--text); display: inline; }
-    .mem-pd-scroll .size-btn .sz-price::before { content: ': '; }
     .mem-pd-scroll .size-btn.active { border-color: var(--primary); background: rgba(154,52,18,.08); }
-    .mem-pd-scroll .size-btn.active .sz-name { color: var(--primary-dk); }
     .mem-pd-scroll .sub-options { display: none; }
     .mem-pd-scroll .sub-options.show { display: block; }
     .mem-pd-scroll .modal-qty { display: flex; align-items: center; gap: 10px; }
@@ -2006,27 +1959,6 @@
     .mem-home-hero { border-radius: 18px; padding: 18px 18px; background: linear-gradient(105deg, rgba(124,45,18,.88), rgba(154,52,18,.75)), var(--surface2); color: #fff; border: 1px solid rgba(255,255,255,.12); position: relative; overflow: hidden; }
     .mem-home-hero h2 { font-family: var(--display); font-size: 1.35rem; margin: 0 0 8px; }
     .mem-home-hero p { margin: 0; font-size: 13px; opacity: 0.95; line-height: 1.5; max-width: 780px; }
-    .mem-home-register-cta, .mem-home-pkg-top {
-      margin: 0 0 14px; padding: 16px 18px;
-      background: linear-gradient(135deg,#fff7ed,#fef3c7);
-      border: 1px solid #fed7aa; border-radius: 18px;
-    }
-    .mem-home-pkg-picker {
-      display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 8px;
-      scrollbar-width: none; -ms-overflow-style: none;
-    }
-    .mem-home-pkg-picker::-webkit-scrollbar { display: none; }
-    .mem-home-pkg-chip {
-      flex: 0 0 auto; min-width: 148px; padding: 12px 14px; border-radius: 14px;
-      border: 1.5px solid var(--border); background: #fff; cursor: pointer;
-      transition: border-color .18s, box-shadow .18s;
-    }
-    .mem-home-pkg-chip:hover, .mem-home-pkg-chip.on {
-      border-color: var(--primary); box-shadow: 0 6px 18px rgba(154,52,18,.12);
-    }
-    .mem-home-pkg-chip .t { font-size: 11px; font-weight: 800; color: var(--primary-dk); text-transform: uppercase; }
-    .mem-home-pkg-chip .n { font-size: 13px; font-weight: 800; margin: 4px 0; line-height: 1.3; }
-    .mem-home-pkg-chip .p { font-size: 14px; font-weight: 900; color: var(--primary); }
 
     .mem-boot-bar {
       position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 9999;
@@ -2263,6 +2195,103 @@
       border: 1px solid rgba(21, 128, 61, 0.2);
     }
     .mem-pkg-price-was { font-size: 12px; color: var(--text3); text-decoration: line-through; margin-right: 8px; }
+    /* -- Gói Sun (Milk House style) -- */
+    .mem-sun-page { padding: 0 !important; max-width: none; }
+    .mem-sun-hero {
+      position: relative;
+      background:
+        linear-gradient(105deg, rgba(34,197,94,.12) 0%, rgba(255,255,255,.92) 45%, rgba(234,88,12,.08) 100%),
+        url('https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80') center/cover no-repeat;
+      border-bottom: 1px solid var(--border);
+      padding: 28px 16px 24px;
+      overflow: hidden;
+    }
+    .mem-sun-hero-badge {
+      position: absolute; top: 16px; right: 16px;
+      background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
+      font-size: 11px; font-weight: 900; padding: 8px 12px; border-radius: 999px;
+      box-shadow: 0 4px 14px rgba(34,197,94,.35); letter-spacing: .02em;
+    }
+    .mem-sun-hero-inner { max-width: 1100px; margin: 0 auto; }
+    .mem-sun-eyebrow { font-size: 11px; font-weight: 800; color: var(--primary); letter-spacing: .04em; text-transform: uppercase; }
+    .mem-sun-title { margin: 8px 0 6px; font-size: clamp(20px, 4vw, 28px); font-weight: 900; line-height: 1.2; color: var(--text); }
+    .mem-sun-sub { margin: 0; font-size: 13px; color: var(--text2); max-width: 640px; line-height: 1.5; }
+    .mem-sun-hero-feats { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 14px; font-size: 12px; font-weight: 700; color: var(--text2); }
+    .mem-sun-hero-feats i { color: var(--primary); margin-right: 4px; }
+    .mem-sun-layout {
+      max-width: 1100px; margin: 0 auto; padding: 16px;
+      display: grid; grid-template-columns: 1fr; gap: 16px;
+    }
+    @media (min-width: 900px) {
+      .mem-sun-layout { grid-template-columns: 1fr 300px; align-items: start; }
+    }
+    .mem-sun-cards-wrap { display: flex; flex-direction: column; gap: 14px; }
+    .mem-sun-cards-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 640px) { .mem-sun-cards-grid { grid-template-columns: 1fr 1fr; } }
+    .mem-pkg-card.week { border-color: rgba(34,197,94,.45); }
+    .mem-pkg-card.week .mem-pkg-btn { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .mem-pkg-card.month { border-color: rgba(234,88,12,.5); }
+    .mem-pkg-card.month .mem-pkg-btn { background: linear-gradient(135deg, var(--primary), var(--primary-dk)); }
+    .mem-pkg-ribbon.popular span { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .mem-pkg-ribbon.best span { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .mem-pkg-save-tag {
+      display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 800; color: #166534; background: rgba(34,197,94,.14);
+    }
+    .mem-sun-sidebar { display: flex; flex-direction: column; gap: 12px; }
+    .mem-sun-side-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 14px; box-shadow: 0 8px 24px rgba(60,40,25,.06);
+    }
+    .mem-sun-side-h { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--text3); margin-bottom: 10px; }
+    .mem-sun-side-muted { margin: 0; font-size: 13px; color: var(--text3); }
+    .mem-sun-profile-name { font-size: 16px; font-weight: 900; margin: 0 0 4px; }
+    .mem-sun-profile-tier {
+      display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800;
+      background: rgba(251,191,36,.2); color: #92400e; margin-bottom: 10px;
+    }
+    .mem-sun-profile-progress { margin-top: 8px; }
+    .mem-sun-profile-progress .bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+    .mem-sun-profile-progress .fill { height: 100%; background: linear-gradient(90deg, var(--primary), #fbbf24); border-radius: 999px; }
+    .mem-sun-profile-progress p { margin: 6px 0 0; font-size: 11px; color: var(--text3); }
+    .mem-sun-quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mem-sun-quick-btn {
+      border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 10px 8px;
+      font-size: 11px; font-weight: 700; color: var(--text2); cursor: pointer; text-align: center;
+    }
+    .mem-sun-quick-btn i { display: block; font-size: 16px; margin-bottom: 4px; color: var(--primary); }
+    .mem-sun-benefits-list { margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--text2); }
+    .mem-sun-benefits-list li { margin: 6px 0; display: flex; gap: 8px; align-items: flex-start; }
+    .mem-sun-benefits-list i { color: var(--primary); margin-top: 2px; }
+    .mem-sun-sched-block { margin-top: 4px; }
+    .mem-sun-section-head { margin-bottom: 16px; }
+    .mem-sun-section-head h2 {
+      margin: 0 0 6px; font-size: 18px; font-weight: 900; color: var(--text);
+      text-transform: uppercase; letter-spacing: .03em;
+    }
+    .mem-sun-section-head p { margin: 0; font-size: 13px; color: var(--text3); }
+    .mem-pkg-perks li { display: flex; gap: 8px; align-items: flex-start; }
+    .mem-pkg-perks li i { color: #22c55e; margin-top: 2px; flex-shrink: 0; font-size: 13px; }
+    .mem-pkg-card {
+      background: #fff; border-radius: 18px; padding: 18px 16px 16px;
+      box-shadow: 0 10px 32px rgba(60,40,25,.08);
+    }
+    .mem-sun-referral {
+      background: linear-gradient(135deg, rgba(251,191,36,.18), rgba(234,88,12,.1));
+      border-color: rgba(234,88,12,.25);
+    }
+    .mem-sun-referral strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .mem-sun-referral p { margin: 0; font-size: 12px; color: var(--text2); line-height: 1.45; }
+    .mem-sun-trust {
+      max-width: 1100px; margin: 0 auto; padding: 0 16px 20px;
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    }
+    @media (min-width: 640px) { .mem-sun-trust { grid-template-columns: repeat(4, 1fr); } }
+    .mem-sun-trust-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text2);
+    }
+    .mem-sun-trust-item i { display: block; font-size: 18px; color: var(--primary); margin-bottom: 6px; }
     .mem-custom-picks {
       margin-top: 12px; padding: 12px; border-radius: 14px; border: 1px dashed var(--border);
       background: rgba(124, 45, 18, 0.04); max-height: 200px; overflow-y: auto;
@@ -2295,8 +2324,7 @@
     <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i> Đặt hàng</button>
     <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled><i class="fa-solid fa-cart-shopping"></i> Giỏ <em class="mem-nav-cart-badge" id="mem-nav-cart-badge-dt" style="display:none">0</em></button>
     <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>
-    <button type="button" class="mem-nav-b" data-sec="packages"><i class="fa-solid fa-gift"></i> Gói Sun</button>
-    <button type="button" class="mem-nav-b" data-sec="offers" style="display:none;"><i class="fa-solid fa-ticket"></i> Ưu đãi</button>
+    <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i> Ưu đãi</button>
     <button type="button" class="mem-nav-b" data-sec="favorites" disabled style="display:none;"><i class="fa-solid fa-heart"></i> Yêu thích</button>
     <button type="button" class="mem-nav-b" data-sec="more" disabled style="display:none;"><i class="fa-solid fa-bars"></i> Khác</button>
   </nav>
@@ -2338,16 +2366,6 @@
     <div id="mem-home-packages-block" class="mem-hidden mem-home-extra"><div id="mem-home-packages-inner"></div></div>
     <div id="mem-home-schedule-block" class="mem-hidden mem-home-extra"><div id="mem-home-schedule-inner"></div></div>
 
-    <div class="card mem-home-register-cta mem-home-pkg-top" id="mem-home-pkg-top">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div>
-          <div style="font-weight:800;color:var(--primary-dk);font-size:15px;margin-bottom:4px;"><i class="fa-solid fa-gift"></i> Gói giao sữa thành viên</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.45;">Đăng ký gói tuần/tháng · Lịch uống cá nhân · Giao sáng tận nơi</div>
-        </div>
-        <button type="button" class="btn" id="btn-home-register-pkg"><i class="fa-solid fa-user-plus"></i> Xem &amp; đăng ký gói</button>
-      </div>
-    </div>
-
     <div class="mem-carousel-wrap" id="mem-carousel-wrap">
       <div class="mem-carousel" id="mem-carousel"></div>
       <div class="mem-carousel-dots" id="mem-carousel-dots"></div>
@@ -2372,44 +2390,17 @@
 
   </section>
 
-  <!-- REGISTER (AI + packages + payment) -->
+  <!-- REGISTER (packages + payment) -->
   <section id="sec-register" class="mem-hidden">
-    <!-- Reuse layout from MemberRegister.html (embedded) -->
     <div class="mem-shell">
       <div class="mem-hero-center">
-        <h1 class="mem-hero-title">Nâng Tầm Sức Khỏe</h1>
-        <p class="mem-hero-sub">Đăng ký gói giao sữa tươi - gợi ý <strong>lịch uống theo từng ngày</strong> từ thực đơn thật của cửa hàng, kèm thành phần hạt &amp; lợi ích gợi ý (không công thức nấu).</p>
+        <h1 class="mem-hero-title">Hoàn tất đăng ký gói</h1>
+        <p class="mem-hero-sub">Chọn hình thức nhận, điền thông tin và thanh toán để kích hoạt gói Sun.</p>
       </div>
-      <aside class="mem-hero-card" style="max-width:360px;margin:0 auto 16px;">
-        <img id="mem-disp-hero-register-img" src="" alt="" decoding="async" style="display:none;width:100%;height:100%;object-fit:cover;">
-      </aside>
-      <div class="mem-split mem-register-top">
-        <div>
-          <div class="section-title" style="margin-top:4px;"><i class="fa-solid fa-robot"></i> Tư vấn chọn gói</div>
-          <p class="mem-ai-lede">Bấm <strong>AI tư vấn chọn gói</strong> - trợ lý hỏi mục tiêu, thời gian (7 ngày / 30 ngày), rồi gợi ý lịch uống từng ngày từ menu thật.</p>
-          <button type="button" class="btn mem-ai-open-cta" id="mem-ai-open-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> AI tư vấn chọn gói</button>
-          <div id="mem-ai-panel" class="mem-ai-panel mem-hidden">
-            <div class="card mem-ai-surface" style="margin-top:0;">
-              <div class="mem-ai-head">
-                <span class="dot" aria-hidden="true"></span>
-                <div style="flex:1;">
-                  <div style="font-weight:800;color:var(--primary-dk);font-size:14px;" id="mem-disp-ai-name">SUN AI</div>
-                  <div style="font-size:11px;color:var(--text3);">Gợi ý theo menu cửa hàng</div>
-                </div>
-                <button type="button" class="btn btn-sec" id="mem-ai-close-btn" style="padding:6px 10px;font-size:11px;"><i class="fa-solid fa-xmark"></i></button>
-              </div>
-              <div class="mem-ai-thread" id="mem-ai-thread"></div>
-              <div class="mem-ai-wizard-chips" id="mem-ai-wizard-chips"></div>
-              <div class="mem-ai-input-row" id="mem-ai-input-row">
-                <input type="text" id="mem-ai-input" autocomplete="off" placeholder="Mục tiêu của bạn (vd: đẹp da, tim khỏe…)">
-                <button type="button" class="btn" id="mem-ai-send" title="Gửi"><i class="fa-solid fa-paper-plane"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="mem-register-top mem-hidden" id="mem-register-pkg-pick">
         <aside class="mem-aside">
           <div class="section-title" style="margin-top:4px;"><i class="fa-solid fa-layer-group"></i> Gói hội viên</div>
-          <p class="mem-pkg-flow-hint">Gói <strong>hệ thống</strong> theo tuần/tháng · Gói <strong>Custom</strong> chọn nhiều loại sữa. Bấm <strong>Chọn gói &amp; thanh toán</strong> để sang bước giao hàng.</p>
+          <p class="mem-pkg-flow-hint">Gói <strong>hệ thống</strong> theo tuần/tháng · Gói <strong>Custom</strong> chọn nhiều loại sữa.</p>
           <div class="mem-pkg-section">
             <div class="mem-pkg-section-h"><i class="fa-solid fa-box"></i> Gói hệ thống</div>
             <div class="mem-pkg-stack" id="pkg-stack-system"><div class="card" style="color:var(--text3);">Đang tải…</div></div>
@@ -2555,8 +2546,8 @@
         <label class="mem-field-label">Khu vực giao</label><select id="mem-cart-zone"><option value="">- Chọn khu vực -</option></select>
       </div>
       </div>
-      <!-- Thanh toán: hiện khi thanh toán đơn / đơn nhóm -->
-      <div id="mem-cart-pay-block">
+      <!-- Thanh toán: tạm ẩn theo yêu cầu - mặc định Thanh toán khi nhận -->
+      <div id="mem-cart-pay-block" style="display:none;">
       <label class="mem-field-label">Thanh toán</label>
       <div class="mem-choice-grid" id="mem-cart-pay" role="group" aria-label="Thanh toán">
         <button type="button" class="mem-choice-btn on" data-p="Thanh toán khi nhận"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i><span>Khi nhận</span></button>
@@ -2720,11 +2711,63 @@
   </div>
 
 
-  <section class="section mem-hidden" id="sec-packages">
-    <div class="section-title"><i class="fa-solid fa-layer-group"></i> Gói thành viên</div>
-    <p style="font-size:13px;color:var(--text3);margin:-6px 0 12px;">Đăng ký gói giao sữa hoặc xem lịch uống khi đã có gói.</p>
-    <div id="mem-packages-hub"></div>
-    <div id="mem-schedule-home" class="mem-hidden" style="margin-top:16px;"></div>
+  <section class="section mem-hidden mem-sun-page" id="sec-packages">
+    <div class="mem-sun-hero">
+      <span class="mem-sun-hero-badge">Tiết kiệm đến 20%</span>
+      <div class="mem-sun-hero-inner">
+        <span class="mem-sun-eyebrow"><i class="fa-solid fa-sun"></i> Gói Sun</span>
+        <h1 class="mem-sun-title">Hội viên SUN — Uống ngon mỗi ngày</h1>
+        <p class="mem-sun-sub">Sống khỏe mỗi ngày · Dinh dưỡng chất lượng · Giao nhanh tận nhà</p>
+        <div class="mem-sun-hero-feats">
+          <span><i class="fa-solid fa-seedling"></i> 100% tự nhiên</span>
+          <span><i class="fa-solid fa-piggy-bank"></i> Tiết kiệm hội viên</span>
+          <span><i class="fa-solid fa-truck-fast"></i> Giao 2–3 giờ</span>
+        </div>
+      </div>
+    </div>
+    <div class="mem-sun-layout">
+      <div class="mem-sun-main">
+        <div class="mem-sun-section-head">
+          <h2>Chọn gói phù hợp với bạn</h2>
+          <p>Đăng ký gói giao sữa định kỳ — linh hoạt đổi món mỗi ngày</p>
+        </div>
+        <div id="mem-packages-hub" class="mem-sun-cards-wrap"></div>
+        <div id="mem-schedule-home" class="mem-hidden mem-sun-sched-block"></div>
+      </div>
+      <aside class="mem-sun-sidebar" id="mem-sun-sidebar">
+        <div class="mem-sun-side-card mem-sun-profile" id="mem-sun-profile">
+          <p class="mem-sun-side-muted">Đăng nhập để xem hồ sơ hội viên.</p>
+        </div>
+        <div class="mem-sun-side-card mem-sun-referral">
+          <strong><i class="fa-solid fa-gift"></i> Giới thiệu bạn bè</strong>
+          <p>Nhận ngay ưu đãi khi bạn bè đăng ký gói Sun thành công.</p>
+        </div>
+        <div class="mem-sun-side-card mem-sun-quick" id="mem-sun-quick">
+          <div class="mem-sun-side-h">Tiện ích nhanh</div>
+          <div class="mem-sun-quick-grid">
+            <button type="button" class="mem-sun-quick-btn" data-go="offers"><i class="fa-solid fa-ticket"></i> Ưu đãi</button>
+            <button type="button" class="mem-sun-quick-btn" data-go="orders"><i class="fa-solid fa-clock-rotate-left"></i> Đơn hàng</button>
+            <button type="button" class="mem-sun-quick-btn" data-go="schedule"><i class="fa-solid fa-calendar-days"></i> Lịch uống</button>
+            <button type="button" class="mem-sun-quick-btn" data-go="addresses"><i class="fa-solid fa-location-dot"></i> Địa chỉ</button>
+          </div>
+        </div>
+        <div class="mem-sun-side-card mem-sun-benefits">
+          <div class="mem-sun-side-h">Quyền lợi hội viên</div>
+          <ul class="mem-sun-benefits-list">
+            <li><i class="fa-solid fa-check"></i> Giảm giá độc quyền</li>
+            <li><i class="fa-solid fa-check"></i> Tích điểm đổi quà</li>
+            <li><i class="fa-solid fa-check"></i> Giao ưu tiên</li>
+            <li><i class="fa-solid fa-check"></i> Quà sinh nhật</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+    <div class="mem-sun-trust">
+      <div class="mem-sun-trust-item"><i class="fa-solid fa-certificate"></i> 100% Chính hãng</div>
+      <div class="mem-sun-trust-item"><i class="fa-solid fa-leaf"></i> Nguyên liệu tự nhiên</div>
+      <div class="mem-sun-trust-item"><i class="fa-solid fa-ban"></i> Không chất bảo quản</div>
+      <div class="mem-sun-trust-item"><i class="fa-solid fa-heart"></i> Đảm bảo hài lòng</div>
+    </div>
   </section>
 
   <!-- OFFERS -->
@@ -2825,22 +2868,23 @@
         <div class="sheet-hero" id="mem-sheet-hero"><div class="sheet-hero-emoji" id="mem-sheet-hero-emoji">🥛</div></div>
         <div class="mem-pd-head"><div class="sheet-name" id="mem-sheet-name">Món</div><div class="sheet-price" id="mem-sheet-price">0đ</div></div>
         <div id="mem-product-detail-meta"></div>
-        <div class="opt-group" id="mem-sheet-size-group">
-          <div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Size <span style="color:var(--red);">*</span></div>
-          <div class="size-sub-hint">Chọn 1 loại size</div>
-          <div class="size-grid" id="mem-sheet-size-options"></div>
-        </div>
+        <div class="opt-group" id="mem-sheet-size-group"><div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Kích cỡ</div><div class="size-grid" id="mem-sheet-size-options"></div></div>
         <div class="opt-group" id="mem-family-pack-toggle-row" style="display:none;"><label class="family-pack-toggle"><input type="checkbox" id="mem-family-pack-toggle"><span><i class="fa-solid fa-house-chimney"></i> Gói sữa gia đình</span></label></div>
-        <div class="opt-group" id="mem-sheet-ice-group">
-          <div class="opt-label"><i class="fa-solid fa-snowflake"></i> Lượng đá</div>
-          <div class="opt-grid" id="mem-sheet-ice-options">
-            <button type="button" class="opt-btn" data-ice="Không đá">Không đá</button>
-            <button type="button" class="opt-btn" data-ice="Ít đá">Ít đá</button>
-            <button type="button" class="opt-btn active" data-ice="Vừa">Vừa</button>
-            <button type="button" class="opt-btn" data-ice="Nhiều">Nhiều</button>
-            <button type="button" class="opt-btn" data-ice="Để riêng">Để riêng</button>
-          </div>
-        </div>
+        <div class="opt-group" id="mem-sheet-temp-group"><div class="opt-label"><i class="fa-solid fa-temperature-half"></i> Cách dùng</div><div class="opt-grid" id="mem-sheet-temp-options">
+          <button type="button" class="opt-btn active" data-temp="cold_steep">Sữa ủ lạnh</button>
+          <button type="button" class="opt-btn" data-temp="hot">Sữa nóng</button>
+          <button type="button" class="opt-btn" data-temp="iced">Đá</button>
+        </div></div>
+        <div class="opt-group" id="mem-sheet-ice-group" style="display:none;"><div class="opt-label"><i class="fa-solid fa-snowflake"></i> Mức đá</div><div class="opt-grid">
+          <button type="button" class="opt-btn" data-ice="Không đá">Không đá</button>
+          <button type="button" class="opt-btn" data-ice="Ít đá">Ít đá</button>
+          <button type="button" class="opt-btn active" data-ice="Vừa">Vừa</button>
+          <button type="button" class="opt-btn" data-ice="Nhiều">Nhiều</button>
+        </div></div>
+        <div class="opt-group" id="mem-sheet-pack-group"><div class="opt-label"><i class="fa-solid fa-mug-hot"></i> Đóng gói</div><div class="opt-grid" id="mem-sheet-pack-options">
+          <button type="button" class="opt-btn active" data-pack="paper">Ly giấy</button>
+          <button type="button" class="opt-btn" data-pack="plastic">Chai nhựa</button>
+        </div></div>
         <div class="opt-group"><div class="opt-label"><i class="fa-solid fa-cookie-bite"></i> Độ ngọt</div><div class="opt-grid">
           <button type="button" class="opt-btn" data-sweet="Không ngọt">Không ngọt</button>
           <button type="button" class="opt-btn" data-sweet="Ít ngọt">Ít ngọt</button>
@@ -2860,7 +2904,7 @@
           <div class="modal-qty"><button type="button" class="mq-btn" id="mem-qty-minus">−</button><div class="mq-val" id="mem-qty-display">1</div><button type="button" class="mq-btn" id="mem-qty-plus">+</button></div>
         </div>
       </div>
-      <button type="button" class="sheet-add-btn" id="mem-sheet-add-btn"><i class="fa-solid fa-cart-plus"></i> Chọn - <span id="mem-sheet-add-total">0đ</span></button>
+      <button type="button" class="sheet-add-btn" id="mem-sheet-add-btn"><i class="fa-solid fa-cart-plus"></i> Thêm vào giỏ - <span id="mem-sheet-add-total">0đ</span></button>
     </div>
   </div>
   <div class="mem-pd-toast" id="mem-pd-toast"></div>
@@ -2901,8 +2945,7 @@
   </div>
 
   <!--MEMBER_SCRIPTS_CORE-->
-
-  <!--MEMBER_ORDER_CLIENT-->
+<!--MEMBER_ORDER_CLIENT-->
 <script>
     // Cổng SĐT - chạy sớm (trước SUN_MEM) để ô nhập + nút luôn hoạt động
     window.sunSyncGatePhone = window.sunSyncGatePhone || function () {
@@ -2950,7 +2993,7 @@
         document.querySelectorAll('.mem-nav-b[data-sec]').forEach(function (btn) {
           var s = btn.getAttribute('data-sec');
           if (!s) return;
-          btn.classList.toggle('on', s === a || (a === 'group' && (s === 'group' || s === 'cart')));
+          btn.classList.toggle('on', s === a);
         });
       }
       function isPhone10(ph) {
@@ -3275,7 +3318,7 @@
           show('sec-more-hub', true);
           show('sec-more-sub', false);
         }
-        setTab(s === 'register' ? 'home' : s);
+        setTab(s === 'register' ? 'packages' : s);
         document.querySelectorAll('.section').forEach(function (el) { el.classList.remove('mem-page-active'); });
         var activeSec = $('sec-' + (s === 'home' ? 'home' : s));
         if (activeSec) activeSec.classList.add('mem-page-active');
@@ -3284,6 +3327,7 @@
         if (fab) fab.classList.toggle('mem-hidden', !(s === 'more' && state.portal && !state.portal.hasPortalAccess));
         if (s === 'order' && (state.phone || state.guest)) initMemPickup();
         if (s === 'cart' && window.MemOrder && MemOrder.renderCartPage) MemOrder.renderCartPage();
+        if (s === 'packages') renderPackagesPage();
       }
       function applySupportLinks() {
         var s = window.memberPortalSettings || {};
@@ -3336,50 +3380,160 @@
         applySupportLinks();
         renderHomePackages(r);
       }
-      function renderHomePackages(r) {
+      function parsePkgPerks(p, variant) {
+        var desc = String(p.description || '').trim();
+        if (desc) {
+          var lines = desc.split(/\||\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+          if (lines.length) return lines;
+        }
+        var isCus = isPkgCustom(p);
+        var isMonth = variant === 'month' || String(p.type || '').indexOf('Tháng') >= 0;
+        if (isCus) return ['Chọn nhiều loại sữa yêu thích', 'Giá tính theo món × số buổi giao', 'Linh hoạt đổi món theo tuần'];
+        if (isMonth) return [(p.sessions || 30) + ' buổi giao trong tháng', 'Gợi ý lịch uống theo menu & mục tiêu', 'Tích điểm hội viên x2'];
+        return [(p.sessions || 7) + ' buổi giao linh hoạt', 'Miễn phí vận chuyển mỗi tuần', 'Đổi món theo mục tiêu sức khỏe'];
+      }
+      function pkgQuoteForCard(p, q) {
+        if (q && q.packageId === p.id) return q;
+        return {
+          basePrice: p.basePrice != null ? p.basePrice : (p.price || 0),
+          finalPrice: p.finalPrice != null ? p.finalPrice : (p.price || 0),
+          discount: p.discount || 0,
+          promoLabel: p.promoLabel || '',
+          savingsAmount: p.savingsAmount || 0,
+          retailEstimate: p.retailEstimate || 0
+        };
+      }
+      function buildPkgCardHtml(p, variant, q, opts) {
+        opts = opts || {};
+        if (!p) return '';
+        var sel = state.selectedPkgId === p.id ? ' selected' : '';
+        var isMonth = variant === 'month' || String(p.type || '').indexOf('Tháng') >= 0;
+        var isWeek = variant === 'week' || String(p.type || '').indexOf('Tuần') >= 0;
+        var isCus = isPkgCustom(p);
+        var quote = pkgQuoteForCard(p, q);
+        var priceMain = quote.finalPrice;
+        var wasPrice = quote.retailEstimate > priceMain ? quote.retailEstimate : (quote.discount > 0 ? quote.basePrice : 0);
+        var priceHtml = wasPrice > priceMain
+          ? '<span class="mem-pkg-price-was">' + fmt(wasPrice) + '</span><span class="mem-pkg-price-main">' + fmt(priceMain) + '</span>'
+          : '<span class="mem-pkg-price-main">' + fmt(priceMain) + '</span>';
+        var savings = quote.savingsAmount || Math.max(0, wasPrice - priceMain);
+        var saveTag = savings > 0 ? '<span class="mem-pkg-save-tag">Tiết kiệm ' + fmt(savings) + '</span>' : '';
+        var ribbon = '';
+        if (isWeek) ribbon = '<div class="mem-pkg-ribbon popular"><span>Phổ biến</span></div>';
+        else if (isMonth) ribbon = '<div class="mem-pkg-ribbon best"><span>Tiết kiệm nhất</span></div>';
+        var promoLabel = quote.promoLabel || p.promoLabel || '';
+        var promo = promoLabel ? '<div class="mem-pkg-promo-badge">' + esc(promoLabel) + '</div>' : '';
+        var perks = parsePkgPerks(p, variant).map(function (line) {
+          return '<li><i class="fa-solid fa-circle-check"></i><span>' + esc(line) + '</span></li>';
+        }).join('');
+        var btnText = isCus ? 'Đăng ký gói Custom' : (isMonth ? 'Đăng ký gói tháng' : 'Đăng ký gói tuần');
+        if (opts.registerBtn) btnText = isCus ? 'Chọn gói Custom & thanh toán' : (isMonth ? 'Chọn gói tháng & thanh toán' : 'Chọn gói tuần & thanh toán');
+        var cardCls = 'mem-pkg-card' + (isMonth ? ' month vip' : (isWeek ? ' week' : '')) + sel;
+        var periodNote = isCus ? '/ tuỳ chọn' : (isMonth ? '/ tháng' : '/ tuần');
+        return (
+          '<div class="' + cardCls + '" data-id="' + esc(p.id) + '">' +
+            ribbon +
+            '<div class="mem-pkg-toprow"><span class="mem-pkg-label-pill">' + esc(String(p.type || 'Gói').toUpperCase()) + '</span></div>' +
+            '<div class="mem-pkg-price-row">' + priceHtml + '<span class="mem-pkg-price-note">' + periodNote + '</span></div>' +
+            saveTag + promo +
+            '<div class="mem-pkg-title">' + esc(p.name || '') + '</div>' +
+            '<ul class="mem-pkg-perks">' + perks + '</ul>' +
+            '<button type="button" class="btn mem-pkg-btn">' + btnText + '</button>' +
+          '</div>'
+        );
+      }
+      function bindPkgCards(wrap, onSelect) {
+        if (!wrap) return;
+        wrap.querySelectorAll('.mem-pkg-card').forEach(function (el) {
+          el.onclick = function (ev) {
+            var id = el.getAttribute('data-id');
+            var fromBtn = ev.target && ev.target.closest && ev.target.closest('.mem-pkg-btn');
+            if (onSelect) onSelect(id, !!fromBtn);
+            else selectPkg(id, !!fromBtn);
+          };
+        });
+      }
+      function renderSunSidebar(r) {
+        var profEl = $('mem-sun-profile');
+        if (!profEl) return;
+        var prof = (r && r.profile) || (state.portal && state.portal.profile) || null;
+        var off = (r && r.offers) || (state.portal && state.portal.offers) || null;
+        if (!state.phone && !prof) {
+          profEl.innerHTML = '<p class="mem-sun-side-muted">Đăng nhập SĐT để xem hạng, điểm tích lũy và mã hội viên.</p>' +
+            '<button type="button" class="btn" style="width:100%;margin-top:10px;" onclick="document.getElementById(\'gate-phone\')&&document.getElementById(\'gate-phone\').focus()">Đăng nhập</button>';
+          return;
+        }
+        var tp = (off && off.tierProgress) || computeTierProgressClient((prof && prof.points) || 0);
+        var tier = (tp && tp.currentTier) || (prof && prof.tier) || 'Thành viên';
+        var cups = (tp && tp.cups != null) ? tp.cups : ((prof && prof.points) || 0);
+        var pct = tp && tp.progressPct != null ? tp.progressPct : 0;
+        profEl.innerHTML =
+          '<p class="mem-sun-profile-name">' + esc((prof && prof.name) || state.phone || 'Hội viên') + '</p>' +
+          '<span class="mem-sun-profile-tier"><i class="fa-solid fa-crown"></i> ' + esc(tier) + '</span>' +
+          '<p style="margin:0;font-size:12px;color:var(--text2);"><strong>' + cups + '</strong> ly đã tích lũy</p>' +
+          '<div class="mem-sun-profile-progress"><div class="bar"><div class="fill" style="width:' + pct + '%;"></div></div>' +
+          '<p>' + esc(tp.tierHint || '') + '</p></div>';
+      }
+      function wireSunSidebarOnce() {
+        if (wireSunSidebarOnce.done) return;
+        wireSunSidebarOnce.done = true;
+        document.querySelectorAll('.mem-sun-quick-btn').forEach(function (btn) {
+          btn.onclick = function () {
+            var go = btn.getAttribute('data-go');
+            if (go === 'offers') { switchSection('offers'); setTab('offers'); renderOffers(); return; }
+            if (go === 'orders') { openMoreSub('orders'); switchSection('more'); setTab('more'); return; }
+            if (go === 'schedule') { goSchedule(); return; }
+            if (go === 'addresses') { openMoreSub('addresses'); switchSection('more'); setTab('more'); return; }
+          };
+        });
+      }
+      function renderPackagesPage() {
+        wireSunSidebarOnce();
+        var r = state.portal;
+        renderSunSidebar(r);
         var hub = $('mem-packages-hub');
         var sched = $('mem-schedule-home');
         var homePkg = $('mem-home-packages-block');
         var homePkgIn = $('mem-home-packages-inner');
         var homeSched = $('mem-home-schedule-block');
-        var homeSchedIn = $('mem-home-schedule-inner');
-        var pkgTop = $('mem-home-pkg-top');
         var hasPkg = r && r.hasPortalAccess && (r.activeSubscriptions || []).length;
-        var pkgHtml = hasPkg
-          ? '<p style="font-size:13px;">Gói đang chạy - xem lịch nhận sữa hoặc tab <strong>Gói</strong>.</p><button type="button" class="btn" onclick="SUN_MEM.goSchedule()">Lịch nhận sữa</button>'
-          : '<p style="font-size:13px;color:var(--text3);">Chưa có gói - đăng ký gói giao sữa.</p><button type="button" class="btn" onclick="SUN_MEM.goRegister()">Xem gói thành viên</button>';
-        var schedHtml = hasPkg
-          ? '<p style="font-size:12px;color:var(--text3);margin-bottom:8px;">Gói còn hạn - chỉnh món từng ngày trong lịch uống.</p><button type="button" class="btn btn-sec" onclick="SUN_MEM.goSchedule()">Mở lịch uống</button>'
-          : '';
-        if (hub) hub.innerHTML = pkgHtml;
-        if (pkgTop) pkgTop.style.display = hasPkg ? 'none' : '';
-        if (!hasPkg && homePkg && homePkgIn && state.packages && state.packages.length) {
-          homePkg.classList.remove('mem-hidden');
-          homePkgIn.innerHTML = '<div class="mem-section-label" style="margin-bottom:8px;"><i class="fa-solid fa-gift"></i> Chọn gói Sun phù hợp</div>' +
-            '<div class="mem-home-pkg-picker">' + state.packages.slice(0, 6).map(function (p) {
-              return '<button type="button" class="mem-home-pkg-chip" data-pkg-id="' + escAttr(p.id) + '">' +
-                '<div class="t">' + esc(String(p.type || 'Gói')) + '</div>' +
-                '<div class="n">' + esc(p.name || '') + '</div>' +
-                '<div class="p">' + fmt(p.price || 0) + '</div></button>';
-            }).join('') + '</div>';
-          homePkgIn.querySelectorAll('.mem-home-pkg-chip').forEach(function (btn) {
-            btn.onclick = function () {
-              state.selectedPkgId = btn.getAttribute('data-pkg-id') || '';
-              goRegister();
-            };
-          });
-        } else {
-          if (homePkgIn) homePkgIn.innerHTML = '';
-          if (homePkg) homePkg.classList.add('mem-hidden');
-        }
         if (hasPkg) {
-          if (sched) { sched.classList.remove('mem-hidden'); sched.innerHTML = schedHtml; }
-          if (homeSched) homeSched.classList.add('mem-hidden');
-          if (homeSchedIn) homeSchedIn.innerHTML = '';
-        } else {
+          var schedHtml = '<div class="card"><p style="font-size:13px;margin:0 0 10px;">Gói đang chạy — xem lịch nhận sữa và chỉnh món từng ngày.</p>' +
+            '<button type="button" class="btn" onclick="SUN_MEM.goSchedule()"><i class="fa-solid fa-calendar-days"></i> Mở lịch uống</button></div>';
+          if (hub) hub.innerHTML = schedHtml;
+          if (sched) { sched.classList.remove('mem-hidden'); sched.innerHTML = ''; }
+        } else if (!state.packages.length) {
+          if (hub) hub.innerHTML = '<div class="card" style="color:var(--text3);">Chưa có gói hiển thị. Admin thêm gói tại tab <strong>Gói thành viên</strong>.</div>';
           if (sched) sched.classList.add('mem-hidden');
-          if (homeSched) homeSched.classList.add('mem-hidden');
+        } else {
+          var systemPkgs = state.packages.filter(function (p) { return !isPkgCustom(p); });
+          var customPkgs = state.packages.filter(function (p) { return isPkgCustom(p); });
+          var week = systemPkgs.find(function (p) { return String(p.type || '').indexOf('Tuần') >= 0; }) || systemPkgs[0];
+          var month = systemPkgs.find(function (p) { return String(p.type || '').indexOf('Tháng') >= 0; }) || null;
+          var cards = '';
+          if (week) cards += buildPkgCardHtml(week, 'week', null, {});
+          if (month) cards += buildPkgCardHtml(month, 'month', null, {});
+          customPkgs.forEach(function (p) { cards += buildPkgCardHtml(p, 'custom', null, {}); });
+          if (hub) {
+            hub.innerHTML = '<div class="mem-sun-cards-grid">' + cards + '</div>';
+            bindPkgCards(hub, function (id, fromBtn) {
+              state.selectedPkgId = id || '';
+              goRegister();
+              if (fromBtn) {
+                selectPkg(id, true);
+              } else {
+                selectPkg(id, false);
+              }
+            });
+          }
+          if (sched) sched.classList.add('mem-hidden');
         }
+        if (homePkgIn) homePkgIn.innerHTML = '';
+        if (homePkg) homePkg.classList.add('mem-hidden');
+        if (homeSched) homeSched.classList.add('mem-hidden');
+      }
+      function renderHomePackages(r) {
+        renderPackagesPage();
       }
       function tierHeroClass(tierName) {
         var t = String(tierName || '').toLowerCase();
@@ -3709,7 +3863,7 @@
         var g = $('mem-home-menu-grid');
         if (!g) return;
         if (!state.menu.length) {
-          g.innerHTML = '<p style="color:var(--text3);font-size:13px;">Chưa tải được thực đơn. <button type="button" class="mem-link-btn" onclick="location.reload()">Thử lại</button></p>';
+          g.innerHTML = '<p style="color:var(--text3);font-size:13px;">Đang tải thực đơn…</p>';
           return;
         }
         var items = state.menu.filter(function (m) { return m.available !== false; }).slice().sort(function (a, b) {
@@ -4819,57 +4973,16 @@
         }
         var systemPkgs = state.packages.filter(function (p) { return !isPkgCustom(p); });
         var customPkgs = state.packages.filter(function (p) { return isPkgCustom(p); });
-        function card(p, variant) {
-          if (!p) return '';
-          var sel = state.selectedPkgId === p.id ? ' selected' : '';
-          var isVip = variant === 'month';
-          var isCus = isPkgCustom(p);
-          var ribbon = isVip ? '<div class="mem-pkg-ribbon"><span>PHỔ BIẾN NHẤT</span></div>' : '';
-          var q = (sel && state.pkgQuote && state.pkgQuote.packageId === p.id) ? state.pkgQuote : null;
-          var priceMain = q ? q.finalPrice : (p.price || 0);
-          var priceHtml = (q && q.discount > 0)
-            ? '<span class="mem-pkg-price-was">' + fmt(q.basePrice) + '</span><span class="mem-pkg-price-main">' + fmt(priceMain) + '</span>'
-            : '<span class="mem-pkg-price-main">' + fmt(priceMain) + '</span>';
-          var promo = (p.promoLabel || (q && q.promoLabel)) ? '<div class="mem-pkg-promo-badge">' + esc(p.promoLabel || q.promoLabel) + '</div>' : '';
-          var perks = isCus
-            ? '<li>Chọn nhiều loại sữa yêu thích</li><li>Giá tính theo món × số buổi giao</li><li>Linh hoạt đổi món theo tuần</li>'
-            : (isVip
-              ? '<li>30 chai sữa hạt chọn món</li><li>Gợi ý lịch uống theo menu &amp; mục tiêu</li><li>Tặng túi giữ nhiệt cao cấp SUN</li>'
-              : '<li>7 chai sữa hạt tươi mỗi sáng</li><li>Miễn phí vận chuyển mỗi tuần</li><li>Đổi món linh hoạt theo mục tiêu</li>');
-          var btnText = isCus ? 'Chọn gói Custom &amp; thanh toán' : (isVip ? 'Chọn gói VIP &amp; thanh toán' : 'Chọn gói &amp; thanh toán');
-          var label = esc(String(p.type || 'Gói').toUpperCase());
-          var periodNote = isCus ? '/ tuỳ chọn' : (isVip ? '/ tháng' : '/ tuần');
-          return (
-            '<div class="mem-pkg-card' + (isVip ? ' vip' : '') + sel + '" data-id="' + esc(p.id) + '">' +
-              ribbon +
-              '<div class="mem-pkg-toprow"><span class="mem-pkg-label-pill">' + label + '</span></div>' +
-              '<div class="mem-pkg-price-row">' + priceHtml + '<span class="mem-pkg-price-note">' + periodNote + '</span></div>' +
-              promo +
-              '<div class="mem-pkg-title">' + esc(p.name || '') + '</div>' +
-              '<ul class="mem-pkg-perks">' + perks + '</ul>' +
-              '<button type="button" class="btn mem-pkg-btn">' + btnText + '</button>' +
-            '</div>'
-          );
-        }
-        function bindCards(wrap) {
-          if (!wrap) return;
-          wrap.querySelectorAll('.mem-pkg-card').forEach(function (el) {
-            el.onclick = function (ev) {
-              var id = el.getAttribute('data-id');
-              var fromBtn = ev.target && ev.target.closest && ev.target.closest('.mem-pkg-btn');
-              selectPkg(id, !!fromBtn);
-            };
-          });
-        }
+        var q = state.pkgQuote;
         if (sysWrap) {
           var week = systemPkgs.find(function (p) { return String(p.type || '').indexOf('Tuần') >= 0; }) || systemPkgs[0];
           var month = systemPkgs.find(function (p) { return String(p.type || '').indexOf('Tháng') >= 0; }) || null;
-          sysWrap.innerHTML = systemPkgs.length ? (card(week, 'week') + (month ? card(month, 'month') : '')) : empty;
-          bindCards(sysWrap);
+          sysWrap.innerHTML = systemPkgs.length ? (buildPkgCardHtml(week, 'week', q, { registerBtn: true }) + (month ? buildPkgCardHtml(month, 'month', q, { registerBtn: true }) : '')) : empty;
+          bindPkgCards(sysWrap);
         }
         if (cusWrap) {
-          cusWrap.innerHTML = customPkgs.length ? customPkgs.map(function (p) { return card(p, 'custom'); }).join('') : '<div class="card" style="color:var(--text3);font-size:12px;">Chưa có gói Custom - thêm PKG_CUSTOM trong Admin.</div>';
-          bindCards(cusWrap);
+          cusWrap.innerHTML = customPkgs.length ? customPkgs.map(function (p) { return buildPkgCardHtml(p, 'custom', q, { registerBtn: true }); }).join('') : '<div class="card" style="color:var(--text3);font-size:12px;">Chưa có gói Custom - thêm PKG_CUSTOM trong Admin.</div>';
+          bindPkgCards(cusWrap);
         }
         updateRegSummary();
       }
@@ -5024,16 +5137,23 @@
       };
 
       // ---------- Navigation buttons ----------
+      function goPackages() {
+        switchSection('packages');
+        setTab('packages');
+        renderPackagesPage();
+      }
       function goRegister() {
-        state.selectedPkgId = '';
+        if (!state.selectedPkgId) { goPackages(); return; }
         state.lastAiSchedule = null;
-        state.customDrinks = [];
-        state.pkgQuote = null;
         var pay = $('mem-pay-section');
-        if (pay) pay.classList.add('mem-hidden');
+        if (pay) pay.classList.remove('mem-hidden');
+        var pkgPick = $('mem-register-pkg-pick');
+        if (pkgPick) pkgPick.classList.add('mem-hidden');
         switchSection('register');
         setTab('packages');
-        if (state.packages && state.packages.length && !state.bootPkgMsg) renderPkgs();
+        refreshPkgQuote();
+        updateRegSummary();
+        if (pay && pay.scrollIntoView) pay.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       function goCart() {
         if (!state.phone && !state.guest) { showToast('Đăng nhập SĐT trước'); switchSection('home'); return; }
@@ -5099,7 +5219,7 @@
         if (sec === 'order') { goOrder(); return; }
         if (sec === 'cart') { goCart(); return; }
         if (sec === 'group') { goGroup(); return; }
-        if (sec === 'packages') { goRegister(); return; }
+        if (sec === 'packages') { goPackages(); return; }
         if (sec === 'offers') { switchSection('offers'); setTab('offers'); renderOffers(); return; }
         if (sec === 'favorites') { goFavorites(); return; }
         if (sec === 'more') { switchSection('more'); setTab('more'); return; }
@@ -5119,8 +5239,6 @@
       if (back) back.onclick = function () { show('sec-more-hub', true); show('sec-more-sub', false); };
       var bml = $('btn-more-logout');
       if (bml) bml.onclick = doLogout;
-      var fab = $('mem-ai-fab');
-      if (fab) fab.onclick = function () { goRegister(); };
       function goMenu() { goOrder(); }
 
       function doLogout() {
@@ -5278,23 +5396,10 @@
 
       var bham = $('btn-home-all-menu');
       if (bham) bham.onclick = function () { goOrder(); };
-      var bhrp = $('btn-home-register-pkg');
-      if (bhrp) bhrp.onclick = function () { goRegister(); };
       /** Đọc mã đơn nhóm từ URL (?group=CODE) - hỗ trợ cả iframe GAS. */
       function detectGroupParam(cb) {
         var g = '';
-        try {
-          var params = new URLSearchParams(location.search);
-          if (params.get('tab') === 'group') {
-            cb('__OPEN_GROUP__');
-            return;
-          }
-          g = params.get('group') || '';
-        } catch (e) { }
-        if (g === '1') {
-          cb('__OPEN_GROUP__');
-          return;
-        }
+        try { g = new URLSearchParams(location.search).get('group') || ''; } catch (e) { }
         if (g) { cb(g); return; }
         try {
           if (window.google && google.script && google.script.url && google.script.url.getLocation) {
@@ -5404,15 +5509,12 @@
           try { localStorage.setItem('sun_member_phone', saved); } catch (eLs2) { }
         }
         detectGroupParam(function (g) {
-          if (g === '__OPEN_GROUP__') {
-            setTimeout(function () { goGroup(); }, 400);
-            return;
-          }
           if (!g) return;
           var code = String(g).trim().toUpperCase();
           if (window.MemOrder && MemOrder.setPendingGroupCode) MemOrder.setPendingGroupCode(code);
           else { try { sessionStorage.setItem('sun_group_pending', code); } catch (eG) { } }
           if (!isPhone10(saved) && !state.phone) {
+            // Khách mời: chỉ cần nhập tên, không cần đăng nhập
             openGuestGate(code);
           }
         });
@@ -5453,15 +5555,12 @@
           buildMenuFilterPills();
           renderMenu();
           if (document.body.classList.contains('mem-logged-in')) renderHomeMenuPreview();
-          else renderHomeMenuPreview();
           if (state.bootPkgMsg) {
             var pk = $('pkg-stack');
             if (pk) pk.innerHTML = state.bootPkgMsg;
           } else {
             renderPkgs();
-            renderHomePackages(state.portal);
           }
-          if (window.MemOrder && MemOrder.bootstrap) MemOrder.bootstrap();
         }
         if (isPhone10(saved)) {
           tryPendingGroupJoin();
@@ -5510,6 +5609,7 @@
         closeMenuModal: closeMenuModal,
         closeMemQr: closeMemQr,
         goRegister: goRegister,
+        goPackages: goPackages,
         goOrder: goOrder,
         goCart: goCart,
         goGroup: goGroup,
@@ -5531,12 +5631,10 @@
     <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i><span>Đặt hàng</span></button>
     <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled><i class="fa-solid fa-cart-shopping"></i><span>Giỏ</span><em class="mem-nav-cart-badge" id="mem-nav-cart-badge" style="display:none">0</em></button>
     <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled><i class="fa-solid fa-user-group"></i><span>Đơn nhóm</span></button>
-    <button type="button" class="mem-nav-b" data-sec="packages" disabled><i class="fa-solid fa-gift"></i><span>Gói Sun</span></button>
-    <button type="button" class="mem-nav-b" data-sec="offers" disabled style="display:none;"><i class="fa-solid fa-ticket"></i><span>Ưu đãi</span></button>
+    <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i><span>Ưu đãi</span></button>
     <button type="button" class="mem-nav-b" data-sec="favorites" disabled style="display:none;"><i class="fa-solid fa-heart"></i><span>Yêu thích</span></button>
     <button type="button" class="mem-nav-b" data-sec="more" disabled style="display:none;"><i class="fa-solid fa-bars"></i><span>Khác</span></button>
   </nav>
-  <button type="button" class="mem-ai-fab mem-hidden" id="mem-ai-fab" title="AI tư vấn gói"><i class="fa-solid fa-robot"></i></button>
 
 </body>
 </html>

@@ -695,8 +695,15 @@
     }
   function shareGroupUrl() {
     if (!inGroup()) return '';
-    var path = global.memPage ? global.memPage('member') : '/member';
-    return path + '?group=' + encodeURIComponent(group.groupId || '');
+    var origin = (global.location && global.location.origin) ? global.location.origin : '';
+    var gid = encodeURIComponent(group.groupId || '');
+    return origin + '/member?group=' + gid;
+  }
+  function shareGroupMessage() {
+    var url = shareGroupUrl();
+    if (!url) return '';
+    var name = group.groupName || 'đơn nhóm SUN Nut Milk';
+    return 'Vào «' + name + '» đặt nước cùng mình nhé!\n' + url;
   }
     function applyGroupState(st, opts) {
       opts = opts || {};
@@ -1204,13 +1211,17 @@
       var sh = $('mem-group-share');
       if (sh) sh.onclick = function () {
         var url = shareGroupUrl();
-        var txt = 'Vào «' + (group.groupName || 'đơn nhóm SUN Nut Milk') + '» đặt nước cùng mình nhé! Mã nhóm: ' + group.groupId + ' - ' + url;
+        var txt = shareGroupMessage();
+        if (!url) { toast('Chưa có mã nhóm'); return; }
         if (navigator.share) {
-          navigator.share({ title: group.groupName || 'Đơn nhóm SUN Nut Milk', text: txt, url: url }).catch(function () { });
+          navigator.share({
+            title: group.groupName || 'Đơn nhóm SUN Nut Milk',
+            text: txt
+          }).catch(function () { });
         } else if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(txt).then(function () { toast('📋 Đã copy link mời - gửi cho bạn bè nhé'); });
+          navigator.clipboard.writeText(txt).then(function () { toast('📋 Đã copy link mời — gửi cho bạn bè nhé'); });
         } else {
-          prompt('Copy link mời bạn bè:', url);
+          prompt('Copy link mời bạn bè:', txt);
         }
       };
       var lk = $('mem-group-lock');
