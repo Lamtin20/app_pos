@@ -102,39 +102,9 @@ function fmt(n) { return Math.round(n || 0).toLocaleString('vi-VN') + '₫'; }
 var memberPortalSettings = null;
 var memCarouselTimer = null;
 var memCarouselIndex = 0;
-var memCarouselList = [];
 
 function stopMemCarousel() {
   if (memCarouselTimer) { clearInterval(memCarouselTimer); memCarouselTimer = null; }
-}
-function memCarouselPerView() {
-  try {
-    return window.matchMedia('(min-width: 900px)').matches ? 2 : 1;
-  } catch (e) { return 1; }
-}
-function memCarouselSlideStep() {
-  var track = document.querySelector('#mem-carousel .mem-carousel-track');
-  var slide = track && track.querySelector('.mem-slide');
-  if (!slide) return 0;
-  var gap = 12;
-  return slide.offsetWidth + gap;
-}
-function memCarouselGoTo(index, animate) {
-  var box = document.getElementById('mem-carousel');
-  var track = box && box.querySelector('.mem-carousel-track');
-  var dots = document.getElementById('mem-carousel-dots');
-  if (!box || !track || !memCarouselList.length) return;
-  var perView = memCarouselPerView();
-  var maxIndex = Math.max(0, memCarouselList.length - perView);
-  memCarouselIndex = Math.max(0, Math.min(index, maxIndex));
-  var step = memCarouselSlideStep();
-  track.style.transition = animate === false ? 'none' : 'transform 0.45s ease';
-  track.style.transform = 'translateX(-' + (memCarouselIndex * step) + 'px)';
-  if (dots) {
-    dots.querySelectorAll('button').forEach(function (d, j) {
-      d.classList.toggle('on', j === memCarouselIndex);
-    });
-  }
 }
 function buildMemCarouselSlides(banners) {
   var box = document.getElementById('mem-carousel');
@@ -143,49 +113,34 @@ function buildMemCarouselSlides(banners) {
   stopMemCarousel();
   var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
   list = list.filter(function (b) { return b && String(b.image || '').trim(); });
-  if (!list.length) {
-    list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: 'Tinh hoa từ hạt, trọn vẹn yêu thương' }];
-  }
-  memCarouselList = list;
-  var perView = memCarouselPerView();
-  box.classList.toggle('mem-carousel-single', list.length <= 1);
-  box.classList.toggle('mem-carousel-dual', perView >= 2 && list.length > 1);
-  var slides = list.map(function (b) {
+  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
+  box.innerHTML = list.map(function (b, i) {
     var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
     var bd = esc(b.badge || '');
     var t = esc(b.title || '');
     var s = esc(b.subtitle || '');
-    return '<div class="mem-slide" style="background-image:url(\'' + img + '\');">' +
+    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="background-image:url(\'' + img + '\');">' +
       '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
       (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
   }).join('');
-  box.innerHTML = '<div class="mem-carousel-track">' + slides + '</div>';
-  var pageCount = Math.max(1, list.length - perView + 1);
-  dots.innerHTML = '';
-  for (var i = 0; i < pageCount; i++) {
-    dots.innerHTML += '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
-  }
+  dots.innerHTML = list.map(function (_b, i) {
+    return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
+  }).join('');
   memCarouselIndex = 0;
-  requestAnimationFrame(function () { memCarouselGoTo(0, false); });
+  if (list.length < 2) return;
+  memCarouselTimer = setInterval(function () {
+    memCarouselIndex = (memCarouselIndex + 1) % list.length;
+    box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === memCarouselIndex); });
+    dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === memCarouselIndex); });
+  }, 5200);
   dots.querySelectorAll('button').forEach(function (btn) {
     btn.onclick = function () {
-      memCarouselGoTo(parseInt(btn.getAttribute('data-i'), 10) || 0, true);
+      var ix = parseInt(btn.getAttribute('data-i'), 10) || 0;
+      memCarouselIndex = ix;
+      box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === ix); });
+      dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === ix); });
     };
   });
-  if (list.length <= perView) return;
-  memCarouselTimer = setInterval(function () {
-    var pv = memCarouselPerView();
-    var maxIdx = Math.max(0, list.length - pv);
-    var next = memCarouselIndex >= maxIdx ? 0 : memCarouselIndex + 1;
-    memCarouselGoTo(next, true);
-  }, 5200);
-  if (!window._memCarouselResizeWired) {
-    window._memCarouselResizeWired = true;
-    window.addEventListener('resize', function () {
-      if (!memCarouselList.length) return;
-      buildMemCarouselSlides(memCarouselList);
-    });
-  }
 }
 function applyMemberPortalFromSettings(raw) {
   var d = {
@@ -193,7 +148,7 @@ function applyMemberPortalFromSettings(raw) {
     brandTagline: 'Tinh hoa từ hạt, trọn vẹn yêu thương.',
     loginCardTitle: 'Cổng vào Hội viên',
     loginCardSubtitle: 'Đăng nhập bằng số điện thoại để xem gói, lịch uống và ưu đãi.',
-    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=800&q=70&auto=format',
+    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=900&q=80',
     heroFeature1Title: 'Thực đơn cá nhân hóa',
     heroFeature1Text: 'Lộ trình sữa hạt phù hợp thể trạng và mục tiêu sức khỏe của bạn.',
     heroFeature2Title: 'Ưu đãi thành viên',
@@ -234,7 +189,7 @@ function applyMemberPortalFromSettings(raw) {
   var carouselBanners = Array.isArray(s.banners) && s.banners.length ? s.banners : d.banners;
   buildMemCarouselSlides(carouselBanners);
   var carWrap = document.getElementById('mem-carousel-wrap');
-  if (carWrap) carWrap.style.display = '';
+  if (carWrap) carWrap.style.display = (carouselBanners && carouselBanners.length) ? '' : 'none';
   var heroReg = document.getElementById('mem-disp-hero-register-img');
   if (heroReg && s.heroRegisterImageUrl) {
     heroReg.src = s.heroRegisterImageUrl;

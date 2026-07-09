@@ -2904,235 +2904,6 @@
 
   <!--MEMBER_ORDER_CLIENT-->
 <script>
-  /**
-   * Dự phòng khi Apps Script không ghép được MemberScriptsCore.html (placeholder trống / tên file sai).
-   * Gán lên window để script portal gọi được normPhone, wireTopLinks, api, …
-   */
-  (function sunMemberCoreShim() {
-    if (typeof window.normPhone === 'function' && typeof window.wireTopLinks === 'function') return;
-    try { window.__SUN_SCRIPT_URL__ = __SUN_URL_INJECT__; } catch (e0) { window.__SUN_SCRIPT_URL__ = ''; }
-    var SCRIPT_URL = typeof window.__SUN_SCRIPT_URL__ === 'string' ? window.__SUN_SCRIPT_URL__ : '';
-
-    window.posBase = function () {
-      var u = (typeof SCRIPT_URL === 'string' && SCRIPT_URL) ? SCRIPT_URL.split('?')[0] : '';
-      return u || window.location.href.split('?')[0].replace(/[?#].*$/, '');
-    };
-    window.memPage = function (p) { return window.posBase() + '?page=' + p; };
-    window.wireTopLinks = function () {
-      var lp = document.getElementById('link-pos');
-      if (lp) lp.href = window.posBase() + '?page=order';
-      var pk = document.getElementById('link-pickup');
-      if (pk) pk.href = window.posBase() + '?page=pickup';
-    };
-    window.gsErrMessage = function (e) {
-      if (e == null) return 'Lỗi không xác định';
-      if (typeof e === 'string') return e;
-      if (e.message) return String(e.message);
-      if (e.details) return String(e.details);
-      try { return JSON.stringify(e); } catch (x) { return String(e); }
-    };
-    window.api = function (method) {
-      var args = Array.prototype.slice.call(arguments, 1);
-      return new Promise(function (resolve, reject) {
-        var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, 42000);
-        try {
-          var runner = google.script.run
-            .withSuccessHandler(function (r) { clearTimeout(t); resolve(r); })
-            .withFailureHandler(function (e) { clearTimeout(t); reject(new Error(window.gsErrMessage(e))); });
-          runner[method].apply(runner, args);
-        } catch (e) { clearTimeout(t); reject(new Error(window.gsErrMessage(e))); }
-      });
-    };
-    window.apiLong = function (method, ms) {
-      var args = Array.prototype.slice.call(arguments, 2);
-      return new Promise(function (resolve, reject) {
-        var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, ms || 55000);
-        try {
-          var runner = google.script.run
-            .withSuccessHandler(function (r) { clearTimeout(t); resolve(r); })
-            .withFailureHandler(function (e) { clearTimeout(t); reject(new Error(window.gsErrMessage(e))); });
-          runner[method].apply(runner, args);
-        } catch (e) { clearTimeout(t); reject(new Error(window.gsErrMessage(e))); }
-      });
-    };
-    window.portalMemberLookupHttp = function (phone) {
-      return fetch('/api/member/portal?phone=' + encodeURIComponent(String(phone || '')), {
-        method: 'GET', credentials: 'same-origin', cache: 'no-store',
-      }).then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      });
-    };
-    window.portalMemberBootstrapHttp = function () {
-      return fetch('/api/member/bootstrap', {
-        method: 'GET', credentials: 'same-origin', cache: 'no-store',
-      }).then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      });
-    };
-    window.showToast = function (msg) {
-      var el = document.getElementById('toast');
-      if (!el) return;
-      el.textContent = msg;
-      el.classList.add('show');
-      setTimeout(function () { el.classList.remove('show'); }, 2800);
-    };
-    window.normPhone = function (v) {
-      var d = String(v || '').replace(/\D/g, '');
-      if (!d) return '';
-      if (d.indexOf('84') === 0 && d.length >= 10) d = '0' + d.slice(2);
-      if (d.length === 9 && d.charAt(0) !== '0') d = '0' + d;
-      return d;
-    };
-    window.esc = function (s) {
-      var d = document.createElement('div');
-      d.textContent = s == null ? '' : s;
-      return d.innerHTML;
-    };
-    window.fmt = function (n) { return Math.round(n || 0).toLocaleString('vi-VN') + '₫'; };
-
-    window.memberPortalSettings = null;
-    window.memCarouselTimer = null;
-    window.memCarouselIndex = 0;
-    window.stopMemCarousel = function () {
-      if (window.memCarouselTimer) { clearInterval(window.memCarouselTimer); window.memCarouselTimer = null; }
-    };
-    window.buildMemCarouselSlides = function (banners) {
-      var box = document.getElementById('mem-carousel');
-      var dots = document.getElementById('mem-carousel-dots');
-      if (!box || !dots) return;
-      window.stopMemCarousel();
-      var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
-      list = list.filter(function (b) { return b && String(b.image || '').trim(); });
-      if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
-      box.innerHTML = list.map(function (b, i) {
-        var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
-        var bd = window.esc(b.badge || '');
-        var t = window.esc(b.title || '');
-        var s = window.esc(b.subtitle || '');
-        return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="background-image:url(\'' + img + '\');">' +
-          '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
-          (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
-      }).join('');
-      dots.innerHTML = list.map(function (_b, i) {
-        return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
-      }).join('');
-      window.memCarouselIndex = 0;
-      if (list.length < 2) return;
-      window.memCarouselTimer = setInterval(function () {
-        window.memCarouselIndex = (window.memCarouselIndex + 1) % list.length;
-        box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === window.memCarouselIndex); });
-        dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === window.memCarouselIndex); });
-      }, 5200);
-      dots.querySelectorAll('button').forEach(function (btn) {
-        btn.onclick = function () {
-          var ix = parseInt(btn.getAttribute('data-i'), 10) || 0;
-          window.memCarouselIndex = ix;
-          box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === ix); });
-          dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === ix); });
-        };
-      });
-    };
-    window.applyMemberPortalFromSettings = function (raw) {
-      var d = {
-        brandTitle: 'SUN Nut Milk',
-        brandTagline: 'Tinh hoa từ hạt, trọn vẹn yêu thương.',
-        loginCardTitle: 'Cổng vào Hội viên',
-        loginCardSubtitle: 'Đăng nhập bằng số điện thoại để xem gói, lịch uống và ưu đãi.',
-        heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=900&q=80',
-        heroFeature1Title: 'Thực đơn cá nhân hóa',
-        heroFeature1Text: 'Lộ trình sữa hạt phù hợp thể trạng và mục tiêu sức khỏe của bạn.',
-        heroFeature2Title: 'Ưu đãi thành viên',
-        heroFeature2Text: 'Tích điểm đổi quà, ưu đãi theo từng giai đoạn hội viên.',
-        heroFeature3Title: 'Tư vấn sức khỏe 24/7',
-        heroFeature3Text: 'NutriBot AI gợi ý dinh dưỡng và chế độ uống phù hợp.',
-        aiBotName: 'NutriBot AI',
-        aiWelcome: 'Chào bạn! Bạn muốn cải thiện mục tiêu gì? (ví dụ: giảm cân, tăng cơ, ngủ ngon…)',
-        aiPlaceholder: 'Nhập mục tiêu của bạn…',
-        scheduleLockHint: 'Khóa thay đổi món lúc 22:00 hàng ngày',
-        menuHeroTitle: 'Tinh hoa từ hạt',
-        menuHeroSubtitle: 'Khám phá thực đơn sữa hạt nguyên chất, thiết kế cho từng mục tiêu sức khỏe.',
-        footerCopy: '© 2024 SUN Nut Milk. Tinh hoa từ hạt, trọn vẹn yêu thương.',
-        banners: []
-      };
-      var s = Object.assign({}, d, raw || {});
-      window.memberPortalSettings = s;
-      var setTxt = function (id, v) {
-        var el = document.getElementById(id);
-        if (el) el.textContent = v != null ? String(v) : '';
-      };
-      setTxt('mem-disp-brand-title', s.brandTitle);
-      setTxt('mem-disp-brand-tag', s.brandTagline);
-      setTxt('mem-disp-login-title', s.loginCardTitle);
-      setTxt('mem-disp-login-sub', s.loginCardSubtitle);
-      setTxt('mem-disp-f1t', s.heroFeature1Title);
-      setTxt('mem-disp-f1x', s.heroFeature1Text);
-      setTxt('mem-disp-f2t', s.heroFeature2Title);
-      setTxt('mem-disp-f2x', s.heroFeature2Text);
-      setTxt('mem-disp-f3t', s.heroFeature3Title);
-      setTxt('mem-disp-f3x', s.heroFeature3Text);
-      setTxt('mem-disp-ai-name', s.aiBotName);
-      setTxt('mem-disp-sched-hint', s.scheduleLockHint);
-      setTxt('mem-disp-menu-hero-title', s.menuHeroTitle);
-      setTxt('mem-disp-menu-hero-sub', s.menuHeroSubtitle);
-      var hi = document.getElementById('mem-disp-hero-img');
-      if (hi && s.heroImageUrl) hi.src = s.heroImageUrl;
-      var carouselBanners = Array.isArray(s.banners) && s.banners.length ? s.banners : d.banners;
-      window.buildMemCarouselSlides(carouselBanners);
-      var carWrap = document.getElementById('mem-carousel-wrap');
-      if (carWrap) carWrap.style.display = (carouselBanners && carouselBanners.length) ? '' : 'none';
-      var heroReg = document.getElementById('mem-disp-hero-register-img');
-      if (heroReg && s.heroRegisterImageUrl) {
-        heroReg.src = s.heroRegisterImageUrl;
-        heroReg.style.display = 'block';
-      }
-      var menuHero = document.querySelector('.mem-menu-hero');
-      if (menuHero && s.menuHeroBgUrl) {
-        menuHero.style.backgroundImage = 'linear-gradient(105deg, rgba(124,45,18,.82), rgba(154,52,18,.72)), url(' + String(s.menuHeroBgUrl).replace(/'/g, '%27') + ')';
-        menuHero.style.backgroundSize = 'cover';
-        menuHero.style.backgroundPosition = 'center';
-      }
-      var th = document.getElementById('mem-ai-thread');
-      var inp = document.getElementById('mem-ai-input');
-      if (inp) inp.placeholder = s.aiPlaceholder || d.aiPlaceholder;
-      if (th) th.innerHTML = '<div class="mem-bubble-bot">' + window.esc(s.aiWelcome || d.aiWelcome) + '</div>';
-      var phone = String(s.supportPhone || '').trim();
-      var zalo = String(s.supportZalo || '').trim();
-      var sp = document.getElementById('mem-support-phone');
-      if (sp && phone) sp.href = 'tel:' + phone.replace(/\s/g, '');
-      var sl = document.getElementById('mem-support-zalo');
-      if (sl && zalo) sl.href = zalo.indexOf('http') === 0 ? zalo : ('https://zalo.me/' + zalo.replace(/\D/g, ''));
-      var lab = document.getElementById('mem-support-label');
-      if (lab && phone) lab.textContent = 'Liên hệ & Góp ý · ' + phone;
-    };
-
-    if (typeof window.setFaviconUrl !== 'function') {
-      (function () {
-        var U = '__SUN_FAVICON_URL__';
-        window.SUN_FAVICON_URL = U;
-        window.setFaviconUrl = function (url) {
-          var u = url || window.SUN_FAVICON_URL || U;
-          function ensure(rel, mime) {
-            var link = document.querySelector('link[rel="' + rel + '"]');
-            if (!link) {
-              link = document.createElement('link');
-              link.rel = rel;
-              if (mime) link.type = mime;
-              document.head.appendChild(link);
-            }
-            link.href = u;
-          }
-          ensure('icon', 'image/png');
-          ensure('apple-touch-icon', null);
-        };
-        if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
-        window.setFaviconUrl(window.SUN_FAVICON_URL);
-      })();
-    }
-  })();
-  </script>
-  <script>
     // Cổng SĐT - chạy sớm (trước SUN_MEM) để ô nhập + nút luôn hoạt động
     window.sunSyncGatePhone = window.sunSyncGatePhone || function () {
       var inp = document.getElementById('gate-phone');
@@ -3327,17 +3098,7 @@
         setTimeout(syncGatePhoneUi, 80);
         setTimeout(syncGatePhoneUi, 350);
       }
-      var memPk = {
-        menu: [], cart: [], discount: 0, appliedPromo: '', fulfillment: 'pickup',
-        pay: 'Thanh toán khi nhận', wired: false, loaded: false, pendingPromo: ''
-      };
-      function pkToast(msg) {
-        var t = $('pk-toast');
-        if (!t) { showToast(msg); return; }
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(function () { t.classList.remove('show'); }, 2800);
-      }
+      var memPk = { menu: [], loaded: false, wired: false };
       function pkNormMenu(raw) {
         return (raw || []).map(function (m) {
           return {
@@ -3350,62 +3111,8 @@
           };
         });
       }
-      function memPkSubtotal() {
-        return memPk.cart.reduce(function (s, c) { return s + c.price * c.qty; }, 0);
-      }
       function syncMemPkUi() {
-        var sub = memPkSubtotal();
-        var total = Math.max(0, sub - memPk.discount);
-        var n = memPk.cart.reduce(function (s, c) { return s + c.qty; }, 0);
-        var bar = $('pk-cart-bar');
-        if (bar) bar.style.display = n ? 'flex' : 'none';
-        var elN = $('pk-cart-n'); if (elN) elN.textContent = n;
-        var elT = $('pk-cart-t'); if (elT) elT.textContent = fmt(total);
-        var elSub = $('pk-sub'); if (elSub) elSub.textContent = fmt(sub);
-        var elDisc = $('pk-disc'); if (elDisc) elDisc.textContent = fmt(memPk.discount);
-        var elTot = $('pk-total'); if (elTot) elTot.textContent = fmt(total);
-        var ap = $('pk-promo-applied');
-        if (ap) {
-          if (memPk.appliedPromo && memPk.discount > 0) {
-            ap.textContent = 'Đã áp mã ' + memPk.appliedPromo + ' - giảm ' + fmt(memPk.discount);
-            ap.classList.remove('mem-hidden');
-          } else if (memPk.appliedPromo) {
-            ap.textContent = 'Mã ' + memPk.appliedPromo + ' đã áp dụng';
-            ap.classList.remove('mem-hidden');
-          } else {
-            ap.classList.add('mem-hidden');
-          }
-        }
-      }
-      function applyMemPkPromo(code, silent) {
-        var c = String(code || '').trim().toUpperCase();
-        if (!c) { memPk.discount = 0; memPk.appliedPromo = ''; syncMemPkUi(); return Promise.resolve(); }
-        if (!memPk.cart.length) {
-          if (!silent) pkToast('Thêm món vào giỏ trước khi áp mã');
-          return Promise.resolve();
-        }
-        var msg = $('pk-promo-msg');
-        return api('applyPickupPromo', c, state.phone, memPk.cart).then(function (r) {
-          if (r && r.ok) {
-            memPk.discount = parseFloat(r.discount) || 0;
-            memPk.appliedPromo = c;
-            var inp = $('pk-promo-input'); if (inp) inp.value = c;
-            if (msg) { msg.textContent = r.message || ('Giảm ' + fmt(memPk.discount)); msg.className = 'pk-promo-msg ok'; }
-            if (!silent) pkToast('✅ ' + (r.message || 'Đã áp mã'));
-          } else {
-            memPk.discount = 0;
-            memPk.appliedPromo = '';
-            if (msg) { msg.textContent = (r && r.message) || 'Mã không hợp lệ'; msg.className = 'pk-promo-msg err'; }
-            if (!silent) pkToast('❌ ' + ((r && r.message) || 'Mã không hợp lệ'));
-          }
-          syncMemPkUi();
-        }).catch(function (e) {
-          memPk.discount = 0;
-          memPk.appliedPromo = '';
-          if (msg) { msg.textContent = e.message || 'Lỗi áp mã'; msg.className = 'pk-promo-msg err'; }
-          if (!silent) pkToast(e.message || 'Lỗi áp mã');
-          syncMemPkUi();
-        });
+        if (window.MemOrder && MemOrder.syncNavBadge) MemOrder.syncNavBadge();
       }
       function buildMemOrderCardHtml(m) {
         var src = (m.imageUrl && String(m.imageUrl).trim()) ? esc(m.imageUrl) : menuCardPlaceholderImg();
@@ -3447,6 +3154,7 @@
         var p = full || (state.menu || []).find(function (x) { return String(x.id) === String(id); });
         if (p && MemOrder.quickAddProduct) {
           MemOrder.quickAddProduct(p);
+          syncMemPkUi();
           return;
         }
         openMemProductFromCard(id, full);
@@ -3503,105 +3211,24 @@
       function wireMemPickupOnce() {
         if (memPk.wired) return;
         memPk.wired = true;
-        var chk = $('pk-checkout-btn');
-        if (chk) chk.onclick = function () {
-          if (!memPk.cart.length) return;
-          var modal = $('pk-checkout-modal');
-          if (modal) modal.classList.add('open');
-          var ph = $('pk-phone'); if (ph) ph.value = state.phone || '';
-          syncMemPkUi();
-        };
-        var close = $('pk-close');
-        if (close) close.onclick = function () {
-          var modal = $('pk-checkout-modal');
-          if (modal) modal.classList.remove('open');
-        };
-        document.querySelectorAll('#pk-fulfillment button').forEach(function (b) {
-          b.onclick = function () {
-            document.querySelectorAll('#pk-fulfillment button').forEach(function (x) { x.classList.remove('on'); });
-            b.classList.add('on');
-            memPk.fulfillment = b.getAttribute('data-f');
-            var ab = $('pk-addr-block');
-            if (ab) ab.style.display = memPk.fulfillment === 'delivery' ? 'block' : 'none';
-          };
-        });
-        document.querySelectorAll('#pk-pay button').forEach(function (b) {
-          b.onclick = function () {
-            document.querySelectorAll('#pk-pay button').forEach(function (x) { x.classList.remove('on'); });
-            b.classList.add('on');
-            memPk.pay = b.getAttribute('data-p');
-          };
-        });
-        var pa = $('pk-promo-apply');
-        if (pa) pa.onclick = function () {
-          var inp = $('pk-promo-input');
-          applyMemPkPromo(inp ? inp.value : '', false);
-        };
-        var pin = $('pk-promo-input');
-        if (pin) pin.addEventListener('keydown', function (ev) {
-          if (ev.key === 'Enter') { ev.preventDefault(); if (pa) pa.click(); }
-        });
-        var sub = $('pk-submit');
-        if (sub) sub.onclick = function () {
-          if (!state.phone || state.phone.length < 9) { pkToast('Thiếu SĐT - đăng nhập lại'); return; }
-          if (!memPk.cart.length) { pkToast('Giỏ trống'); return; }
-          if (memPk.fulfillment === 'delivery' && !($('pk-addr') && $('pk-addr').value.trim())) {
-            pkToast('Nhập địa chỉ giao hàng'); return;
-          }
-          var subtotal = memPkSubtotal();
-          var total = Math.max(0, subtotal - memPk.discount);
-          sub.disabled = true;
-          var promoP = memPk.appliedPromo ? applyMemPkPromo(memPk.appliedPromo, true) : Promise.resolve();
-          promoP.then(function () {
-            return api('savePickupOnlineOrder', {
-              customerPhone: state.phone,
-              customerName: ($('pk-name') && $('pk-name').value) || '',
-              items: memPk.cart,
-              totalAmount: subtotal,
-              discount: memPk.discount,
-              finalAmount: total,
-              paymentMethod: memPk.pay,
-              fulfillment: memPk.fulfillment,
-              addressDetail: ($('pk-addr') && $('pk-addr').value) || '',
-              deliveryZone: ($('pk-zone') && $('pk-zone').value) || '',
-              promoCode: memPk.appliedPromo,
-              note: 'Member portal pickup'
-            });
-          }).then(function (res) {
-            pkToast('✅ Đã gửi đơn ' + (res && res.orderId ? res.orderId : ''));
-            memPk.cart = [];
-            memPk.discount = 0;
-            memPk.appliedPromo = '';
-            var inp2 = $('pk-promo-input'); if (inp2) inp2.value = '';
-            var msg2 = $('pk-promo-msg'); if (msg2) { msg2.textContent = ''; msg2.className = 'pk-promo-msg'; }
-            syncMemPkUi();
-            var modal2 = $('pk-checkout-modal'); if (modal2) modal2.classList.remove('open');
-          }).catch(function (e) {
-            pkToast(e.message || 'Lỗi gửi đơn');
-          }).finally(function () { sub.disabled = false; });
-        };
       }
-      function initMemPickup() {
+            function initMemPickup() {
         if (!state.phone && !state.guest) return;
         if (window.MemOrder && MemOrder.bootstrap) MemOrder.bootstrap();
         wireMemPickupOnce();
-        var ph = $('pk-phone'); if (ph) ph.value = state.phone;
         var greet = $('mem-pk-greet');
         if (state.guest && greet) {
-          greet.textContent = 'Xin chào ' + (state.guest.name || 'bạn') + ' - chọn món rồi bấm Hoàn tất trong Giỏ nhé';
+          greet.textContent = 'Xin chào ' + (state.guest.name || 'bạn') + ' — chọn món rồi bấm Hoàn tất trong Giỏ nhé';
         } else if (state.portal && state.portal.profile && greet) {
           var p = state.portal.profile;
           greet.textContent = 'Xin chào ' + (p.name || state.phone) + (p.memberCode ? ' · Mã ' + p.memberCode : '');
-          var nm = $('pk-name'); if (nm && !nm.value) nm.value = p.name || '';
+        }
+        function afterMenuReady() {
+          syncMemPkUi();
+          if (window.MemOrder && MemOrder.consumePendingPromo) MemOrder.consumePendingPromo();
         }
         if (memPk.loaded && memPk.menu.length) {
-          syncMemPkUi();
-          if (memPk.pendingPromo) {
-            var pinp = $('pk-promo-input');
-            if (pinp) pinp.value = memPk.pendingPromo;
-            pkToast('Thêm món rồi bấm Áp dụng mã ' + memPk.pendingPromo);
-            memPk.pendingPromo = '';
-          }
+          afterMenuReady();
           return;
         }
         if (state.menu && state.menu.length) {
@@ -3609,13 +3236,7 @@
           memPk.loaded = true;
           syncMenuCache();
           renderMemPkMenu();
-          syncMemPkUi();
-          if (memPk.pendingPromo) {
-            var pinp0 = $('pk-promo-input');
-            if (pinp0) pinp0.value = memPk.pendingPromo;
-            pkToast('Thêm món rồi bấm Áp dụng mã ' + memPk.pendingPromo);
-            memPk.pendingPromo = '';
-          }
+          afterMenuReady();
           return;
         }
         var grid = $('pk-grid');
@@ -3626,31 +3247,10 @@
           memPk.loaded = true;
           syncMenuCache();
           renderMemPkMenu();
-          syncMemPkUi();
-          if (memPk.pendingPromo) {
-            var pinp2 = $('pk-promo-input');
-            if (pinp2) pinp2.value = memPk.pendingPromo;
-            pkToast('Thêm món rồi bấm Áp dụng mã ' + memPk.pendingPromo);
-            memPk.pendingPromo = '';
-          }
+          afterMenuReady();
         }).catch(function () {
           if (grid) grid.innerHTML = '<p style="color:var(--red);font-size:13px;">Không tải được thực đơn</p>';
         });
-        if (!memPk.zonesLoaded) {
-          memPk.zonesLoaded = true;
-          api('getMemberDeliveryZones').then(function (z) {
-            var sel = $('pk-zone');
-            if (!sel) return;
-            (z.zones || []).forEach(function (zone) {
-              (zone.wards || []).forEach(function (w) {
-                var o = document.createElement('option');
-                o.value = w;
-                o.textContent = w + ' - ' + (zone.province || '');
-                sel.appendChild(o);
-              });
-            });
-          }).catch(function () {});
-        }
       }
       function goPickupSmooth(promoCode) {
         if (promoCode && window.MemOrder) MemOrder.setPendingPromo(promoCode);
@@ -4082,7 +3682,7 @@
         throw lastErr || new Error('Không gọi được tra cứu (thiếu portalMemberLookupHttp / apiLong).');
       }
 
-      /** Ưu tiên 1 GET JSON (gộp settings+menu+gói), fallback 3× google.script.run. */
+      /** Bootstrap trang: GET /api/member/bootstrap, fallback api() RPC. */
       async function loadMemberBootstrapData() {
         if (typeof portalMemberBootstrapHttp === 'function') {
           try {
@@ -5846,7 +5446,7 @@
             }
           } catch (e2) { }
           if (e && String(e.message || e).indexOf('CORE_MISSING') >= 0) {
-            state.bootPkgMsg = '<div class="card err" style="line-height:1.5;">Không tải được lõi trang (google.script.run). Bạn đang mở đúng <strong>link Web App</strong> từ Apps Script chưa? Không mở file HTML trực tiếp từ máy. Trong Apps Script: Triển khai → Quản lý triển khai → mở URL <code>?page=member</code> và đảm bảo file <strong>MemberScriptsCore</strong> có trong dự án.</div>';
+            state.bootPkgMsg = '<div class="card err" style="line-height:1.5;">Không tải được dữ liệu trang hội viên. Kiểm tra kết nối mạng và thử tải lại trang <strong>/member</strong>.</div>';
           }
         } finally {
           fillRegDrinkSelect();
