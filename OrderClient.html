@@ -1,0 +1,3101 @@
+<script>
+  var SCRIPT_URL = typeof window.__SUN_POS_URL__ === 'string' ? window.__SUN_POS_URL__ : '';
+  (function () {
+    var U = '__SUN_FAVICON_URL__';
+    if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
+    if (typeof window.setFaviconUrl !== 'function') {
+      window.setFaviconUrl = function (url) {
+        var u = url || window.SUN_FAVICON_URL || U;
+        function ensure(rel, mime) {
+          var link = document.querySelector('link[rel="' + rel + '"]');
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = rel;
+            if (mime) link.type = mime;
+            document.head.appendChild(link);
+          }
+          link.href = u;
+        }
+        ensure('icon', 'image/png');
+        ensure('apple-touch-icon', null);
+      };
+    }
+    window.setFaviconUrl(window.SUN_FAVICON_URL);
+  })();
+
+  // ====== API WRAPPER ======
+  // Lưu ý: không được xuống dòng trước [method] — ASI sẽ chèn ; và gọi server hỏng.
+  const api = {
+    call: function (method) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return new Promise(function (resolve, reject) {
+        var timeout = setTimeout(function () { reject(new Error('⏱️ Timeout')); }, 10000);
+        try {
+          var runner = google.script.run
+            .withSuccessHandler(function (r) { clearTimeout(timeout); resolve(r); })
+            .withFailureHandler(function (e) { clearTimeout(timeout); reject(e); });
+          runner[method].apply(runner, args);
+        } catch (e) { clearTimeout(timeout); reject(e); }
+      });
+    },
+    callLong: function (method, ms) {
+      var args = Array.prototype.slice.call(arguments, 2);
+      var wait = ms || 90000;
+      return new Promise(function (resolve, reject) {
+        var timeout = setTimeout(function () { reject(new Error('⏱️ Timeout')); }, wait);
+        try {
+          var runner = google.script.run
+            .withSuccessHandler(function (r) { clearTimeout(timeout); resolve(r); })
+            .withFailureHandler(function (e) { clearTimeout(timeout); reject(e); });
+          runner[method].apply(runner, args);
+        } catch (e) { clearTimeout(timeout); reject(e); }
+      });
+    }
+  };
+
+  // ====== STATE ======
+  let menuData = [], inventoryData = [], customersData = [], promotionsData = [];
+  /** Tồn kho theo tên nguyên liệu (getStockReportAdvanced) */
+  var stockByName = {};
+  var stockByKey = {};
+  var stockReady = false;
+  /** Danh sách Mix Hạt (Admin cấu hình) */
+  var mixHatList = [];
+  // Display/Kiosk/Pickup đã được gỡ bỏ theo yêu cầu
+  let cart = [];
+  let currentProduct = null, currentQty = 1;
+  let currentOptions = {
+    size: 'Thường (350ml)', sizePrice: 0, ice: 'Vừa', sweetness: 'Ngọt vừa', addons: [], addonPrices: [],
+    serveTemp: 'cold_steep', packaging: 'paper', packagingPrice: 0
+  };
+  var lastPromoDigestCache = null;
+  let promoDiscount = 0, pointsDiscount = 0;
+  let currentCustomer = null, selectedPayment = 'cash';
+  let currentOrderData = null, currentOrderId = null, currentFinalAmount = 0;
+  /** Đơn đang chờ CK — khi thành công chỉ phát ting, không đọc số tiền. */
+  var lastPaymentWasTransfer = false;
+  var invoiceSettings = {};
+  var printInvoiceWhenPaid = false;
+  // Pickup đã được gỡ bỏ theo yêu cầu
+  let selectedGoal = '', activeCategory = 'Tất cả';
+  let orderCounter = Math.floor(Math.random() * 9000) + 1000;
+  let mobileTab = 'menu';
+  var salesOrderPeriod = 'today';
+  var orderHistoryModalCache = [];
+  var orderHistoryPeriod = 'today';
+  var __sunPhoneLookupSeq = 0;
+
+  function normalizeVnPhoneDigitsClient(val) {
+    var d = String(val || '').replace(/\D/g, '');
+    if (!d) return '';
+    if (d.indexOf('84') === 0 && d.length >= 10) d = '0' + d.slice(2);
+    if (d.length === 9 && d.charAt(0) !== '0') d = '0' + d;
+    return d;
+  }
+
+  function normNameKey(s) {
+    return String(s || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function applyCustomerInsightToUI(ins) {
+    if (!ins || !ins.ok) return;
+    var ex = document.getElementById('cust-insight-extras');
+    // tối ưu tốc độ: chỉ hiển thị tên + sđt (+ điểm nếu có), không quét thống kê ly/doanh thu
+    var tierEl = document.getElementById('cust-tier-label');
+    var ptsEl = document.getElementById('cust-points-label');
+    if (tierEl) tierEl.textContent = ins.found ? 'Khách' : 'Khách mới';
+    if (ptsEl) ptsEl.textContent = (ins.points || 0) + ' điểm';
+    if (ex) ex.classList.remove('show');
+    document.getElementById('customer-info-bar').classList.add('show');
+  }
+
+  function closeOrderHistoryModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    var m = document.getElementById('orderHistoryModal');
+    if (m) m.classList.remove('open');
+  }
+  function openOrderHistoryModal() {
+    var m = document.getElementById('orderHistoryModal');
+    if (!m) return;
+    sunModalRaise('orderHistoryModal');
+    m.classList.add('open');
+    changeOrderHistoryPeriod(orderHistoryPeriod || 'today', null);
+  }
+  function changeOrderHistoryPeriod(p, btn) {
+    orderHistoryPeriod = p || 'today';
+    document.querySelectorAll('#orderHistoryModal .sales-period-btn').forEach(function (b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    else {
+      var id = p === 'week' ? 'hist-p-week' : (p === 'month' ? 'hist-p-month' : 'hist-p-today');
+      var el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+    refreshOrderHistoryModalBody();
+  }
+  async function refreshOrderHistoryModalBody() {
+    var el = document.getElementById('order-history-list-body');
+    if (!el) return;
+    el.innerHTML = 'Đang tải...';
+    try {
+      var list = await api.callLong('getOrders', 45000, orderHistoryPeriod);
+      orderHistoryModalCache = list && list.length ? list.slice().reverse() : [];
+      if (!orderHistoryModalCache.length) {
+        el.innerHTML = '<span style="color:var(--text-3);">Không có đơn trong kỳ.</span>';
+        return;
+      }
+      el.innerHTML = orderHistoryModalCache.map(function (o, idx) {
+        var st = esc(String(o.status || ''));
+        var day = o.time ? new Date(o.time).toLocaleString('vi-VN') : '';
+        var items = (o.items || []).map(function (i) { return (parseInt(i.quantity, 10) || 1) + '×' + esc(i.name || ''); }).join(', ');
+        return '<div class="ph-modal-row" onclick="openOrderDetailFromHistory(' + idx + ')"><div style="font-weight:800;color:var(--primary-dk);">' + esc(String(o.orderId || '')) + ' · ' + fmt(o.finalAmount || 0) + '</div><div style="font-size:11px;color:var(--text-3);">' + day + ' · ' + esc(String(o.customerName || '-')) + ' · ' + st + '</div><div style="font-size:11px;margin-top:4px;">' + items + '</div></div>';
+      }).join('');
+    } catch (err) {
+      el.innerHTML = '<span style="color:var(--red);">Không tải được - thử lại.</span>';
+    }
+  }
+  function openOrderDetailFromHistory(idx) {
+    var o = orderHistoryModalCache[idx];
+    if (!o) return;
+    var body = document.getElementById('order-detail-body');
+    var title = document.getElementById('order-detail-title');
+    if (title) title.textContent = esc(String(o.orderId || ''));
+    if (!body) return;
+    var pay = esc(String(o.paymentMethod || '-'));
+    var note = esc(String(o.note || ''));
+    var lines = (o.items || []).map(function (i) {
+      var sz = i.options && i.options.size ? ' (' + esc(String(i.options.size)) + ')' : '';
+      return '<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;"><span>' + (parseInt(i.quantity, 10) || 1) + '× ' + esc(i.name || '') + sz + '</span><strong>' + fmt(parseFloat(i.totalPrice) || 0) + '</strong></div>';
+    }).join('');
+    body.innerHTML = '<div style="margin-bottom:10px;"><strong>Thời gian:</strong> ' + (o.time ? new Date(o.time).toLocaleString('vi-VN') : '-') + '</div>' +
+      '<div style="margin-bottom:6px;"><strong>Khách:</strong> ' + esc(String(o.customerName || '-')) + ' · <strong>SĐT:</strong> ' + esc(String(o.customerPhone || '-')) + '</div>' +
+      '<div style="margin-bottom:6px;"><strong>Trạng thái:</strong> ' + esc(String(o.status || '')) + '</div>' +
+      '<div style="margin-bottom:6px;"><strong>Thanh toán:</strong> ' + pay + '</div>' +
+      (note ? '<div style="margin-bottom:10px;font-size:12px;"><strong>Ghi chú:</strong> ' + note + '</div>' : '') +
+      '<div style="font-weight:700;margin:10px 0 6px;">Món</div>' + (lines || '<span>Không có dòng món</span>') +
+      '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border2);display:flex;justify-content:space-between;"><span>Tạm tính</span><strong>' + fmt(o.totalAmount || 0) + '</strong></div>' +
+      '<div style="display:flex;justify-content:space-between;"><span>Giảm giá</span><strong>' + fmt(o.discount || 0) + '</strong></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:15px;margin-top:6px;color:var(--primary-dk);"><span>Thực thu</span><strong>' + fmt(o.finalAmount || 0) + '</strong></div>';
+    var dm = document.getElementById('orderDetailModal');
+    if (dm) {
+      sunModalRaise('orderDetailModal');
+      dm.classList.add('open');
+    }
+  }
+  function closeOrderDetailModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    var m = document.getElementById('orderDetailModal');
+    if (m) m.classList.remove('open');
+  }
+  /** Đưa modal lên trên cùng (tránh popup mới bị chìm dưới popup cũ). */
+  function sunModalRaise(id) {
+    if (!window.__sunModalZ) window.__sunModalZ = 4200;
+    window.__sunModalZ += 3;
+    var el = document.getElementById(id);
+    if (el) el.style.zIndex = String(window.__sunModalZ);
+  }
+  function openCustomerLookupModal() {
+    var m = document.getElementById('customerLookupModal');
+    var inp = document.getElementById('lookup-modal-phone');
+    var body = document.getElementById('lookup-modal-body');
+    if (!m) return;
+    if (inp) inp.value = '';
+    if (body) body.innerHTML = '<span style="color:var(--text-3);">Nhập SĐT và bấm Tra cứu.</span>';
+    sunModalRaise('customerLookupModal');
+    m.classList.add('open');
+  }
+  function closeCustomerLookupModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    var mod = document.getElementById('customerLookupModal');
+    if (mod) mod.classList.remove('open');
+  }
+  async function runCustomerLookupFromModal() {
+    var inp = document.getElementById('lookup-modal-phone');
+    var body = document.getElementById('lookup-modal-body');
+    if (!inp || !body) return;
+    var ph = normalizeVnPhoneDigitsClient(inp.value);
+    if (ph.length < 9) {
+      showToast('⚠️ Nhập SĐT hợp lệ');
+      return;
+    }
+    body.innerHTML = 'Đang tra cứu...';
+    try {
+      await api.call('ensureCustomerForPos', ph, '');
+      var insRows = await Promise.all([
+        api.call('getPosCustomerInsight', ph),
+        api.call('getOrdersByPhone', ph, 40)
+      ]);
+      var ins = insRows[0];
+      var rows = insRows[1];
+      var summary = '';
+      if (ins && ins.ok) {
+        summary = '<div style="padding:10px;background:var(--surface2);border-radius:10px;margin-bottom:12px;border:1px solid var(--border);">' +
+          '<strong>' + (ins.isReturningBuyer ? 'Khách quen' : 'Khách mới') + '</strong> · ' + (ins.completedOrders || 0) + ' đơn hoàn thành<br>' +
+          'Điểm tích (sheet): <strong>' + (ins.points || 0) + '</strong> · Hạng: <strong>' + esc(String(ins.tier || '')) + '</strong><br>' +
+          'Hôm nay: ' + (ins.cupsToday || 0) + ' ly · ' + fmt(ins.revenueToday || 0) +
+          ' · Tuần: ' + (ins.cupsWeek || 0) + ' ly · ' + fmt(ins.revenueWeek || 0) +
+          ' · Tháng: ' + (ins.cupsMonth || 0) + ' ly · ' + fmt(ins.revenueMonth || 0) + '</div>';
+      }
+      if (!rows || !rows.length) {
+        body.innerHTML = summary + '<p>Chưa có đơn cho SĐT này (kiểm tra cột SĐT trên sheet Order/Orders có trùng định dạng không).</p>';
+        return;
+      }
+      window.__lookupOrderCache = rows.slice();
+      body.innerHTML = summary + '<div style="font-weight:700;margin-bottom:8px;">Đơn gần đây</div>' + rows.map(function (o, idx) {
+        var day = o.time ? new Date(o.time).toLocaleString('vi-VN') : '';
+        var items = (o.items || []).map(function (i) { return (parseInt(i.quantity, 10) || 1) + '×' + esc(i.name || ''); }).join('; ');
+        return '<div class="ph-modal-row" onclick="openOrderDetailFromLookup(' + idx + ')"><div style="font-weight:700;">' + esc(String(o.orderId || '')) + ' · ' + fmt(o.finalAmount || 0) + ' · ' + esc(String(o.status || '')) + '</div><div style="font-size:11px;color:var(--text-3);">' + day + '</div><div style="font-size:11px;margin-top:4px;">' + items + '</div></div>';
+      }).join('');
+    } catch (e2) {
+      body.innerHTML = '<span style="color:var(--red);">Lỗi tra cứu.</span>';
+    }
+  }
+  function openOrderDetailFromLookup(idx) {
+    var rows = window.__lookupOrderCache;
+    if (!rows || !rows[idx]) return;
+    orderHistoryModalCache = rows;
+    sunModalRaise('orderDetailModal');
+    openOrderDetailFromHistory(idx);
+  }
+
+  var membershipPackagesCache = [];
+  function openMembershipModal() {
+    var m = document.getElementById('membershipModal');
+    if (!m) return;
+    m.classList.add('open');
+    refreshMembershipModal();
+  }
+  function closeMembershipModal() {
+    var m = document.getElementById('membershipModal');
+    if (m) m.classList.remove('open');
+  }
+  async function refreshMembershipModal() {
+    var box = document.getElementById('membership-pkg-cards');
+    var sel = document.getElementById('mem-reg-pkg');
+    if (box) box.innerHTML = '<span style="color:var(--text-3);font-size:12px;">Đang tải gói...</span>';
+    try {
+      var pkgs = await api.call('getMembershipPackages');
+      membershipPackagesCache = Array.isArray(pkgs) ? pkgs : [];
+      if (box) {
+        if (!membershipPackagesCache.length) {
+          box.innerHTML = '<span style="color:var(--text-3);font-size:12px;">Chưa có gói - Admin → Gói TV để khai báo.</span>';
+        } else {
+          box.innerHTML = membershipPackagesCache.map(function (p) {
+            var isW = String(p.type || '').indexOf('Tuần') >= 0;
+            return '<div style="border-radius:12px;padding:12px;border:1.5px solid var(--border2);background:linear-gradient(145deg,' + (isW ? 'rgba(234,88,12,.12)' : 'rgba(34,197,94,.12)') + ',var(--surface2));">' +
+              '<div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;">' + esc(String(p.type || '')) + '</div>' +
+              '<div style="font-weight:800;font-size:14px;margin:4px 0;color:var(--primary-dk);">' + esc(p.name || '') + '</div>' +
+              '<div style="font-size:18px;font-weight:900;color:var(--primary);">' + fmt(p.price || 0) + '</div>' +
+              '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">' + (p.sessions || 0) + ' buổi · ' + esc(String(p.milkProduct || '').slice(0, 40)) + '</div></div>';
+          }).join('');
+        }
+      }
+      if (sel) {
+        sel.innerHTML = membershipPackagesCache.map(function (p) {
+          return '<option value="' + esc(String(p.id || '')) + '">' + esc(p.name || p.id) + ' - ' + fmt(p.price || 0) + '</option>';
+        }).join('');
+      }
+      var drinkSel = document.getElementById('mem-reg-drink');
+      if (drinkSel && Array.isArray(menuData) && menuData.length) {
+        var cur = drinkSel.value;
+        drinkSel.innerHTML = '<option value="">Món yêu thích - theo menu / mặc định</option>' +
+          menuData.filter(function (p) { return p.available !== false; }).map(function (p) {
+            return '<option value="' + escAttr(p.name) + '">' + esc(p.name) + '</option>';
+          }).join('');
+        if (cur) drinkSel.value = cur;
+      }
+    } catch (e) {
+      if (box) box.innerHTML = '<span style="color:var(--red);font-size:12px;">Không tải được gói.</span>';
+    }
+  }
+  async function runMembershipLookup() {
+    var inp = document.getElementById('mem-lookup-phone');
+    var body = document.getElementById('mem-lookup-body');
+    if (!inp || !body) return;
+    var ph = normalizeVnPhoneDigitsClient(inp.value);
+    if (ph.length < 9) { showToast('⚠️ Nhập SĐT'); return; }
+    body.innerHTML = 'Đang tra cứu...';
+    try {
+      var r = await api.callLong('lookupMembershipByPhone', 45000, ph);
+      if (!r || !r.ok) {
+        body.innerHTML = '<span style="color:var(--red);">' + esc(String((r && r.message) || 'Lỗi')) + '</span>';
+        return;
+      }
+      var list = r.list || [];
+      if (!list.length) {
+        body.innerHTML = '<span style="color:var(--text-3);">Chưa có gói đăng ký cho SĐT này.</span>';
+        return;
+      }
+      body.innerHTML = list.map(function (s) {
+        var left = (s.daysLeft != null) ? (s.daysLeft + ' ngày') : '-';
+        var ml = s.mapLink ? '<div style="margin-top:6px;"><a href="' + esc(s.mapLink) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700;">Mở Google Maps</a></div>' : '';
+        return '<div style="border:1px solid var(--border2);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--surface2);">' +
+          '<div style="font-weight:800;">' + esc(s.packageId || '') + ' · ' + esc(String(s.type || '')) + '</div>' +
+          '<div style="font-size:11px;margin-top:4px;">Còn lại: <strong>' + left + '</strong> · Hạng: <strong>' + esc(String(s.tier || '')) + '</strong> · TT: ' + esc(String(s.status || '')) + '</div>' +
+          '<div style="font-size:11px;margin-top:4px;color:var(--text-3);">' + esc(s.address || 'Chưa có địa chỉ') + '</div>' + ml + '</div>';
+      }).join('');
+    } catch (e2) {
+      var em = (e2 && e2.message) ? e2.message : (e2 ? String(e2) : 'Lỗi tra cứu');
+      body.innerHTML = '<span style="color:var(--red);">' + esc(em) + '</span>';
+    }
+  }
+  async function submitMembershipRegister() {
+    var phone = normalizeVnPhoneDigitsClient(document.getElementById('mem-reg-phone') && document.getElementById('mem-reg-phone').value);
+    var name = (document.getElementById('mem-reg-name') && document.getElementById('mem-reg-name').value) || '';
+    var province = (document.getElementById('mem-reg-province') && document.getElementById('mem-reg-province').value) || 'Tây Ninh';
+    var ward = (document.getElementById('mem-reg-ward') && document.getElementById('mem-reg-ward').value) || 'Xã Dương Minh Châu';
+    var addrDetail = (document.getElementById('mem-reg-addr-detail') && document.getElementById('mem-reg-addr-detail').value) || '';
+    var landmark = (document.getElementById('mem-reg-landmark') && document.getElementById('mem-reg-landmark').value) || '';
+    var fav = (document.getElementById('mem-reg-drink') && document.getElementById('mem-reg-drink').value) || '';
+    var mapL = (document.getElementById('mem-reg-map') && document.getElementById('mem-reg-map').value) || '';
+    var pkg = document.getElementById('mem-reg-pkg') && document.getElementById('mem-reg-pkg').value;
+    if (phone.length < 9) { showToast('⚠️ SĐT không hợp lệ'); return; }
+    if (!pkg) { showToast('⚠️ Chọn gói'); return; }
+    if (!String(addrDetail).trim()) { showToast('⚠️ Nhập địa chỉ nhà (số nhà, đường…)'); return; }
+    var payEl = document.querySelector('input[name="mem-pay"]:checked');
+    var payMeth = payEl ? payEl.value : 'Tiền mặt';
+    try {
+      var r = await api.call('registerMembershipSubscription', {
+        phone: phone,
+        customerName: name,
+        packageId: pkg,
+        province: province,
+        ward: ward,
+        addressDetail: addrDetail.trim(),
+        landmark: landmark,
+        favoriteDrink: fav,
+        mapLink: mapL,
+        note: 'POS',
+        paymentMethod: payMeth
+      });
+      if (r && r.ok) {
+        if (r.payByTransfer) {
+          showToast('⏳ Gói ' + (r.subId || '') + ' chờ CK ' + fmt(r.amount || 0) + ' - hoàn tất trên trang Hội viên (QR).');
+        } else {
+          showToast('✅ Đã ghi nhận ' + (r.subId || ''));
+        }
+        document.getElementById('mem-reg-phone').value = '';
+        document.getElementById('mem-reg-name').value = '';
+        if (document.getElementById('mem-reg-province')) document.getElementById('mem-reg-province').value = 'Tây Ninh';
+        if (document.getElementById('mem-reg-ward')) document.getElementById('mem-reg-ward').value = 'Xã Dương Minh Châu';
+        if (document.getElementById('mem-reg-addr-detail')) document.getElementById('mem-reg-addr-detail').value = '';
+        if (document.getElementById('mem-reg-landmark')) document.getElementById('mem-reg-landmark').value = '';
+        if (document.getElementById('mem-reg-drink')) document.getElementById('mem-reg-drink').value = '';
+        document.getElementById('mem-reg-map').value = '';
+      } else {
+        showToast('❌ ' + ((r && r.message) ? r.message : 'Không ghi nhận được'));
+      }
+    } catch (e) {
+      showToast('❌ ' + (e.message || e));
+    }
+  }
+
+  // ====== MOBILE TAB SWITCHING ======
+  function switchTab(tab) {
+    mobileTab = tab;
+    document.getElementById('menu-panel').classList.toggle('active', tab === 'menu');
+    document.getElementById('order-panel').classList.toggle('active', tab === 'cart');
+    var sp = document.getElementById('sales-orders-panel');
+    if (sp) sp.classList.toggle('active', tab === 'sales');
+    document.getElementById('nav-menu').classList.toggle('active', tab === 'menu');
+    var nc = document.getElementById('nav-cart');
+    if (nc) nc.classList.toggle('active', tab === 'cart');
+    var ns = document.getElementById('nav-sales');
+    if (ns) ns.classList.toggle('active', tab === 'sales');
+    var no = document.getElementById('nav-offers');
+    if (no) no.classList.remove('active');
+    if (tab === 'sales') {
+      try { refreshSalesOrdersPanel(); } catch (eS) { }
+    }
+    if (typeof window.setFaviconUrl === 'function') window.setFaviconUrl(window.SUN_FAVICON_URL);
+  }
+
+  function changeSalesOrderPeriod(period, btn) {
+    salesOrderPeriod = period || 'today';
+    document.querySelectorAll('.sales-period-btn').forEach(function (b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    else {
+      var id = period === 'week' ? 'sales-p-week' : (period === 'month' ? 'sales-p-month' : 'sales-p-today');
+      var el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+    refreshSalesOrdersPanel();
+  }
+
+  async function refreshSalesOrdersPanel() {
+    var el = document.getElementById('sales-orders-list');
+    if (!el) return;
+    el.innerHTML = '<span style="color:var(--text-3);">Đang tải...</span>';
+    try {
+      var list = await api.callLong('getOrders', 45000, salesOrderPeriod || 'today');
+      if (!list || !list.length) {
+        el.innerHTML = '<span style="color:var(--text-3);">Không có đơn trong kỳ này.</span>';
+        return;
+      }
+      el.innerHTML = list.slice().reverse().map(function (o) {
+        var st = esc(String(o.status || ''));
+        var day = o.time ? new Date(o.time).toLocaleString('vi-VN') : '';
+        var nm = esc(String(o.customerName || 'Khách lẻ'));
+        var items = (o.items || []).map(function (i) { return (parseInt(i.quantity, 10) || 1) + '×' + esc(i.name || ''); }).join(', ');
+        return '<div style="border-bottom:1px solid var(--border2);padding:10px 0;">' +
+          '<div style="font-weight:800;color:var(--primary-dk);">' + esc(String(o.orderId || '')) + ' <span style="font-weight:700;color:var(--text);">' + fmt(o.finalAmount || 0) + '</span></div>' +
+          '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">' + day + ' · ' + nm + ' · ' + st + '</div>' +
+          '<div style="font-size:11px;margin-top:4px;color:var(--text-2);">' + items + '</div></div>';
+      }).join('');
+    } catch (e) {
+      el.innerHTML = '<span style="color:var(--red);">Không tải được - thử lại.</span>';
+    }
+  }
+
+  function openOffersNav() {
+    document.querySelectorAll('.nav-btn').forEach(function (b) { b.classList.remove('active'); });
+    var no = document.getElementById('nav-offers');
+    if (no) no.classList.add('active');
+    openPromoDetailModal();
+  }
+
+  // ====== INIT ======
+  async function loadData() {
+    renderSkeletons();
+    try {
+      // Ưu tiên: lấy danh sách Mix Hạt (Admin cấu hình) càng sớm càng tốt
+      // Sau đó sẽ refresh bỏ cache để cập nhật ngay sau khi admin chỉnh.
+      var fastMixP = api.callLong('getMixHats', 20000, false);
+
+      const [menuResult, invResult, digestResult] = await Promise.allSettled([
+        api.call('getMenu'),
+        api.call('getInventory'),
+        api.call('getTodayPromoDigest')
+      ]);
+      menuData = menuResult.status === 'fulfilled' && menuResult.value ? menuResult.value : getFallbackMenu();
+      inventoryData = invResult.status === 'fulfilled' && invResult.value ? invResult.value : [];
+      renderMenu(); renderCategories();
+      if (digestResult.status === 'fulfilled' && digestResult.value) renderHeaderPromoDigest(digestResult.value);
+      else {
+        lastPromoDigestCache = { activePromos: [], ordersWithPromoToday: 0, totalPromoCostToday: 0 };
+        var hint0 = document.getElementById('header-promo-hint');
+        if (hint0) hint0.textContent = '';
+        var badge0 = document.getElementById('header-promo-badge');
+        if (badge0) badge0.style.display = 'none';
+        var btn0 = document.getElementById('btn-open-promo');
+        if (btn0) btn0.style.display = '';
+      }
+      try {
+        var invS = await api.call('getInvoicePrintSettings');
+        invoiceSettings = invS && typeof invS === 'object' ? invS : {};
+      } catch (eInv) {
+        invoiceSettings = {};
+      }
+      // Lấy MixHat nhanh trước (cache)
+      mixHatList = [];
+      try {
+        var fastMix = await fastMixP;
+        mixHatList = Array.isArray(fastMix) ? fastMix : [];
+      } catch (eFastMix) { mixHatList = []; }
+      try { refreshNutMixIfOpen(); } catch (eMix0) { }
+
+      // Các data khác (và refresh MixHat bỏ cache để chính xác)
+      const results = await Promise.allSettled([
+        api.call('getCustomers'),
+        api.call('getPromotions'),
+        // Bỏ cache để MixHat cập nhật ngay sau khi admin chỉnh
+        api.callLong('getMixHats', 45000, true)
+      ]);
+      var c = results[0], p = results[1], st = results[2];
+      customersData = c.status === 'fulfilled' && c.value ? c.value : [];
+      promotionsData = p.status === 'fulfilled' && p.value ? p.value : [];
+      if (st.status === 'fulfilled' && Array.isArray(st.value)) mixHatList = st.value;
+      // Nếu đang mở modal món, cập nhật lại chips Mix hạt ngay khi list về
+      try { refreshNutMixIfOpen(); } catch (eMix) { }
+    } catch (e) {
+      menuData = getFallbackMenu();
+      renderMenu(); renderCategories();
+    }
+  }
+
+  // Display (màn hình phụ) đã được gỡ bỏ theo yêu cầu
+
+  function renderSkeletons() {
+    var h = '';
+    for (var si = 0; si < 8; si++) {
+      h += '<div class="skeleton-card"><div class="skel skel-img"></div><div class="skel skel-line"></div><div class="skel skel-line short"></div><div class="skel skel-line price"></div></div>';
+    }
+    document.getElementById('products-grid').innerHTML = h;
+  }
+
+  function normalizeCupSizeLabel(s) {
+    if (s === 'Tiêu chuẩn') return 'Tiêu chuẩn';
+    if (!s || s === 'Vừa' || s === 'Vừa (350ml)') return 'Thường (350ml)';
+    return s;
+  }
+
+  function serveTempLabel(m) {
+    if (m === 'hot') return 'Nóng';
+    if (m === 'iced') return 'Đá';
+    return 'Ủ lạnh';
+  }
+
+  function renderHeaderPromoDigest(d) {
+    lastPromoDigestCache = d;
+    var hint = document.getElementById('header-promo-hint');
+    var btn = document.getElementById('btn-open-promo');
+    var badge = document.getElementById('header-promo-badge');
+    var promos = d.activePromos || [];
+    var n = promos.length;
+    if (hint) hint.textContent = '';
+    if (badge) {
+      if (n > 0) {
+        badge.textContent = String(n);
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    if (btn) btn.style.display = '';
+  }
+
+  function openPromoDetailModal() {
+    var m = document.getElementById('promoDetailModal');
+    var body = document.getElementById('promo-detail-body');
+    if (!m || !body) return;
+    var d = lastPromoDigestCache || { activePromos: [], ordersWithPromoToday: 0, totalPromoCostToday: 0, promoDiscountHourlyToday: [] };
+    var promos = d.activePromos || [];
+    var cards = '';
+    if (promos.length) {
+      cards = promos.map(function (x) {
+        var disc = esc(x.discountLabel || '');
+        var when = esc(x.dateRange || '');
+        var rule = x.ruleType ? ('<div class="pv-meta">Quy tắc: <code>' + esc(String(x.ruleType)) + '</code></div>') : '';
+        var mino = (x.minOrder > 0) ? ('<div class="pv-meta">Đơn tối thiểu: ' + fmt(x.minOrder) + '</div>') : '';
+        return '<div class="promo-voucher-card"><div class="pv-code">' + esc(x.code || '') + '</div><div class="pv-discount">−' + disc + '</div><div class="pv-meta" style="font-weight:700;">' + esc(x.name || '') + '</div><div class="pv-meta">' + when + '</div>' + mino + rule + '</div>';
+      }).join('');
+    } else {
+      cards = '<p style="color:var(--text-2);font-size:13px;">Chưa có chương trình khuyến mãi hiệu lực hoặc ngoài khung giờ áp dụng.</p>';
+    }
+    var n = d.ordersWithPromoToday != null ? d.ordersWithPromoToday : 0;
+    var cost = d.totalPromoCostToday != null ? d.totalPromoCostToday : 0;
+    var hourly = d.promoDiscountHourlyToday || [];
+    var mx = 1;
+    for (var hi = 0; hi < hourly.length; hi++) mx = Math.max(mx, Number(hourly[hi]) || 0);
+    var bars = '';
+    for (var hb = 0; hb < 24; hb++) {
+      var v = Math.round(Number(hourly[hb]) || 0);
+      var pct = mx > 0 ? Math.max(4, Math.round(v / mx * 100)) : 4;
+      bars += '<div class="bar" style="height:' + pct + '%" title="' + hb + 'h: ' + fmt(v) + '"></div>';
+    }
+    body.innerHTML = '<h3 style="margin:0 0 12px;font-size:17px;">Khuyến mãi hôm nay</h3>' +
+      '<p style="font-weight:700;color:var(--primary-dk);margin-bottom:10px;font-size:13px;">Ưu đãi đang hiệu lực</p>' + cards +
+      '<div style="margin-top:16px;padding:14px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);">' +
+      '<div style="font-size:12px;font-weight:800;color:var(--primary-dk);margin-bottom:6px;">Thống kê KM hôm nay</div>' +
+      '<div style="font-size:13px;color:var(--text-2);"><strong>' + n + '</strong> đơn có giảm giá - tổng chi phí KM <strong style="color:#B45309;">' + fmt(cost) + '</strong></div>' +
+      '<div style="font-size:11px;color:var(--text-3);margin-top:6px;">Giảm giá theo giờ (0–23h)</div>' +
+      '<div class="promo-stat-chart">' + bars + '</div></div>';
+    m.classList.add('open');
+  }
+
+  function closePromoDetailModal(e) {
+    if (!e || e.target.id === 'promoDetailModal') {
+      var m = document.getElementById('promoDetailModal');
+      if (m) m.classList.remove('open');
+      var no = document.getElementById('nav-offers');
+      if (no) no.classList.remove('active');
+      if (mobileTab === 'menu') {
+        var nm = document.getElementById('nav-menu');
+        if (nm) nm.classList.add('active');
+      } else if (mobileTab === 'cart') {
+        var nd = document.getElementById('nav-cart');
+        if (nd) nd.classList.add('active');
+      } else if (mobileTab === 'sales') {
+        var ns2 = document.getElementById('nav-sales');
+        if (ns2) ns2.classList.add('active');
+      }
+    }
+  }
+
+  function getFallbackMenu() {
+    var d = {
+      smallCupDiscount: 0, largeCupExtra: 8000, hasLargeSize: true,
+      enableSmall: false, enableRegular: true, enableLarge: true, plasticBottleExtra: 0
+    };
+    return [
+      Object.assign({ id: '1', name: 'Sữa hạt điều', category: 'Sữa đơn', basePrice: 25000, description: 'Béo ngậy, giàu protein', imageUrl: '', available: true, popular: true }, d),
+      Object.assign({ id: '2', name: 'Sữa hạt óc chó', category: 'Sữa đơn', basePrice: 30000, description: 'Tốt cho trí não', imageUrl: '', available: true }, d),
+      Object.assign({ id: '3', name: 'Sữa hạt hạnh nhân', category: 'Sữa đơn', basePrice: 28000, description: 'Thơm ngon, giàu canxi', imageUrl: '', available: true }, d),
+      Object.assign({ id: '4', name: 'Mix 5 loại hạt', category: 'Sữa Mix', basePrice: 35000, description: 'Dinh dưỡng tổng hợp', imageUrl: '', available: true, popular: true }, d),
+      Object.assign({ id: '5', name: 'Sữa đậu nành', category: 'Sữa đơn', basePrice: 15000, description: 'Giàu protein thực vật', imageUrl: '', available: true }, d),
+      Object.assign({ id: '6', name: 'Sữa macca hoa hồng', category: 'Sữa đặc biệt', basePrice: 45000, description: 'Thơm béo, sang trọng', imageUrl: '', available: true, popular: true }, d),
+      Object.assign({ id: '7', name: 'Mix hạt detox', category: 'Sữa Mix', basePrice: 40000, description: 'Thanh lọc cơ thể', imageUrl: '', available: true }, d),
+      { id: '8', name: 'Topping granola', category: 'Topping', basePrice: 10000, description: 'Giòn rụm, ngon miệng', imageUrl: '', available: true, smallCupDiscount: 0, largeCupExtra: 0, hasLargeSize: false }
+    ];
+  }
+
+  // ====== RENDER ======
+  function escAttr(s) {
+    return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+  function renderCategories() {
+    var seen = {};
+    menuData.forEach(function (p) { if (p.category) seen[p.category] = true; });
+    var cats = ['Tất cả'].concat(Object.keys(seen));
+    document.getElementById('categories').innerHTML = cats.map(function (c) {
+      return '<button class="cat-pill ' + (c === activeCategory ? 'active' : '') + '" onclick="filterCategory(\'' + escAttr(c) + '\')">' + getCatIcon(c) + ' ' + esc(c) + '</button>';
+    }).join('');
+  }
+
+  function getCatIcon(cat) {
+    const m = { 'Tất cả': '🌟', 'Sữa đơn': '🥛', 'Sữa Mix': '🌰', 'Topping': '✨', 'Nổi bật': '🔥', 'Đặc biệt': '⭐', 'Sữa đặc biệt': '💎' };
+    return m[cat] || '🥤';
+  }
+
+  function getSearchQuery() {
+    var mob = document.getElementById('search-mobile-expand');
+    if (mob && mob.classList.contains('open')) {
+      var m = document.getElementById('search-input-mobile');
+      return ((m && m.value) ? m.value : '').toLowerCase();
+    }
+    var si = document.getElementById('search-input');
+    return ((si && si.value) ? si.value : '').toLowerCase();
+  }
+
+  function toggleMobileSearch() {
+    var ex = document.getElementById('search-mobile-expand');
+    if (!ex) return;
+    var on = !ex.classList.contains('open');
+    ex.classList.toggle('open', on);
+    document.body.classList.toggle('search-mobile-open', on);
+    if (on) {
+      var m = document.getElementById('search-input-mobile');
+      var d = document.getElementById('search-input');
+      if (m && d) m.value = d.value;
+      setTimeout(function () { try { m.focus(); } catch (eM) { } }, 80);
+    }
+  }
+
+  function closeMobileSearch() {
+    var ex = document.getElementById('search-mobile-expand');
+    if (!ex) return;
+    var m = document.getElementById('search-input-mobile');
+    var d = document.getElementById('search-input');
+    if (m && d) d.value = m.value;
+    ex.classList.remove('open');
+    document.body.classList.remove('search-mobile-open');
+    filterProducts();
+  }
+
+  function syncMobileSearch() {
+    var m = document.getElementById('search-input-mobile');
+    var d = document.getElementById('search-input');
+    if (m && d) d.value = m.value;
+    filterProducts();
+  }
+
+  function renderMenu() {
+    var q = getSearchQuery();
+    let items = menuData.filter(p => p.available !== false);
+    if (activeCategory !== 'Tất cả') items = items.filter(p => p.category === activeCategory);
+    if (q) items = items.filter(p => p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q));
+
+    const html = items.map((p, i) => {
+      const idx = menuData.indexOf(p);
+      const imgEl = p.imageUrl
+        ? '<img src="' + esc(p.imageUrl) + '" alt="' + esc(p.name) + '" loading="lazy">'
+        : '<div class="prod-emoji">' + getEmoji(p) + '</div>';
+      const popular = p.popular ? '<div class="popular-badge">Phổ biến</div>' : '';
+      return '<div class="product-card" onclick="openProductByIndex(' + idx + ')" style="animation-delay:' + (i * 0.04) + 's">' +
+        popular +
+        '<div class="prod-img-wrap">' + imgEl + '</div>' +
+        '<div class="prod-body">' +
+        '<div class="prod-name">' + esc(p.name) + '</div>' +
+        '<div class="prod-desc">' + esc(p.description || '') + '</div>' +
+        '<div class="prod-footer">' +
+          '<div class="prod-price">' + fmt(p.basePrice) + '</div>' +
+          '<button class="prod-add-btn" onclick="event.stopPropagation();quickAddByIndex(' + idx + ')" title="Thêm nhanh">' +
+            '<i class="fa-solid fa-plus"></i>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+    }).join('');
+
+    document.getElementById('products-grid').innerHTML = html ||
+      '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--text-3);">' +
+    '<div style="font-size:48px;margin-bottom:12px;">🔍</div>' +
+    '<div style="font-size:14px;font-weight:600;">Không tìm thấy sản phẩm</div>' +
+  '</div>';
+  }
+
+  function getEmoji(p) {
+    if (!p) return '🥛';
+    const n = (p.name || '').toLowerCase();
+    if (n.includes('điều')) return '🥜';
+    if (n.includes('óc chó')) return '🪨';
+    if (n.includes('hạnh nhân')) return '🌰';
+    if (n.includes('macca')) return '🌰';
+    if (n.includes('hoa hồng')) return '🌹';
+    if (n.includes('detox')) return '🌿';
+    if (n.includes('mix') || (p.category || '').toLowerCase().includes('mix')) return '🌾';
+    if ((p.category || '').toLowerCase().includes('topping')) return '✨';
+    if (n.includes('đậu')) return '🫘';
+    return '🥛';
+  }
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function filterCategory(c) { activeCategory = c; renderCategories(); renderMenu(); }
+  function filterProducts() { renderMenu(); }
+  function openProductByIndex(i) { if (menuData[i]) openProductModal(menuData[i]); }
+  function quickAddByIndex(i) { if (menuData[i]) quickAdd(menuData[i]); }
+
+  function escWithBr(s) {
+    return String(s || '').split('\n').map(function (line) { return esc(line); }).join('<br>');
+  }
+  function textNeedsExpandMore(s) {
+    s = String(s || '').trim();
+    if (!s) return false;
+    if (s.length > 110) return true;
+    if ((s.match(/\n/g) || []).length >= 2) return true;
+    return false;
+  }
+  function previewPlainText(s) {
+    var t = String(s || '').replace(/\s+/g, ' ').trim();
+    if (t.length <= 110) return t;
+    var cut = 110;
+    var sp = t.lastIndexOf(' ', 110);
+    if (sp > 55) cut = sp;
+    return t.slice(0, cut) + '…';
+  }
+  function buildExpandableTextCard(title, fullRaw) {
+    var full = String(fullRaw || '').trim();
+    if (!full) return '';
+    if (!textNeedsExpandMore(full)) {
+      return '<div class="pd-meta-card"><div class="pd-meta-t">' + esc(title) + '</div><div class="pd-meta-b">' + escWithBr(full) + '</div></div>';
+    }
+    var prev = full.indexOf('\n') >= 0 ? (full.split('\n')[0].trim() + '…') : previewPlainText(full);
+    return '<div class="pd-meta-card pd-desc-card" data-expanded="0">' +
+      '<div class="pd-meta-t">' + esc(title) + '</div>' +
+      '<div class="pd-desc-preview">' + esc(prev) + '</div>' +
+      '<div class="pd-desc-full" style="display:none">' + escWithBr(full) + '</div>' +
+      '<button type="button" class="pd-desc-toggle-btn">Xem thêm</button></div>';
+  }
+  function buildPrimaryNarrativeCard(title, fullRaw, hasExtra) {
+    var full = String(fullRaw || '').trim();
+    if (!full) return '';
+    if (!hasExtra) {
+      return buildExpandableTextCard(title, fullRaw);
+    }
+    if (textNeedsExpandMore(full)) {
+      var prev = full.indexOf('\n') >= 0 ? (full.split('\n')[0].trim() + '…') : previewPlainText(full);
+      return '<div class="pd-meta-card pd-desc-card pd-primary-desc" data-expanded="0">' +
+        '<div class="pd-meta-t">' + esc(title) + '</div>' +
+        '<div class="pd-desc-preview">' + esc(prev) + '</div>' +
+        '<div class="pd-desc-full" style="display:none">' + escWithBr(full) + '</div></div>';
+    }
+    return '<div class="pd-meta-card"><div class="pd-meta-t">' + esc(title) + '</div><div class="pd-meta-b">' + escWithBr(full) + '</div></div>';
+  }
+  function wireProductDetailMetaReveal(box) {
+    var revealBtn = document.getElementById('pd-meta-reveal-btn');
+    var extraEl = document.getElementById('product-detail-meta-extra');
+    if (!box || !revealBtn || !extraEl) return;
+    revealBtn.addEventListener('click', function () {
+      var expanded = box.getAttribute('data-detail-expanded') === '1';
+      expanded = !expanded;
+      box.setAttribute('data-detail-expanded', expanded ? '1' : '0');
+      extraEl.style.display = expanded ? 'block' : 'none';
+      revealBtn.textContent = expanded ? 'Thu gọn' : 'Xem thêm';
+      var primaryDesc = box.querySelector('.pd-primary-desc');
+      if (primaryDesc) {
+        var prev = primaryDesc.querySelector('.pd-desc-preview');
+        var full = primaryDesc.querySelector('.pd-desc-full');
+        if (prev && full) {
+          prev.style.display = expanded ? 'none' : '';
+          full.style.display = expanded ? '' : 'none';
+        }
+      }
+    });
+  }
+  function wireProductDetailDescToggles(box) {
+    if (!box) return;
+    var extraWrap = box.querySelector('.pd-meta-extra-wrap');
+    var btns = extraWrap
+      ? extraWrap.querySelectorAll('.pd-desc-card .pd-desc-toggle-btn')
+      : box.querySelectorAll('.pd-desc-card .pd-desc-toggle-btn');
+    for (var bi = 0; bi < btns.length; bi++) {
+      btns[bi].addEventListener('click', function (ev) {
+        var btn = ev.currentTarget;
+        var card = btn.closest('.pd-desc-card');
+        if (!card) return;
+        var expanded = card.getAttribute('data-expanded') === '1';
+        expanded = !expanded;
+        card.setAttribute('data-expanded', expanded ? '1' : '0');
+        var prev = card.querySelector('.pd-desc-preview');
+        var full = card.querySelector('.pd-desc-full');
+        if (prev) prev.style.display = expanded ? 'none' : '';
+        if (full) full.style.display = expanded ? '' : 'none';
+        btn.textContent = expanded ? 'Thu gọn' : 'Xem thêm';
+      });
+    }
+  }
+  function renderProductDetailMeta(p) {
+    var box = document.getElementById('product-detail-meta');
+    if (!box || !p) return;
+    var desc = String(p.description || '').trim();
+    var note = String(p.note || '').trim();
+    var k = p.nutritionKcal || 0, pr = p.nutritionProteinG || 0, ft = p.nutritionFatG || 0;
+    var benFull = String(p.benefits || '').trim();
+    var mark = 'Mở rộng cho admin';
+    var ix = benFull.toLowerCase().indexOf(mark.toLowerCase());
+    var benCust = ix >= 0 ? benFull.slice(0, ix).trim() : benFull;
+    var benAdm = ix >= 0 ? benFull.slice(ix).trim() : '';
+    var ingList = [];
+    if (Array.isArray(p.ingredientNames) && p.ingredientNames.length) {
+      ingList = p.ingredientNames.map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+    }
+
+    var extraParts = [];
+    if (desc && note && note !== desc) {
+      extraParts.push(buildExpandableTextCard('Ghi chú (menu)', note));
+    }
+    if (k || pr || ft) {
+      extraParts.push(
+        '<div class="pd-meta-card"><div class="pd-meta-t"><i class="fa-solid fa-chart-pie" aria-hidden="true" style="margin-right:6px;opacity:0.9;color:var(--primary);"></i>Dinh dưỡng (ước)</div><div class="product-detail-pills">' +
+        (k ? '<span class="product-detail-pill"><i class="fa-solid fa-fire-flame-simple" aria-hidden="true"></i> Calo ~' + esc(String(k)) + '</span>' : '') +
+        (pr ? '<span class="product-detail-pill"><i class="fa-solid fa-drumstick-bite" aria-hidden="true"></i> Protein ~' + esc(String(pr)) + 'g</span>' : '') +
+        (ft ? '<span class="product-detail-pill"><i class="fa-solid fa-droplet" aria-hidden="true"></i> Béo ~' + esc(String(ft)) + 'g</span>' : '') +
+        '</div></div>'
+      );
+    }
+    if (benCust) {
+      extraParts.push('<div class="pd-meta-card"><div class="pd-meta-t">Công dụng</div><div class="pd-meta-b">' + esc(benCust) + '</div></div>');
+    }
+    if (benAdm) {
+      extraParts.push('<div class="pd-meta-card" style="border-style:dashed;opacity:0.96;"><div class="pd-meta-t">Tham khảo thêm</div><div class="pd-meta-b">' + esc(benAdm) + '</div></div>');
+    }
+    if (ingList.length) {
+      extraParts.push('<div class="pd-meta-card"><div class="pd-meta-t">Thành phần</div><ul class="pd-meta-ing">' +
+        ingList.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>');
+    }
+
+    var hasExtra = extraParts.length > 0;
+    var primary = '';
+    if (desc) {
+      primary = buildPrimaryNarrativeCard('Mô tả', desc, hasExtra);
+    } else if (note) {
+      primary = buildPrimaryNarrativeCard('Ghi chú', note, hasExtra);
+    } else if (hasExtra) {
+      primary = '<div class="pd-meta-card pd-meta-muted">Chưa có mô tả ngắn trên menu.</div>';
+    }
+
+    var html = '';
+    if (!primary && !hasExtra) {
+      html = '<div class="pd-meta-card pd-meta-muted">Chưa có mô tả chi tiết trên menu - liên hệ cửa hàng.</div>';
+      box.innerHTML = html;
+      return;
+    }
+
+    html = '<div class="pd-meta-layout" id="pd-meta-layout-root" data-detail-expanded="0">' +
+      '<div class="pd-meta-primary">' + primary + '</div>';
+    if (hasExtra) {
+      html += '<button type="button" class="pd-meta-reveal-btn" id="pd-meta-reveal-btn">Xem thêm</button>' +
+        '<div class="pd-meta-extra-wrap" id="product-detail-meta-extra" style="display:none">' + extraParts.join('') + '</div>';
+    }
+    html += '</div>';
+    box.innerHTML = html;
+    var root = document.getElementById('pd-meta-layout-root');
+    wireProductDetailMetaReveal(root || box);
+    wireProductDetailDescToggles(root || box);
+  }
+
+  // ====== PRODUCT MODAL ======
+  function familyUnitPrice500ml(p) {
+    if (!p) return 0;
+    var sell = parseFloat(p.familySell500) || 0;
+    if (sell > 0) return sell;
+    var ex = parseFloat(p.familyPackExtra500) || 0;
+    if (ex <= 0) return 0;
+    return (parseFloat(p.basePrice) || 0) + ex;
+  }
+  function familyUnitPrice1L(p) {
+    if (!p) return 0;
+    var sell = parseFloat(p.familySell1L) || 0;
+    if (sell > 0) return sell;
+    var ex = parseFloat(p.familyPackExtra1L) || 0;
+    if (ex <= 0) return 0;
+    return (parseFloat(p.basePrice) || 0) + ex;
+  }
+  function hasFamilyPackOptions(p) {
+    return familyUnitPrice500ml(p) > 0 || familyUnitPrice1L(p) > 0;
+  }
+  function buildCupSizePartsOnly(p) {
+    var smallDisc = Math.max(0, parseFloat(p.smallCupDiscount) || 0);
+    var large = parseFloat(p.largeCupExtra);
+    if (isNaN(large)) large = 8000;
+    if (p.largeCupExtra === '' || p.largeCupExtra === null) large = 8000;
+    var enS = !!p.enableSmall;
+    var enR = p.enableRegular !== false;
+    var enL = p.enableLarge !== false;
+    var parts = [];
+    if (enS) parts.push({ label: 'Nhỏ', sub: '250ml · ' + (smallDisc > 0 ? '-' + fmt(smallDisc) : 'Giá gốc'), val: 'Nhỏ (250ml)', price: -smallDisc, icon: '🥛' });
+    if (enR) parts.push({ label: 'Thường', sub: '350ml', val: 'Thường (350ml)', price: 0, icon: '🥤' });
+    if (enL) parts.push({ label: 'Lớn', sub: '+' + fmt(large), val: 'Lớn (450ml)', price: large, icon: '🧃' });
+    if (parts.length === 0) parts.push({ label: 'Thường', sub: '350ml', val: 'Thường (350ml)', price: 0, icon: '🥤' });
+    return parts;
+  }
+  function buildFamilySizePartsOnly(p) {
+    var parts = [];
+    var u500 = familyUnitPrice500ml(p);
+    var u1 = familyUnitPrice1L(p);
+    var bp = parseFloat(p.basePrice) || 0;
+    if (u500 > 0) parts.push({ label: 'Chai 500ml', sub: fmt(u500), val: 'Chai gia đình 500ml', price: Math.round(u500 - bp), icon: '🧴' });
+    if (u1 > 0) parts.push({ label: 'Chai 1 lít', sub: fmt(u1), val: 'Chai gia đình 1 lít', price: Math.round(u1 - bp), icon: '🧴' });
+    return parts;
+  }
+  function paintSizeButtons(parts, defIdx) {
+    var sizeOptions = document.getElementById('sheet-size-options');
+    if (!sizeOptions || !parts.length) return;
+    var szHtml = '';
+    for (var j = 0; j < parts.length; j++) {
+      var q = parts[j];
+      var act = j === defIdx ? ' active' : '';
+      szHtml += '<div class="size-btn' + act + '" onclick="selectSizeBtn(this,\'' + escAttr(q.val) + '\',' + q.price + ')">' +
+        '<span class="sz-icon">' + q.icon + '</span>' +
+        '<div class="sz-name">' + esc(q.label) + '</div>' +
+        '<div class="sz-price">' + esc(q.sub) + '</div></div>';
+    }
+    sizeOptions.innerHTML = szHtml;
+    currentOptions.size = parts[defIdx].val;
+    currentOptions.sizePrice = parts[defIdx].price;
+  }
+  function renderProductSizeGrid() {
+    var p = currentProduct;
+    if (!p) return;
+    var isTopping = (p.category || '').toLowerCase().indexOf('topping') !== -1;
+    if (isTopping) return;
+    var parts = currentOptions.familyPack ? buildFamilySizePartsOnly(p) : buildCupSizePartsOnly(p);
+    if (currentOptions.familyPack && parts.length === 0) {
+      currentOptions.familyPack = false;
+      var cb = document.getElementById('family-pack-toggle');
+      if (cb) cb.checked = false;
+      parts = buildCupSizePartsOnly(p);
+    }
+    var defIdx = 0;
+    var want = currentOptions.familyPack ? 'Chai gia đình 500ml' : 'Thường (350ml)';
+    for (var pi = 0; pi < parts.length; pi++) {
+      if (parts[pi].val === want) { defIdx = pi; break; }
+    }
+    paintSizeButtons(parts, defIdx);
+  }
+
+  function renderNutMixOptions(p, isTopping) {
+    var nutGrp = document.getElementById('pos-nut-opt-group');
+    var chipsEl = document.getElementById('nut-chips');
+    if (!nutGrp || !chipsEl) return;
+    if (!p || isTopping) { nutGrp.style.display = 'none'; chipsEl.innerHTML = ''; return; }
+
+    var list = Array.isArray(mixHatList) ? mixHatList.slice() : [];
+    list = list.filter(function (x) { return x && x.enabled !== false && x.name; });
+    if (!list.length) {
+      nutGrp.style.display = 'none';
+      chipsEl.innerHTML = '';
+      return;
+    }
+    nutGrp.style.display = '';
+    chipsEl.innerHTML = list.map(function (n) {
+      var mixP = Math.round(parseFloat(n.price) || 0);
+      var oc = ' onclick="selectOption(this,\'addon\',\'' + escAttr(n.name) + '\',' + mixP + ')"';
+      var img = String(n.imageUrl || '').trim();
+      var imgHtml = img ? ('<img class="nut-chip-img" src="' + esc(img) + '" alt="">') : '<div class="nut-chip-img" style="display:flex;align-items:center;justify-content:center;font-size:16px;">🌰</div>';
+      var priceTxt = mixP > 0 ? ('+' + fmt(mixP)) : '';
+      return '<div class="opt-btn opt-nut-chip"' + oc + '>' +
+        imgHtml +
+        '<div class="nut-chip-meta">' +
+          '<div class="nut-chip-name">' + esc(n.name) + '</div>' +
+          '<div class="nut-chip-price">' + esc(priceTxt) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function refreshNutMixIfOpen() {
+    try {
+      var m = document.getElementById('productModal');
+      if (!m || !m.classList.contains('open')) return;
+      if (!currentProduct) return;
+      var isTopping = (currentProduct.category || '').toLowerCase().indexOf('topping') !== -1;
+      renderNutMixOptions(currentProduct, isTopping);
+    } catch (e) { }
+  }
+  function toggleFamilyPackMode() {
+    var cb = document.getElementById('family-pack-toggle');
+    if (!cb || !currentProduct) return;
+    currentOptions.familyPack = !!cb.checked;
+    renderProductSizeGrid();
+    updateModalPrice();
+  }
+
+  function openProductModal(p) {
+    currentProduct = p;
+    currentQty = 1;
+    currentOptions = {
+      size: 'Thường (350ml)', sizePrice: 0, ice: 'Không đá', sweetness: 'Ngọt vừa', addons: [], addonPrices: [],
+      serveTemp: 'cold_steep', packaging: 'paper', packagingPrice: 0, familyPack: false
+    };
+
+    document.getElementById('sheet-name').textContent = p.name;
+    document.getElementById('qty-display').textContent = '1';
+    document.getElementById('modal-note').value = '';
+
+    var hero = document.getElementById('sheet-hero');
+    var heroEmoji = document.getElementById('sheet-hero-emoji');
+    var heroUrl = p.coverImageUrl || p.imageUrl || '';
+    if (heroUrl) {
+      heroEmoji.style.display = 'none';
+      hero.querySelectorAll('img.hero-img').forEach(function (e) { e.remove(); });
+      var img = document.createElement('img');
+      img.className = 'hero-img';
+      img.src = heroUrl;
+      img.alt = p.name;
+      img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;';
+      hero.insertBefore(img, hero.firstChild);
+    } else {
+      hero.querySelectorAll('img.hero-img').forEach(function (e) { e.remove(); });
+      heroEmoji.style.display = 'flex';
+      heroEmoji.textContent = getEmoji(p);
+    }
+
+    document.querySelectorAll('#productModal .opt-btn.active').forEach(function (b) { b.classList.remove('active'); });
+    document.querySelectorAll('#productModal .size-btn.active').forEach(function (b) { b.classList.remove('active'); });
+    document.getElementById('sugar-sub-options').classList.remove('show');
+
+    var tempG = document.getElementById('sheet-temp-group');
+    var iceG = document.getElementById('sheet-ice-group');
+    var packG = document.getElementById('sheet-pack-group');
+    var sizeGroup = document.getElementById('sheet-size-group');
+    var sizeOptions = document.getElementById('sheet-size-options');
+    var isTopping = (p.category || '').toLowerCase().indexOf('topping') !== -1;
+
+    if (isTopping) {
+      sizeGroup.style.display = 'none';
+      if (tempG) tempG.style.display = 'none';
+      if (iceG) iceG.style.display = 'none';
+      if (packG) packG.style.display = 'none';
+      currentOptions.size = 'Tiêu chuẩn';
+      currentOptions.sizePrice = 0;
+    } else {
+      sizeGroup.style.display = 'block';
+      if (tempG) tempG.style.display = '';
+      if (packG) packG.style.display = '';
+      var famRow = document.getElementById('family-pack-toggle-row');
+      var famCb = document.getElementById('family-pack-toggle');
+      if (famRow && famCb) {
+        if (hasFamilyPackOptions(p)) {
+          famRow.style.display = 'block';
+          famCb.checked = false;
+          currentOptions.familyPack = false;
+        } else {
+          famRow.style.display = 'none';
+          famCb.checked = false;
+          currentOptions.familyPack = false;
+        }
+      }
+      renderProductSizeGrid();
+
+      document.querySelectorAll('#sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+      var tCold = document.querySelector('#sheet-temp-options .opt-btn[onclick*="cold_steep"]');
+      if (tCold) tCold.classList.add('active');
+      currentOptions.serveTemp = 'cold_steep';
+      if (iceG) {
+        iceG.style.display = 'none';
+        document.querySelectorAll('#sheet-ice-group .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+        var iceMid = document.querySelector('#sheet-ice-group .opt-btn[onclick*="Vừa"]');
+        if (iceMid) iceMid.classList.add('active');
+      }
+      currentOptions.ice = 'Không đá';
+      document.querySelectorAll('#sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+      var pPaper = document.querySelector('#sheet-pack-options .opt-btn[onclick*="paper"]');
+      if (pPaper) pPaper.classList.add('active');
+      currentOptions.packaging = 'paper';
+      currentOptions.packagingPrice = 0;
+    }
+
+    var sweetDefault = document.querySelector('#productModal .opt-btn[onclick*="sweetness"][onclick*="Ngọt vừa"]');
+    if (sweetDefault) sweetDefault.classList.add('active');
+
+    renderNutMixOptions(p, isTopping);
+
+    renderProductDetailMeta(p);
+
+    updateModalPrice();
+    sunModalRaise('productModal');
+    document.getElementById('productModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function selectServeTemp(el, mode) {
+    document.querySelectorAll('#sheet-temp-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+    el.classList.add('active');
+    currentOptions.serveTemp = mode;
+    var iceG = document.getElementById('sheet-ice-group');
+    if (iceG) {
+      if (mode === 'iced') {
+        iceG.style.display = '';
+        document.querySelectorAll('#sheet-ice-group .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+        var mid = document.querySelector('#sheet-ice-group .opt-btn[onclick*="Vừa"]');
+        if (mid) { mid.classList.add('active'); currentOptions.ice = 'Vừa'; }
+      } else {
+        iceG.style.display = 'none';
+        currentOptions.ice = 'Không đá';
+      }
+    }
+    updateModalPrice();
+  }
+
+  function selectPackaging(el, pack) {
+    document.querySelectorAll('#sheet-pack-options .opt-btn').forEach(function (b) { b.classList.remove('active'); });
+    el.classList.add('active');
+    currentOptions.packaging = pack;
+    var ex = pack === 'plastic' && currentProduct ? (parseFloat(currentProduct.plasticBottleExtra) || 0) : 0;
+    currentOptions.packagingPrice = ex;
+    updateModalPrice();
+  }
+
+  function closeProductModal(e) {
+    if (!e || e.target.id === 'productModal') {
+      document.getElementById('productModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function selectOption(el, group, value, price) {
+    if (price === undefined || price === null) price = 0;
+    if (group === 'ice' || group === 'sweetness') {
+      el.parentNode.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      currentOptions[group] = value;
+    } else if (group === 'addon') {
+      const idx = currentOptions.addons.indexOf(value);
+      if (idx > -1) {
+        currentOptions.addons.splice(idx, 1);
+        currentOptions.addonPrices.splice(idx, 1);
+        el.classList.remove('active');
+      } else {
+        currentOptions.addons.push(value);
+        currentOptions.addonPrices.push(price);
+        el.classList.add('active');
+      }
+    }
+    updateModalPrice();
+  }
+
+  function selectSizeBtn(el, value, price) {
+    document.querySelectorAll('#sheet-size-options .size-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentOptions.size = value;
+    currentOptions.sizePrice = price;
+    if (String(value || '').indexOf('Chai gia đình') === 0) currentOptions.familyPack = true;
+    else currentOptions.familyPack = false;
+    updateModalPrice();
+  }
+
+  function toggleSubOptions(el, id) {
+    el.classList.toggle('active');
+    document.getElementById(id + '-sub-options').classList.toggle('show');
+  }
+
+  function changeQty(delta) {
+    currentQty = Math.max(1, currentQty + delta);
+    document.getElementById('qty-display').textContent = currentQty;
+    updateModalPrice();
+  }
+
+  function updateModalPrice() {
+    if (!currentProduct) return;
+    const addonTotal = currentOptions.addonPrices.reduce((s, p) => s + p, 0);
+    var pack = currentOptions.packagingPrice || 0;
+    const unitPrice = currentProduct.basePrice + currentOptions.sizePrice + addonTotal + pack;
+    const total = unitPrice * currentQty;
+    document.getElementById('sheet-price').textContent = fmt(unitPrice);
+    document.getElementById('sheet-add-total').textContent = fmt(total);
+  }
+
+  function buildCartOptsParts(item) {
+    var o = item.options || {};
+    if (normalizeCupSizeLabel(o.size) === 'Tiêu chuẩn') {
+      var tOnly = [];
+      if (o.sweetness) tOnly.push(o.sweetness);
+      return tOnly.concat(o.addons || []).filter(Boolean);
+    }
+    var parts = [];
+    parts.push(o.size);
+    var st = o.serveTemp || 'cold_steep';
+    if (st === 'iced' && o.ice) parts.push('Đá: ' + o.ice);
+    else parts.push(serveTempLabel(st));
+    if (o.sweetness) parts.push(o.sweetness);
+    if (o.packaging === 'plastic') parts.push('Chai nhựa');
+    else if (o.packaging === 'paper') parts.push('Ly giấy');
+    parts = parts.concat(o.addons || []).filter(Boolean);
+    return parts;
+  }
+
+  function lineItemUnitTotal(item) {
+    var addonTotal = item.options.addonPrices.reduce(function (a, p) { return a + p; }, 0);
+    return item.basePrice + item.options.sizePrice + addonTotal + (item.options.packagingPrice || 0);
+  }
+
+  function addToCart() {
+    if (!currentProduct) return;
+    const addonTotal = currentOptions.addonPrices.reduce((s, p) => s + p, 0);
+    const baseItemPrice = currentProduct.basePrice + currentOptions.sizePrice + addonTotal;
+    var mn = document.getElementById('modal-note');
+    var note = (mn && mn.value) ? mn.value.trim() : '';
+
+    const existing = cart.find(i =>
+      i.id === currentProduct.id &&
+      !!i.options.familyPack === !!currentOptions.familyPack &&
+      i.options.ice === currentOptions.ice &&
+      i.options.sweetness === currentOptions.sweetness &&
+      (i.options.serveTemp || 'cold_steep') === (currentOptions.serveTemp || 'cold_steep') &&
+      (i.options.packaging || 'paper') === (currentOptions.packaging || 'paper') &&
+      normalizeCupSizeLabel(i.options.size) === normalizeCupSizeLabel(currentOptions.size) &&
+      JSON.stringify(i.options.addons) === JSON.stringify(currentOptions.addons) &&
+      i.note === note
+    );
+    if (existing) { existing.quantity += currentQty; }
+    else {
+      cart.push({
+        id: currentProduct.id,
+        name: currentProduct.name,
+        emoji: getEmoji(currentProduct),
+        imageUrl: currentProduct.imageUrl || '',
+        basePrice: currentProduct.basePrice,
+        options: Object.assign({}, currentOptions, {
+          addons: currentOptions.addons.slice(),
+          addonPrices: currentOptions.addonPrices.slice(),
+          packagingPrice: currentOptions.packagingPrice || 0
+        }),
+        note,
+        quantity: currentQty
+      });
+    }
+    updateCartUI();
+    closeProductModal();
+    showToast('✅ Đã thêm ' + currentProduct.name + '!');
+  }
+
+  function quickAdd(p) {
+    const isTop = (p.category || '').toLowerCase().indexOf('topping') !== -1;
+    const defSize = isTop ? 'Tiêu chuẩn' : 'Thường (350ml)';
+    const existing = cart.find(function (i) {
+      return i.id === p.id && !i.note && normalizeCupSizeLabel(i.options.size) === defSize &&
+        (i.options.serveTemp || 'cold_steep') === 'cold_steep' && (i.options.packaging || 'paper') === 'paper';
+    });
+    if (existing) { existing.quantity++; }
+    else {
+      cart.push({
+        id: p.id, name: p.name, emoji: getEmoji(p),
+        imageUrl: p.imageUrl || '',
+        basePrice: p.basePrice,
+        options: {
+          size: defSize, sizePrice: 0, ice: 'Không đá', sweetness: 'Ngọt vừa', addons: [], addonPrices: [],
+          serveTemp: 'cold_steep', packaging: 'paper', packagingPrice: 0
+        },
+        note: '', quantity: 1
+      });
+    }
+    updateCartUI();
+    showToast('✅ ' + p.name + ' +1');
+  }
+
+  // ====== CART UI ======
+  function updateCartUI() {
+    const totalQty = cart.reduce((s, i) => s + i.quantity, 0);
+    const subtotal = cart.reduce((s, i) => {
+      return s + lineItemUnitTotal(i) * i.quantity;
+    }, 0);
+    currentFinalAmount = subtotal - promoDiscount - pointsDiscount;
+
+    // Cart badge
+    const mobileBadge = document.getElementById('mobile-cart-badge');
+    const countBadge = document.getElementById('cart-count-badge');
+    if (totalQty > 0) {
+      mobileBadge.textContent = totalQty;
+      mobileBadge.style.display = 'flex';
+      mobileBadge.classList.add('pulse');
+      setTimeout(() => mobileBadge.classList.remove('pulse'), 400);
+      countBadge.textContent = totalQty;
+      countBadge.style.display = '';
+    } else {
+      mobileBadge.style.display = 'none';
+      countBadge.style.display = 'none';
+    }
+
+    // Items — không dùng appendChild(empty-order): sau khi innerHTML có món, node #empty-order bị xóa khỏi DOM → getElementById trả null → lỗi appendChild.
+    const container = document.getElementById('order-items');
+    if (cart.length === 0) {
+      container.innerHTML =
+        '<div class="empty-order" id="empty-order">' +
+        '<div class="empty-icon-wrap">☕</div>' +
+        '<p>Chưa có món nào</p>' +
+        '<span>Chọn sản phẩm từ<br>menu bên trái nhé!</span>' +
+        '</div>';
+    } else {
+      container.innerHTML = cart.map((item, i) => {
+        const unitPrice = lineItemUnitTotal(item);
+        const totalPrice = unitPrice * item.quantity;
+        const opts = buildCartOptsParts(item);
+        const imgEl = item.imageUrl
+          ? '<img src="' + esc(item.imageUrl) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">'
+          : item.emoji;
+        const notePart = item.note ? ' · 📝 ' + esc(item.note) : '';
+        return '<div class="order-item">' +
+        '<div class="oi-emoji">' + imgEl + '</div>' +
+        '<div class="oi-info">' +
+          '<div class="oi-name">' + esc(item.name) + '</div>' +
+          '<div class="oi-opts">' + opts.join(' · ') + notePart + '</div>' +
+          '<div class="oi-bottom">' +
+            '<div class="oi-price">' + fmt(totalPrice) + '</div>' +
+            '<div class="qty-ctrl">' +
+              '<button class="qty-btn" onclick="updateQty(' + i + ',-1)"><i class="fa-solid fa-minus"></i></button>' +
+              '<span class="qty-val">' + item.quantity + '</span>' +
+              '<button class="qty-btn" onclick="updateQty(' + i + ',1)"><i class="fa-solid fa-plus"></i></button>' +
+            '</div>' +
+            '<button class="oi-del" onclick="removeItem(' + i + ')"><i class="fa-solid fa-trash"></i></button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+      }).join('');
+    }
+
+    // Summary
+    document.getElementById('sum-subtotal').textContent = fmt(subtotal);
+    document.getElementById('sum-promo-row').style.display = promoDiscount > 0 ? '' : 'none';
+    document.getElementById('sum-promo').textContent = '-' + fmt(promoDiscount);
+    document.getElementById('sum-points-row').style.display = pointsDiscount > 0 ? '' : 'none';
+    document.getElementById('sum-points').textContent = '-' + fmt(pointsDiscount);
+    document.getElementById('sum-total').textContent = fmt(Math.max(0, currentFinalAmount));
+
+    const btn = document.getElementById('checkout-btn');
+    btn.disabled = cart.length === 0;
+
+    // Live order ID
+    if (!document.getElementById('live-order-id').textContent.startsWith('#ORD')) {
+      document.getElementById('live-order-id').textContent = '#ORD-' + (++orderCounter);
+    }
+
+    var phDigits = String(document.getElementById('customer-phone').value || '').replace(/\D/g, '');
+    if (phDigits.length === 10) {
+      clearTimeout(window._sunPromoDeb);
+      window._sunPromoDeb = setTimeout(function () { refreshPromoSuggestionsSilent(); }, 80);
+    }
+    clearTimeout(window._sunCheckoutPromoDeb);
+    window._sunCheckoutPromoDeb = setTimeout(function () { refreshCheckoutPromoOptions(); }, 80);
+  }
+
+  function renderCheckoutPromoPick(payload) {
+    var sec = document.getElementById('promo-pick-section');
+    var list = document.getElementById('promo-pick-list');
+    if (!sec || !list) return;
+    var opts = (payload && payload.options) ? payload.options : [];
+    if (!opts.length) {
+      sec.style.display = 'none';
+      list.innerHTML = '';
+      return;
+    }
+    sec.style.display = '';
+    var cur = String(document.getElementById('promo-input').value || '').trim().toUpperCase();
+    list.innerHTML = opts.map(function (o, idx) {
+      if (o.kind === 'info') {
+        return '<div class="promo-pick-info"><i class="fa-solid fa-circle-info" style="color:var(--blue);"></i> ' + esc(o.title || '') + (o.subtitle ? ' — ' + esc(o.subtitle) : '') + '</div>';
+      }
+      var id = 'ppick-' + idx;
+      var checked = cur === String(o.code || '').toUpperCase() ? ' checked' : '';
+      return '<label class="promo-pick-row" for="' + id + '">' +
+        '<input type="checkbox" id="' + id + '" data-code="' + escAttr(o.code) + '"' + checked + ' onchange="onCheckoutPromoPick(this)">' +
+        '<div class="pp-meta"><strong>' + esc(o.code) + '</strong> — ' + esc(o.title || '') +
+        (o.subtitle ? '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">' + esc(o.subtitle) + '</div>' : '') + '</div>' +
+        '<span class="pp-disc">-' + fmt(o.discount || 0) + '</span></label>';
+    }).join('');
+  }
+
+  async function refreshCheckoutPromoOptions() {
+    var sec = document.getElementById('promo-pick-section');
+    if (!sec) return;
+    if (!cart.length) {
+      sec.style.display = 'none';
+      return;
+    }
+    var ph = String(document.getElementById('customer-phone').value || '').replace(/\D/g, '');
+    try {
+      var r = await api.call('getCheckoutPromoOptions', ph, cartSummaryForPromo(), cartSubtotalRaw());
+      renderCheckoutPromoPick(r || {});
+    } catch (e) {
+      sec.style.display = 'none';
+    }
+  }
+
+  function onCheckoutPromoPick(el) {
+    if (!el || !el.dataset.code) return;
+    var code = el.dataset.code;
+    var list = document.getElementById('promo-pick-list');
+    if (list && el.checked) {
+      list.querySelectorAll('input[type=checkbox]').forEach(function (c) {
+        if (c !== el) c.checked = false;
+      });
+      document.getElementById('promo-input').value = code;
+      applyPromo({ fromPick: true });
+    } else {
+      document.getElementById('promo-input').value = '';
+      promoDiscount = 0;
+      var msg = document.getElementById('promo-msg');
+      if (msg) { msg.textContent = ''; msg.className = 'promo-msg'; }
+      updateCartUI();
+    }
+  }
+
+  function updateQty(i, delta) {
+    cart[i].quantity = Math.max(1, cart[i].quantity + delta);
+    updateCartUI();
+  }
+
+  function removeItem(i) {
+    cart.splice(i, 1);
+    if (cart.length === 0) { promoDiscount = 0; pointsDiscount = 0; document.getElementById('promo-msg').textContent = ''; document.getElementById('promo-input').value = ''; }
+    updateCartUI();
+  }
+
+  // ====== CUSTOMER + GỢI Ý KM (theo SĐT) ======
+  function cartSummaryForPromo() {
+    return JSON.stringify(cart.map(function (i) {
+      return { id: i.id, quantity: i.quantity };
+    }));
+  }
+
+  function cartSubtotalRaw() {
+    return cart.reduce(function (s, i) {
+      return s + lineItemUnitTotal(i) * i.quantity;
+    }, 0);
+  }
+
+  function renderPromoSuggestions(sug) {
+    var strip = document.getElementById('voucher-strip');
+    var list = document.getElementById('voucher-chips-list');
+    if (!strip || !list) return;
+    var suggestions = (sug && sug.suggestions) ? sug.suggestions : [];
+    if (!suggestions.length) {
+      strip.style.display = 'none';
+      list.innerHTML = '';
+      return;
+    }
+    strip.style.display = '';
+    list.innerHTML = suggestions.map(function (s) {
+      if (s.type === 'info') {
+        return '<div class="v-chip v-chip-info" title="' + escAttr(s.reason || '') + '">' + esc(s.name || s.reason) + '</div>';
+      }
+      return '<div class="v-chip" title="' + escAttr(s.reason || '') + '" onclick="applySuggestedPromo(\'' + escAttr(s.code) + '\')">' + esc(s.code) + '</div>';
+    }).join('');
+  }
+
+  async function applySuggestedPromo(code) {
+    document.getElementById('promo-input').value = String(code || '').trim().toUpperCase();
+    await applyPromo();
+  }
+
+  async function refreshPromoSuggestionsSilent() {
+    var ph = normalizeVnPhoneDigitsClient(document.getElementById('customer-phone').value);
+    if (ph.length !== 10) return;
+    try {
+      var nm = document.getElementById('customer-name').value.trim() || '';
+      var sug = await api.call('getSuggestedPromosWithContext', ph, nm, cartSummaryForPromo(), cartSubtotalRaw(), false);
+      renderPromoSuggestions(sug);
+    } catch (e) { /* ignore */ }
+  }
+
+  function isMemberCodeInput(val) {
+    return /^SUN[A-Z0-9]{6,}$/i.test(String(val || '').trim());
+  }
+
+  async function handlePhoneInput(val) {
+    var raw = String(val || '').trim();
+    if (isMemberCodeInput(raw)) {
+      var seqCode = ++__sunPhoneLookupSeq;
+      try {
+        var insCode = await api.call('getPosCustomerBasic', raw.toUpperCase());
+        if (seqCode !== __sunPhoneLookupSeq) return;
+        if (insCode && insCode.ok) {
+          document.getElementById('customer-phone').value = insCode.phoneDigits || raw;
+          currentCustomer = {
+            phone: insCode.phoneDigits,
+            name: insCode.name || '',
+            points: insCode.points,
+            tier: insCode.tier,
+            memberCode: insCode.memberCode || raw.toUpperCase(),
+            visitCount: insCode.visitCount || 0,
+            vouchers: []
+          };
+          if (insCode.name) document.getElementById('customer-name').value = insCode.name;
+          applyCustomerInsightToUI(insCode);
+          showToast('✅ Đã nhận mã HV ' + (insCode.memberCode || raw.toUpperCase()));
+          updateCartUI();
+        } else {
+          showToast('⚠️ Không tìm thấy mã HV');
+        }
+      } catch (eCode) {
+        if (seqCode === __sunPhoneLookupSeq) showToast('⚠️ Lỗi tra mã HV');
+      }
+      return;
+    }
+    var digits = normalizeVnPhoneDigitsClient(val);
+    if (digits.length === 10) {
+      var seq = ++__sunPhoneLookupSeq;
+      try {
+        var nm = document.getElementById('customer-name').value.trim() || '';
+        await api.call('ensureCustomerForPos', digits, nm);
+        if (seq !== __sunPhoneLookupSeq) return;
+        var nmAfter = document.getElementById('customer-name').value.trim() || '';
+        var cartSum = cartSummaryForPromo();
+        var subRaw = cartSubtotalRaw();
+        var insSug = await Promise.all([
+          api.call('getPosCustomerBasic', digits),
+          api.call('getSuggestedPromosWithContext', digits, nmAfter, cartSum, subRaw, true)
+        ]);
+        if (seq !== __sunPhoneLookupSeq) return;
+        var ins = insSug[0];
+        var sug = insSug[1];
+        if (ins && ins.ok) {
+          currentCustomer = {
+            phone: ins.phoneDigits,
+            name: ins.name || nmAfter,
+            points: ins.points,
+            tier: ins.tier,
+            visitCount: ins.visitCount || 0,
+            vouchers: []
+          };
+          if (ins.name && !nmAfter) document.getElementById('customer-name').value = ins.name;
+          applyCustomerInsightToUI(ins);
+        }
+        api.call('getCustomers').then(function (allC) { customersData = allC || []; }).catch(function () { });
+        renderPromoSuggestions(sug);
+        if (sug && sug.autoApplyCode) {
+          document.getElementById('promo-input').value = String(sug.autoApplyCode).trim().toUpperCase();
+          await applyPromo();
+        }
+        void refreshCheckoutPromoOptions();
+        updateCartUI();
+      } catch (e) {
+        if (seq === __sunPhoneLookupSeq) showToast('⚠️ Không tải được khách / KM');
+      }
+    } else {
+      __sunPhoneLookupSeq++;
+      if (currentCustomer) {
+        currentCustomer = null;
+        document.getElementById('customer-info-bar').classList.remove('show');
+        var ex = document.getElementById('cust-insight-extras');
+        if (ex) { ex.innerHTML = ''; ex.classList.remove('show'); }
+        pointsDiscount = 0;
+      }
+      if (digits.length < 10) {
+        document.getElementById('voucher-strip').style.display = 'none';
+        var vl = document.getElementById('voucher-chips-list');
+        if (vl) vl.innerHTML = '';
+      }
+      updateCartUI();
+    }
+  }
+
+  async function handleCustomerNameBlur() {
+    var ph = normalizeVnPhoneDigitsClient(document.getElementById('customer-phone').value);
+    if (ph.length !== 10) return;
+    try {
+      await api.call('ensureCustomerForPos', ph, document.getElementById('customer-name').value.trim() || '');
+      var ins = await api.call('getPosCustomerBasic', ph);
+      if (ins && ins.ok) applyCustomerInsightToUI(ins);
+      await refreshPromoSuggestionsSilent();
+    } catch (eN) { }
+  }
+
+  function applyVoucher(el, code, discount) {
+    document.querySelectorAll('.v-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    pointsDiscount = discount;
+    document.getElementById('promo-input').value = code;
+    updateCartUI();
+    showToast('✅ Đã áp dụng voucher!');
+  }
+
+  // ====== PROMO ======
+  async function applyPromo(opts) {
+    opts = opts || {};
+    const code = document.getElementById('promo-input').value.trim().toUpperCase();
+    const msg = document.getElementById('promo-msg');
+    if (!code) {
+      if (!opts.fromPick) {
+        msg.textContent = '⚠️ Nhập mã khuyến mãi!';
+        msg.className = 'promo-msg err';
+      }
+      return;
+    }
+    const subtotal = cart.reduce((s, i) => { return s + lineItemUnitTotal(i) * i.quantity; }, 0);
+    const phone = normalizeVnPhoneDigitsClient(document.getElementById('customer-phone').value);
+    try {
+      const result = await api.call('applyPromoCode', code, subtotal, phone, cartSummaryForPromo());
+      if (result && result.ok && result.discount >= 0) {
+        promoDiscount = result.discount;
+        msg.textContent = result.discount > 0 ? ('✅ Tiết kiệm ' + fmt(promoDiscount) + '!') : ('✅ ' + (result.message || 'Đã áp mã'));
+        msg.className = 'promo-msg ok';
+      } else {
+        promoDiscount = 0;
+        msg.textContent = (result && result.message) ? ('❌ ' + result.message) : '❌ Mã không hợp lệ hoặc hết hạn!';
+        msg.className = 'promo-msg err';
+      }
+    } catch (e) {
+      promoDiscount = 0;
+      msg.textContent = '❌ Mã không hợp lệ!';
+      msg.className = 'promo-msg err';
+    }
+    updateCartUI();
+    refreshCheckoutPromoOptions();
+  }
+
+  // ====== CHECKOUT ======
+  function proceedCheckout() {
+    if (cart.length === 0) return;
+    document.getElementById('receipt-time').textContent = new Date().toLocaleString('vi-VN');
+    document.getElementById('r-order-id').textContent = document.getElementById('live-order-id').textContent;
+    const name = document.getElementById('customer-name').value.trim() || 'Khách lẻ';
+    const phone = document.getElementById('customer-phone').value.trim() || '--';
+    document.getElementById('r-customer').textContent = name;
+    document.getElementById('r-phone').textContent = phone;
+    document.getElementById('r-items').innerHTML = cart.map(function (i) {
+      var p = lineItemUnitTotal(i) * i.quantity;
+      var sub = buildCartOptsParts(i).join(', ');
+      var note = (i.note && String(i.note).trim()) ? (' · Ghi chú: ' + String(i.note).trim()) : '';
+      return '<div class="r-row item-row"><span>' + i.quantity + '× ' + esc(i.name) + (sub ? ' — ' + esc(sub) : '') + esc(note) + '</span><strong>' + fmt(p) + '</strong></div>';
+    }).join('');
+    var subtotal = cart.reduce(function (s, i) { return s + lineItemUnitTotal(i) * i.quantity; }, 0);
+    var pr = document.getElementById('r-pricing-block');
+    var disc = promoDiscount + pointsDiscount;
+    if (pr) {
+      pr.style.display = (disc > 0 || subtotal !== currentFinalAmount) ? '' : 'none';
+      var rs = document.getElementById('r-subtotal');
+      if (rs) rs.textContent = fmt(subtotal);
+      var rd = document.getElementById('r-discount-line');
+      var rdv = document.getElementById('r-discount');
+      if (disc > 0 && rd && rdv) {
+        rd.style.display = '';
+        rdv.textContent = '-' + fmt(disc);
+      } else if (rd) rd.style.display = 'none';
+      var pc = document.getElementById('promo-input') && document.getElementById('promo-input').value.trim();
+      var rpl = document.getElementById('r-promo-line');
+      var rpc = document.getElementById('r-promo-code');
+      if (pc && rpl && rpc) {
+        rpl.style.display = '';
+        rpc.textContent = pc.toUpperCase();
+      } else if (rpl) rpl.style.display = 'none';
+    }
+    document.getElementById('r-total').textContent = fmt(currentFinalAmount);
+    var rprint = document.getElementById('receipt-print-btn');
+    if (rprint) rprint.style.display = 'none';
+
+    selectedPayment = 'cash';
+    document.querySelectorAll('.pay-opt').forEach(p => p.classList.remove('selected'));
+    document.querySelector('.pay-opt[onclick*="cash"]').classList.add('selected');
+    document.getElementById('cash-section').classList.add('show');
+    document.getElementById('receipt-payment-block').style.display = '';
+    const btn = document.getElementById('complete-btn');
+    btn.classList.add('receipt-act-btn');
+    btn.innerHTML = '<span class="receipt-act-ic"><i class="fa-solid fa-money-bill-wave"></i></span><span class="receipt-act-txt">Thanh toán</span>';
+    btn.onclick = function () { completeOrder(false); };
+    var cprint = document.getElementById('complete-print-btn');
+    if (cprint) {
+      cprint.classList.add('receipt-act-btn');
+      cprint.style.display = '';
+      cprint.innerHTML = '<span class="receipt-act-ic"><i class="fa-solid fa-print"></i></span><span class="receipt-act-txt">In + Thanh toán</span>';
+      cprint.onclick = function () { completeOrder(true); };
+    }
+    sunModalRaise('receiptModal');
+    document.getElementById('receiptModal').classList.add('open');
+  }
+
+  function closeReceiptModal() { document.getElementById('receiptModal').classList.remove('open'); }
+
+  function selectPayment(e, method) {
+    selectedPayment = method;
+    document.querySelectorAll('.pay-opt').forEach(p => p.classList.remove('selected'));
+    e.target.closest('.pay-opt').classList.add('selected');
+    document.getElementById('cash-section').classList.toggle('show', method === 'cash');
+  }
+
+  function setCashGiven(amt) { document.getElementById('cash-given').value = amt; calculateChange(); }
+  function calculateChange() {
+    const given = parseInt(document.getElementById('cash-given').value) || 0;
+    document.getElementById('change-display').textContent = fmt(Math.max(0, given - currentFinalAmount));
+  }
+
+  // ====== COMPLETE ORDER ======
+  async function completeOrder(doPrintAfter) {
+    if (doPrintAfter === undefined) doPrintAfter = false;
+    printInvoiceWhenPaid = !!doPrintAfter;
+    var phoneRaw = document.getElementById('customer-phone').value;
+    const phone = normalizeVnPhoneDigitsClient(phoneRaw) || String(phoneRaw || '').trim();
+    var cn = document.getElementById('customer-name');
+    const name = (cn && cn.value && cn.value.trim()) ? cn.value.trim() : 'Khách lẻ';
+
+    currentOrderData = {
+      customerName: name, customerPhone: phone,
+      items: cart.map(item => ({
+        id: item.id, name: item.name,
+        options: item.options,
+        quantity: item.quantity,
+        totalPrice: lineItemUnitTotal(item) * item.quantity,
+        note: item.note || '',
+        excludeFromLoyaltyPoints: (lineItemUnitTotal(item) * item.quantity) <= 0.5,
+        extraNuts: (item.options && item.options.addons) ? item.options.addons.slice() : [],
+        ingredients: (function () {
+          var found = menuData.find(function (m) { return m.id === item.id; });
+          return (found && found.ingredients) ? found.ingredients : [];
+        })()
+      })),
+      totalAmount: cart.reduce((s, i) => { return s + lineItemUnitTotal(i) * i.quantity; }, 0),
+      discount: promoDiscount + pointsDiscount,
+      finalAmount: currentFinalAmount,
+      paymentMethod: selectedPayment === 'cash' ? 'Tiền mặt' : 'Chuyển khoản',
+      promoCode: document.getElementById('promo-input').value.trim().toUpperCase()
+    };
+
+    try {
+      showLoading(true);
+      let r = null;
+      r = await api.call('saveOrder', currentOrderData);
+      if (!r || !r.orderId) throw new Error('Không nhận được mã đơn từ server');
+      currentOrderId = r.orderId;
+      var receiptSnap = null;
+      try {
+        receiptSnap = JSON.parse(JSON.stringify(currentOrderData));
+      } catch (eSnap) {
+        receiptSnap = currentOrderData;
+      }
+      closeReceiptModal();
+      if (r.status === 'Chờ thanh toán') {
+        lastPaymentWasTransfer = true;
+        document.getElementById('qr-partial-payment').style.display = 'none';
+        showQrOverlay();
+        armQrActionsUnlock();
+        document.getElementById('qr-amount-display').textContent = fmt(currentOrderData.finalAmount);
+        updateQR(currentOrderData.finalAmount, currentOrderId);
+        startPolling();
+      } else {
+        lastPaymentWasTransfer = false;
+        try {
+          playPaySuccessSound();
+          showFinalReceipt(currentOrderId, receiptSnap, !!doPrintAfter);
+          printInvoiceWhenPaid = false;
+        } catch (uiErr) {
+          showToast('❌ Lỗi hiển thị hóa đơn: ' + (uiErr && uiErr.message ? uiErr.message : uiErr));
+        }
+        resetState();
+      }
+    } catch (e) {
+      printInvoiceWhenPaid = false;
+      var em = e && e.message ? e.message : (typeof e === 'string' ? e : 'Lỗi không xác định');
+      showToast('❌ Lỗi lưu đơn: ' + em);
+    }
+    finally { showLoading(false); }
+  }
+
+  function sunConfirm(opts) {
+    opts = opts || {};
+    return new Promise(function (resolve) {
+      var ov = document.getElementById('sunConfirmOverlay');
+      if (!ov) { resolve(window.confirm(opts.message || '')); return; }
+      var tEl = document.getElementById('sun-dlg-title');
+      var mEl = document.getElementById('sun-dlg-msg');
+      var okBtn = document.getElementById('sun-dlg-ok');
+      var cancelBtn = document.getElementById('sun-dlg-cancel');
+      if (tEl) tEl.textContent = opts.title || 'Xác nhận';
+      if (mEl) mEl.textContent = opts.message || '';
+      function cleanup() {
+        ov.classList.remove('show');
+        ov.setAttribute('aria-hidden', 'true');
+        okBtn.onclick = cancelBtn.onclick = null;
+      }
+      okBtn.onclick = function () { cleanup(); resolve(true); };
+      cancelBtn.onclick = function () { cleanup(); resolve(false); };
+      ov.setAttribute('aria-hidden', 'false');
+      ov.classList.add('show');
+    });
+  }
+
+  function resetState() {
+    lastPaymentWasTransfer = false;
+    printInvoiceWhenPaid = false;
+    cart = []; promoDiscount = 0; pointsDiscount = 0; currentCustomer = null; currentOrderId = null; currentOrderData = null;
+    document.getElementById('customer-phone').value = '';
+    document.getElementById('customer-name').value = '';
+    document.getElementById('customer-info-bar').classList.remove('show');
+    var ex2 = document.getElementById('cust-insight-extras');
+    if (ex2) { ex2.innerHTML = ''; ex2.classList.remove('show'); }
+    document.getElementById('voucher-strip').style.display = 'none';
+    document.getElementById('promo-msg').textContent = '';
+    document.getElementById('promo-input').value = '';
+    document.getElementById('live-order-id').textContent = '#NEW';
+    selectedPayment = 'cash';
+    updateCartUI();
+    // Display đã được gỡ bỏ theo yêu cầu
+  }
+
+  // ====== QR PAYMENT ======
+  let pollingInterval;
+  var bankPollInFlight = false;
+  var bankPollFailCount = 0;
+  var qrActionUnlockTimer = null;
+  function showQrOverlay() { document.getElementById('qrOverlay').classList.add('show'); }
+  function closeQrOverlay() {
+    document.getElementById('qrOverlay').classList.remove('show');
+    document.getElementById('qr-partial-payment').style.display = 'none';
+    stopPolling();
+    lockQrActions(true);
+  }
+  function lockQrActions(resetText) {
+    if (qrActionUnlockTimer) { clearTimeout(qrActionUnlockTimer); qrActionUnlockTimer = null; }
+    var bCancel = document.getElementById('qr-cancel-btn');
+    var bConfirm = document.getElementById('qr-confirm-btn');
+    var hint = document.getElementById('qr-actions-hint');
+    if (bCancel) bCancel.disabled = true;
+    if (bConfirm) bConfirm.disabled = true;
+    if (hint && resetText) hint.textContent = 'Chờ 15 giây để bật thao tác…';
+  }
+  function armQrActionsUnlock() {
+    lockQrActions(true);
+    qrActionUnlockTimer = setTimeout(function () {
+      var bCancel = document.getElementById('qr-cancel-btn');
+      var bConfirm = document.getElementById('qr-confirm-btn');
+      var hint = document.getElementById('qr-actions-hint');
+      if (bCancel) bCancel.disabled = false;
+      if (bConfirm) bConfirm.disabled = false;
+      if (hint) hint.textContent = 'Bạn có thể Hủy hoặc Xác nhận giao dịch.';
+    }, 15000);
+  }
+  function updateQR(amount, orderId) {
+    var amt = Math.round(Number(amount) || 0);
+    const url = 'https://img.vietqr.io/image/970422-0825825485-compact2.png?amount=' + amt + '&addInfo=' + encodeURIComponent(String(orderId || '')) + '&accountName=' + encodeURIComponent('LAM THI HONG NHU');
+    document.getElementById('qr-img').src = url;
+    document.getElementById('qr-memo').textContent = orderId;
+  }
+  function bankPollTick() {
+    if (!currentOrderId || bankPollInFlight) return;
+    bankPollInFlight = true;
+    var expAmt = Math.round(Number(currentFinalAmount) || 0);
+    api.callLong('checkBankTransferPayment', 55000, currentOrderId, expAmt).then(function (result) {
+      bankPollInFlight = false;
+      bankPollFailCount = 0;
+      if (!result) return;
+      if (result.status === 'paid') onPaySuccess();
+      else if (result.status === 'partial') {
+        var exp = Math.round(Number(result.expectedAmount) || expAmt);
+        var paid = Math.round(Number(result.amountPaid) || 0);
+        var rem = Math.max(0, exp - paid);
+        document.getElementById('qr-amount-paid').textContent = fmt(paid);
+        document.getElementById('qr-amount-remain').textContent = fmt(rem);
+        document.getElementById('qr-partial-payment').style.display = 'block';
+        document.getElementById('qr-amount-display').textContent = fmt(rem);
+        updateQR(rem, currentOrderId);
+      }
+    }).catch(function () {
+      bankPollInFlight = false;
+      bankPollFailCount++;
+      if (bankPollFailCount === 4) {
+        showToast('⚠️ Đang khó kiểm tra CK tự động — kiểm tra mạng hoặc bấm xác nhận tay');
+      }
+    });
+  }
+  function startPolling() {
+    stopPolling();
+    bankPollInFlight = false;
+    bankPollFailCount = 0;
+    bankPollTick();
+    // theo yêu cầu: dò Bank transfer mỗi 1 giây
+    pollingInterval = setInterval(bankPollTick, 450);
+  }
+  function stopPolling() { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } bankPollInFlight = false; }
+  async function cancelQrTransfer() {
+    if (!currentOrderId) { showToast('⚠️ Không có đơn hàng!'); return; }
+    var okDlg = await sunConfirm({
+      title: 'Hủy đơn chuyển khoản',
+      message: 'Hủy đơn ' + currentOrderId + ' đang chờ thanh toán chuyển khoản? (Đơn sẽ chuyển trạng thái Hủy)'
+    });
+    if (!okDlg) return;
+    showLoading(true);
+    try {
+      var r = await api.callLong('cancelAwaitingBankOrder', 45000, currentOrderId);
+      if (r && r.ok) {
+        stopPolling();
+        closeQrOverlay();
+        showToast('✅ Đã hủy đơn chuyển khoản.');
+        resetState();
+      } else {
+        showToast('❌ Không hủy được: ' + (r && r.message ? r.message : 'Lỗi'));
+      }
+    } catch (e) {
+      showToast('❌ Không hủy được: ' + (e && e.message ? e.message : 'Lỗi'));
+    } finally {
+      showLoading(false);
+    }
+  }
+  async function manualConfirmTransfer() {
+    if (!currentOrderId) { showToast('⚠️ Không có đơn hàng!'); return; }
+    var okDlg = await sunConfirm({
+      title: 'Xác nhận thanh toán',
+      message: 'Xác nhận đã nhận đủ tiền chuyển khoản cho đơn ' + currentOrderId + '? Chỉ dùng khi giao dịch đã về nhưng hệ thống chưa tự động khớp.'
+    });
+    if (!okDlg) return;
+    showLoading(true);
+    try {
+      const ok = await api.callLong('confirmManualTransferPayment', 45000, currentOrderId);
+      if (ok) onPaySuccess();
+      else {
+        var expR = Math.round(Number(currentFinalAmount) || 0);
+        try {
+          var r2 = await api.callLong('checkBankTransferPayment', 55000, currentOrderId, expR);
+          if (r2 && r2.status === 'paid') onPaySuccess();
+          else showToast('❌ Không thể xác nhận — kiểm tra sheet Đơn (cột Mã ĐH / Trạng thái) hoặc đơn đã hoàn tất.');
+        } catch (eR) {
+          showToast('❌ Không thể xác nhận — kiểm tra sheet Đơn (cột Mã ĐH / Trạng thái) hoặc đơn đã hoàn tất.');
+        }
+      }
+    }
+    catch (e) { showToast('❌ Lỗi xác nhận!'); }
+    finally { showLoading(false); }
+  }
+
+  async function confirmCashRemainderFromQr() {
+    if (!currentOrderId) { showToast('⚠️ Không có đơn hàng!'); return; }
+    var ok2 = await sunConfirm({
+      title: 'Thu tiền mặt bù phần thiếu',
+      message: 'Xác nhận đã thu đủ phần còn lại bằng tiền mặt và hoàn tất đơn ' + currentOrderId + '?'
+    });
+    if (!ok2) return;
+    showLoading(true);
+    try {
+      var ok = await api.call('confirmAwaitingOrderPaidCashRemainder', currentOrderId);
+      if (ok) onPaySuccess();
+      else showToast('❌ Không hoàn tất được — kiểm tra trạng thái đơn trên sheet Orders');
+    } catch (e) {
+      showToast('❌ Lỗi xác nhận');
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function showPaySuccessCelebration(orderId) {
+    var ov = document.getElementById('pay-success-overlay');
+    var sub = document.getElementById('pay-success-sub');
+    if (sub) sub.textContent = orderId ? ('Đơn ' + orderId + ' đã thanh toán') : 'Cảm ơn quý khách';
+    if (ov) {
+      ov.classList.add('show');
+      ov.setAttribute('aria-hidden', 'false');
+      setTimeout(function () {
+        ov.classList.remove('show');
+        ov.setAttribute('aria-hidden', 'true');
+      }, 2400);
+    }
+  }
+
+  function onPaySuccess() {
+    stopPolling();
+    closeQrOverlay();
+    var oid = currentOrderId;
+    var famt = Math.round(Number(currentFinalAmount) || 0);
+    var snap = null;
+    try { snap = JSON.parse(JSON.stringify(currentOrderData)); } catch (eSnap) { snap = currentOrderData; }
+    playPaySuccessSound();
+    showPaySuccessCelebration(oid);
+    showToast('✅ Thanh toán thành công!');
+    var doPrint = printInvoiceWhenPaid;
+    printInvoiceWhenPaid = false;
+    try { showFinalReceipt(oid, snap, doPrint); } catch (eUi) { showToast('❌ Lỗi hóa đơn: ' + (eUi && eUi.message ? eUi.message : eUi)); }
+    resetState();
+    // auto advance queued kiosk order
+    maybeAutoLoadNextQueuedKioskOrder();
+  }
+  function showFinalReceipt(orderId, data, autoPrintInvoice) {
+    if (!data) return;
+    const m = document.getElementById('receiptModal');
+    if (!m) return;
+    var rid = document.getElementById('r-order-id');
+    var rc = document.getElementById('r-customer');
+    var rp = document.getElementById('r-phone');
+    var rit = document.getElementById('r-items');
+    var rt = document.getElementById('r-total');
+    if (rid) rid.textContent = '#' + orderId;
+    if (rc) rc.textContent = data.customerName || 'Khách lẻ';
+    if (rp) rp.textContent = data.customerPhone || '--';
+    if (rit) {
+      var items = data.items || [];
+      rit.innerHTML = items.map(function (i) {
+        var sub = buildCartOptsParts(i).join(', ');
+        var note = (i.note && String(i.note).trim()) ? (' · Ghi chú: ' + String(i.note).trim()) : '';
+        if (i.extraNuts && i.extraNuts.length) sub = (sub ? sub + ', ' : '') + 'Hạt: ' + i.extraNuts.join(', ');
+        return '<div class="r-row item-row"><span>' + (parseInt(i.quantity, 10) || 1) + '× ' + esc(i.name || '') + (sub ? ' — ' + esc(sub) : '') + esc(note) + '</span><strong>' + fmt(i.totalPrice || 0) + '</strong></div>';
+      }).join('');
+    }
+    var subtotal = Math.round(Number(data.totalAmount) || 0);
+    var disc = Math.round(Number(data.discount) || 0);
+    var pr = document.getElementById('r-pricing-block');
+    if (pr) {
+      pr.style.display = (disc > 0 || subtotal > 0) ? '' : 'none';
+      var rs = document.getElementById('r-subtotal');
+      if (rs) rs.textContent = fmt(subtotal);
+      var rd = document.getElementById('r-discount-line');
+      var rdv = document.getElementById('r-discount');
+      if (disc > 0 && rd && rdv) {
+        rd.style.display = '';
+        rdv.textContent = '-' + fmt(disc);
+      } else if (rd) rd.style.display = 'none';
+      var rpl = document.getElementById('r-promo-line');
+      var rpc = document.getElementById('r-promo-code');
+      var pcm = data.promoCode ? String(data.promoCode).trim() : '';
+      if (pcm && rpl && rpc) {
+        rpl.style.display = '';
+        rpc.textContent = pcm.toUpperCase();
+      } else if (rpl) rpl.style.display = 'none';
+    }
+    if (rt) rt.textContent = fmt(data.finalAmount || 0);
+    var rpb = document.getElementById('receipt-payment-block');
+    if (rpb) rpb.style.display = 'none';
+    var cs = document.getElementById('cash-section');
+    if (cs) cs.classList.remove('show');
+    var cprint = document.getElementById('complete-print-btn');
+    if (cprint) cprint.style.display = 'none';
+    const btn = document.getElementById('complete-btn');
+    if (btn) {
+      btn.classList.add('receipt-act-btn');
+      btn.innerHTML = '<span class="receipt-act-ic"><i class="fa-solid fa-plus"></i></span><span class="receipt-act-txt">Đơn hàng mới</span>';
+      btn.style.background = 'linear-gradient(135deg, var(--primary-lt), var(--primary-dk))';
+      btn.onclick = function () {
+        m.classList.remove('open');
+        btn.style.background = '';
+        var rp2 = document.getElementById('receipt-print-btn');
+        if (rp2) {
+          rp2.style.display = 'none';
+          rp2.onclick = null;
+          rp2.innerHTML = '<span class="receipt-act-ic"><i class="fa-solid fa-print"></i></span><span class="receipt-act-txt">In hóa đơn</span>';
+        }
+        if (cprint) {
+          cprint.style.display = '';
+          cprint.classList.add('receipt-act-btn');
+          cprint.innerHTML = '<span class="receipt-act-ic"><i class="fa-solid fa-print"></i></span><span class="receipt-act-txt">In + Thanh toán</span>';
+          cprint.onclick = function () { completeOrder(true); };
+        }
+      };
+    }
+    var rprint = document.getElementById('receipt-print-btn');
+    if (rprint) {
+      rprint.style.display = '';
+      rprint.classList.add('receipt-act-btn');
+      rprint.innerHTML = '<span class="receipt-act-ic"><i class="fa-solid fa-print"></i></span><span class="receipt-act-txt">In hóa đơn</span>';
+      rprint.onclick = function () { printSunInvoice(orderId, data); };
+    }
+    sunModalRaise('receiptModal');
+    m.classList.add('open');
+    if (autoPrintInvoice) {
+      try { printSunInvoice(orderId, data); } catch (eA) { }
+    }
+  }
+
+  /** Tiền mặt & CK: cùng file tiếng xu ([Tiếng Động — đồng xu rơi](https://tiengdong.com/tieng-dong-xu-roi)). */
+  function playPaySuccessSound() {
+    try {
+      var el = document.getElementById('pay-cash-audio') || document.getElementById('pay-ting-audio');
+      if (el) {
+        el.currentTime = 0;
+        var p = el.play();
+        if (p && typeof p.catch === 'function') p.catch(function () {});
+      }
+    } catch (e1) { }
+  }
+  function playTingTing(amount, opts) {
+    playPaySuccessSound();
+  }
+
+  function printSunInvoice(orderId, data) {
+    var s = invoiceSettings || {};
+    var w = window.open('', '_blank');
+    if (!w) {
+      showToast('⚠️ Cho phép cửa sổ popup để in hóa đơn');
+      return;
+    }
+    var n = function (v) { return Math.round(Number(v) || 0).toLocaleString('vi-VN'); };
+    var bin = String(s.vietQrBankBin || '970422');
+    var acc = String(s.bankAccountNo || '0825825485');
+    var accName = String(s.bankAccountName || 'LAM THI HONG NHU');
+    var amt = Math.round(Number(data.finalAmount) || 0);
+    var qrSrc = 'https://img.vietqr.io/image/' + bin + '-' + acc + '-compact2.png?amount=' + amt + '&addInfo=' + encodeURIComponent(String(orderId || '')) + '&accountName=' + encodeURIComponent(accName);
+    var payLab = String(data.paymentMethod || 'Tiền mặt').trim().toUpperCase();
+    var now = new Date();
+    var timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    var dateStr = now.toLocaleDateString('vi-VN');
+    var rowHtml = (data.items || []).map(function (i) {
+      var q = parseInt(i.quantity, 10) || 1;
+      var tt = Math.round(Number(i.totalPrice) || 0);
+      var dg = q > 0 ? Math.round(tt / q) : tt;
+      var parts = buildCartOptsParts(i);
+      if (i.note && String(i.note).trim()) parts.push('Ghi chú: ' + String(i.note).trim());
+      if (i.extraNuts && i.extraNuts.length) parts.push('Hạt: ' + i.extraNuts.join(', '));
+      var sub = parts.length ? '<div style="font-size:8px;color:#222;margin:1px 0 0;line-height:1.25;">' + esc(parts.join(' · ')) + '</div>' : '';
+      return '<tr><td style="text-align:left;padding:3px 1px 3px 0;border-bottom:1px dashed #888;vertical-align:top;word-break:break-word;">' + esc(i.name || '') + sub + '</td>' +
+        '<td style="text-align:right;padding:3px 2px;border-bottom:1px dashed #888;white-space:nowrap;">' + q + '</td>' +
+        '<td style="text-align:right;padding:3px 2px;border-bottom:1px dashed #888;white-space:nowrap;">' + n(dg) + '</td>' +
+        '<td style="text-align:right;padding:3px 0 3px 2px;border-bottom:1px dashed #888;white-space:nowrap;">' + n(tt) + '</td></tr>';
+    }).join('');
+    var totalQty = (data.items || []).reduce(function (a, i) { return a + (parseInt(i.quantity, 10) || 1); }, 0);
+    var disc = Math.round(Number(data.discount) || 0);
+    var stars = '****************************************';
+    var extraRows = '';
+    if (data.promoCode && String(data.promoCode).trim()) {
+      extraRows += '<tr><td colspan="4" style="padding:4px 0;font-size:10px;">Mã KM: ' + esc(String(data.promoCode).trim().toUpperCase()) + '</td></tr>';
+    }
+    if (disc > 0) {
+      extraRows += '<tr><td colspan="3" style="padding:2px 0;font-size:10px;">Giảm giá</td><td style="text-align:right;font-size:10px;color:#15803d;">-' + n(disc) + '</td></tr>';
+    }
+    var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>HĐ ' + esc(String(orderId)) + '</title>' +
+      '<style>' +
+      '@page { size: 72mm auto; margin: 2mm; }' +
+      'body,table,td,th{font-family:Arial,Helvetica,sans-serif;max-width:72mm;margin:0 auto;padding:6px 4px 12px;color:#000;font-size:11px;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+      '.brand{font-weight:800;font-size:13px;text-transform:uppercase;margin:0 0 2px;}' +
+      '.addr{font-size:9px;margin:0 0 1px;}' +
+      '.rule{border:none;border-top:2px solid #000;margin:6px 0;}' +
+      '.rule-light{border:none;border-top:1px solid #000;margin:4px 0;}' +
+      '.hd{text-align:center;font-weight:800;font-size:12px;letter-spacing:0.5px;margin:4px 0;}' +
+      '.meta{font-size:9px;display:flex;justify-content:space-between;gap:6px;margin-bottom:4px;}' +
+      '.meta-col{flex:1;min-width:0;}' +
+      'table.items{width:100%;border-collapse:collapse;font-size:10px;margin:4px 0;}' +
+      'table.items th{text-align:left;font-weight:800;border-bottom:2px solid #000;padding:3px 1px;font-size:9px;}' +
+      'table.items th.n{text-align:right;}' +
+      '.tot-big{font-size:22px;font-weight:900;text-align:center;margin:10px 0 4px;letter-spacing:-0.5px;}' +
+      '.pay-big{font-size:14px;font-weight:800;text-align:center;margin:0 0 6px;}' +
+      '.ty{text-align:center;font-weight:700;font-size:11px;margin:10px 0 6px;}' +
+      '.foot{font-size:8px;text-align:center;color:#333;line-height:1.4;}' +
+      'img.qr{display:block;margin:8px auto 4px;max-width:180px;}' +
+      '@media print{body{padding:2mm;}}' +
+      '</style></head><body>' +
+      '<div class="brand">' + esc(s.storeName || 'Sữa Hạt Sun') + '</div>' +
+      (s.storeAddress ? '<div class="addr">ĐC: ' + esc(s.storeAddress) + '</div>' : '') +
+      (s.storePhone ? '<div class="addr">ĐT: ' + esc(s.storePhone) + '</div>' : '') +
+      '<hr class="rule">' +
+      '<div class="hd">HÓA ĐƠN THANH TOÁN</div>' +
+      '<div class="meta"><div class="meta-col">Số HĐ: ' + esc(String(orderId)) + '<br>Ngày: ' + esc(dateStr) + '<br>KH: ' + esc(data.customerName || 'Khách lẻ') + '</div>' +
+      '<div class="meta-col" style="text-align:right;">' + esc(timeStr) + '<br>SĐT: ' + esc(String(data.customerPhone || '--')) + '</div></div>' +
+      '<div style="font-size:9px;text-align:center;margin:2px 0;">' + stars + '</div>' +
+      '<table class="items"><thead><tr><th>TÊN HÀNG</th><th class="n">SL</th><th class="n">ĐG</th><th class="n">T.TIỀN</th></tr></thead><tbody>' +
+      rowHtml +
+      '<tr><td colspan="3" style="padding:4px 0 2px;font-weight:800;border-top:2px solid #000;">T.CỘNG: ' + totalQty + '</td><td style="text-align:right;font-weight:800;border-top:2px solid #000;padding:4px 0 2px;">' + n(amt) + '</td></tr>' +
+      extraRows +
+      '</tbody></table>' +
+      '<hr class="rule-light">' +
+      '<div class="tot-big">' + n(amt) + ' <span style="font-size:12px;font-weight:800;">VND</span></div>' +
+      '<div class="pay-big">' + esc(payLab) + '</div>' +
+      '<div class="ty">' + esc(s.thankYou || 'Cảm ơn quý khách — Hẹn gặp lại!') + '</div>' +
+      (s.footerNote ? '<div class="foot">' + esc(s.footerNote) + '</div>' : '') +
+      '<div class="foot">CK: <strong>' + esc(acc) + '</strong> — ' + esc(String(s.bankName || '')) + '<br>' + esc(accName) + '</div>' +
+      '<div class="foot">Nội dung CK: <strong>' + esc(String(orderId)) + '</strong></div>' +
+      '<img class="qr" src="' + qrSrc + '" alt="QR CK">' +
+      '</body></html>';
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(function () {
+      try { w.print(); } catch (e) { }
+    }, 350);
+  }
+
+  // ====== AI ======
+  function openAI() {
+    document.getElementById('aiModal').classList.add('open');
+    const er = document.getElementById('ai-result-error');
+    if (er) { er.style.display = 'none'; er.textContent = ''; }
+  }
+  function closeAI(e) { if (!e || e.target.id === 'aiModal') document.getElementById('aiModal').classList.remove('open'); }
+  function selectGoal(el, g) {
+    document.querySelectorAll('.ai-goal').forEach(a => a.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedGoal = g;
+    document.getElementById('ai-custom').value = '';
+    const er = document.getElementById('ai-result-error');
+    if (er) { er.style.display = 'none'; er.textContent = ''; }
+  }
+  async function getAISuggestion() {
+    const custom = document.getElementById('ai-custom').value.trim();
+    const goal = custom || selectedGoal;
+    if (!goal) { showToast('⚠️ Chọn mục tiêu!'); return; }
+    const nuts = inventoryData.filter(i => i.type === 'Hạt' || i.name.toLowerCase().includes('hạt')).map(i => i.name);
+    const btn = document.querySelector('.ai-btn');
+    const errEl = document.getElementById('ai-result-error');
+    const box = document.getElementById('ai-result-box');
+    const txt = document.getElementById('ai-result-text');
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang phân tích...';
+    btn.disabled = true;
+    try {
+      const r = await api.callLong('getAISuggestion', 90000, goal, nuts);
+      btn.innerHTML = '<i class="fa-solid fa-seedling"></i> Nhận tư vấn từ AI';
+      btn.disabled = false;
+      if (r && r.suggestion) {
+        box.classList.add('show');
+        txt.textContent = r.suggestion;
+      } else if (r && r.error) {
+        box.classList.add('show');
+        txt.textContent = '';
+        if (errEl) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'Lỗi: ' + r.error;
+        }
+        showToast('⚠️ Xem chi tiết lỗi trong khung AI');
+      } else {
+        box.classList.add('show');
+        txt.textContent = 'Không có phản hồi từ AI.';
+      }
+    } catch (e) {
+      btn.innerHTML = '<i class="fa-solid fa-seedling"></i> Nhận tư vấn từ AI';
+      btn.disabled = false;
+      box.classList.add('show');
+      if (errEl) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Lỗi kết nối: ' + (e.message || e);
+      }
+      showToast('❌ Không kết nối AI!');
+    }
+  }
+
+  // ====== ADMIN ======
+  function goToAdmin() { if (!SCRIPT_URL) { showToast('⚠️ Không thể mở Admin!'); return; } window.open(SCRIPT_URL + '?page=admin', '_blank'); }
+  function goToMemberPage() {
+    if (!SCRIPT_URL) { showToast('⚠️ Không thể mở trang Hội viên!'); return; }
+    window.location.href = SCRIPT_URL + '?page=member';
+  }
+  /** Tab Đơn nhóm: chuyển sang trang Hội viên (nơi tạo & quản lý đơn nhóm). */
+  function goToGroupOrder() {
+    if (!SCRIPT_URL) { showToast('⚠️ Không thể mở trang Hội viên!'); return; }
+    window.location.href = SCRIPT_URL + '?page=member';
+  }
+  // Pickup/Display/Kiosk đã được gỡ bỏ theo yêu cầu
+  function getInfoAdmin() { goToAdmin(); }
+
+  // Pickup/Display/Kiosk đã được gỡ bỏ theo yêu cầu
+
+  // ====== UTILS ======
+  function fmt(n) { return Math.round(n).toLocaleString('vi-VN') + '₫'; }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2600);
+  }
+  function showLoading(v) { document.getElementById('loading').classList.toggle('show', v); }
+
+  // ====== ĐƠN ONLINE & GIAO MEMBER ======
+  var __onlineOrdersCache = [];
+  var __knownOnlineIds = {};
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function parseOrderItemsJson(raw) {
+    try {
+      var a = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(a) ? a : [];
+    } catch (e) { return []; }
+  }
+
+  /** Đơn nhóm: đọc mã + tên nhóm từ ghi chú đơn ([GROUP:CODE] «Tên nhóm» — ...). */
+  function parseGroupInfoFromNote(note) {
+    var m = String(note || '').match(/\[GROUP:([A-Z0-9]+)\]\s*(?:«([^»]*)»)?/);
+    if (!m) return null;
+    return { code: m[1], name: m[2] || '' };
+  }
+  function onlineOrderStatusChip(st) {
+    var s = String(st || '');
+    var bg = '#f5f5f4', fg = '#57534e';
+    if (s.indexOf('Hoàn') >= 0) { bg = '#dcfce7'; fg = '#15803d'; }
+    else if (s.indexOf('Hủy') >= 0) { bg = '#fee2e2'; fg = '#b91c1c'; }
+    else if (s.indexOf('giao') >= 0 || s.indexOf('nhận') >= 0) { bg = '#e0e7ff'; fg = '#4338ca'; }
+    else if (s.indexOf('chế biến') >= 0) { bg = '#dbeafe'; fg = '#1d4ed8'; }
+    else if (s.indexOf('Chờ') >= 0 || s.indexOf('chờ') >= 0) { bg = '#fef3c7'; fg = '#92400e'; }
+    return '<span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;background:' + bg + ';color:' + fg + ';white-space:nowrap;">' + escHtml(s) + '</span>';
+  }
+  function onlineOrderItemOptsText(it) {
+    var o = (it && it.options) || {};
+    var parts = [];
+    if (o.size && o.size !== 'Tiêu chuẩn') parts.push(o.size);
+    if (o.serveTemp === 'hot') parts.push('Nóng');
+    else if (o.serveTemp === 'iced') parts.push('Đá' + (o.ice ? ': ' + o.ice : ''));
+    if (o.sweetness) parts.push(o.sweetness);
+    if (o.packaging === 'plastic') parts.push('Chai nhựa');
+    (o.addons || []).forEach(function (a) { parts.push(a); });
+    return parts.join(' · ');
+  }
+  function getItemMemberName(it) {
+    var who = String((it && it.groupMember) || '').trim();
+    if (!who) {
+      var mN = String((it && it.note) || '').match(/^\[([^\]]{1,40})\]/);
+      who = mN ? mN[1] : '';
+    }
+    return who || 'Khách';
+  }
+  function getItemNoteClean(it) {
+    return String((it && it.note) || '').replace(/^\[[^\]]{1,40}\]\s*/, '').trim();
+  }
+
+  // ===== In tem dán ly: CLABEL 221B Bluetooth · 30×40mm (hỗ trợ Android Chrome) =====
+  var LABEL_W_MM = 30;
+  var LABEL_H_MM = 40;
+  var LABEL_DPI = 203;
+  var __labelBt = { device: null, server: null, char: null, connected: false, name: '', protocol: 'escpos' };
+  var __labelBtConnecting = null;
+  var LABEL_BLE_SERVICES = [
+    '000018f0-0000-1000-8000-00805f9b34fb',
+    '49535343-fe7d-4ae5-8fa9-9fafcf205e55',
+    '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
+    '0000ff00-0000-1000-8000-00805f9b34fb',
+    '0000fee7-0000-1000-8000-00805f9b34fb',
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+    '00001800-0000-1000-8000-00805f9b34fb',
+    '00001801-0000-1000-8000-00805f9b34fb'
+  ];
+  var LABEL_WRITE_CHARS = [
+    '49535343-8841-43f4-a8d4-ecbe34729bb3',
+    '6e400002-b5a3-f393-e0a9-e50e24dcca9e',
+    '0000ff02-0000-1000-8000-00805f9b34fb',
+    '0000fee2-0000-1000-8000-00805f9b34fb',
+    '0000ff01-0000-1000-8000-00805f9b34fb'
+  ];
+
+  function isAndroidDevice() { return /Android/i.test(navigator.userAgent || ''); }
+  function isMobileDevice() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || ''); }
+  function bleChunkSize() { return isMobileDevice() ? 20 : 180; }
+  function bleChunkDelay() { return isMobileDevice() ? 50 : 25; }
+  function labelDots(mm) { return Math.round(mm / 25.4 * LABEL_DPI); }
+
+  function initLabelPrinterAndroidTip() {
+    var tip = document.getElementById('oo-printer-android-tip');
+    if (tip) tip.classList.toggle('show', isAndroidDevice());
+    var hint = document.getElementById('oo-printer-hint');
+    if (hint) {
+      hint.textContent = isAndroidDevice()
+        ? 'Bấm 🏷️ In tem → web tự kết nối Bluetooth · CLABEL 221B · 30×40mm'
+        : 'Bấm 🏷️ In tem → tự kết nối Bluetooth · CLABEL 221B · 30×40mm';
+    }
+  }
+  function labelPrinterIsReady() {
+    return !!(__labelBt.connected && __labelBt.char && __labelBt.device &&
+      __labelBt.device.gatt && __labelBt.device.gatt.connected);
+  }
+
+  function updateLabelPrinterUi() {
+    var bar = document.getElementById('oo-printer-bar');
+    var st = document.getElementById('oo-printer-status');
+    var btn = document.getElementById('oo-btn-connect-printer');
+    var scan = document.getElementById('oo-btn-scan-printer');
+    initLabelPrinterAndroidTip();
+    if (!bar || !st) return;
+    if (__labelBt.connected) {
+      bar.classList.remove('off');
+      st.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + escHtml(__labelBt.name || 'Máy in tem') +
+        ' · <span style="font-weight:700;opacity:.85">BT OK' + (isAndroidDevice() ? ' · Android' : '') + '</span>';
+      if (btn) { btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Đổi máy'; btn.style.background = '#57534e'; }
+      if (scan) scan.style.display = 'none';
+    } else {
+      bar.classList.add('off');
+      st.innerHTML = '<i class="fa-solid fa-circle"></i> Máy in tem chưa kết nối' +
+        (isAndroidDevice() ? ' <span style="font-weight:700;opacity:.75">(Chrome Android)</span>' : '');
+      if (btn) { btn.innerHTML = '<i class="fa-brands fa-bluetooth-b"></i> Kết nối CLABEL'; btn.style.background = '#15803d'; }
+      if (scan) scan.style.display = '';
+    }
+  }
+
+  async function findBleWriteChar(server) {
+    var ci, si, c, chars, services;
+    for (ci = 0; ci < LABEL_WRITE_CHARS.length; ci++) {
+      try {
+        c = await server.getCharacteristic(LABEL_WRITE_CHARS[ci]);
+        if (c && (c.properties.writeWithoutResponse || c.properties.write)) return c;
+      } catch (eC) { }
+    }
+    services = await server.getPrimaryServices();
+    for (si = 0; si < services.length; si++) {
+      chars = await services[si].getCharacteristics();
+      for (ci = 0; ci < chars.length; ci++) {
+        c = chars[ci];
+        if (c.properties.writeWithoutResponse) return c;
+      }
+    }
+    for (si = 0; si < services.length; si++) {
+      chars = await services[si].getCharacteristics();
+      for (ci = 0; ci < chars.length; ci++) {
+        c = chars[ci];
+        if (c.properties.write) return c;
+      }
+    }
+    return null;
+  }
+
+  async function attachLabelDevice(device) {
+    if (!device || !device.gatt) throw new Error('Thiết bị không hỗ trợ BLE GATT');
+    if (device.gatt.connected) {
+      try { device.gatt.disconnect(); await new Promise(function (r) { setTimeout(r, 300); }); } catch (eD) { }
+    }
+    var server = await device.gatt.connect();
+    var ch = await findBleWriteChar(server);
+    if (!ch) {
+      try { server.disconnect(); } catch (eX) { }
+      throw new Error('Không tìm thấy kênh in trên máy - thử bấm Quét BT và chọn đúng CLABEL 221B');
+    }
+    __labelBt = {
+      device: device, server: server, char: ch,
+      connected: true, name: device.name || 'Máy in tem', protocol: 'escpos'
+    };
+    device.addEventListener('gattserverdisconnected', function () {
+      __labelBt.connected = false;
+      __labelBt.char = null;
+      updateLabelPrinterUi();
+      showToast('Máy in ngắt kết nối - bấm In tem sẽ tự kết nối lại');
+    });
+    try {
+      localStorage.setItem('sun_label_bt_id', device.id || '');
+      localStorage.setItem('sun_label_bt_name', device.name || '');
+    } catch (eLs) { }
+    updateLabelPrinterUi();
+    return device;
+  }
+
+  /** Tự kết nối lại máy in đã cấp quyền trước đó (Chrome hỗ trợ getDevices). */
+  async function tryReconnectLabelPrinter(silent) {
+    if (labelPrinterIsReady()) return true;
+    if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return false;
+    var savedId = '';
+    try { savedId = localStorage.getItem('sun_label_bt_id') || ''; } catch (eId) { }
+    try {
+      var devices = await navigator.bluetooth.getDevices();
+      if (!devices || !devices.length) return false;
+      var pick = null;
+      devices.forEach(function (d) {
+        if (savedId && d.id === savedId) pick = d;
+      });
+      if (!pick) {
+        devices.forEach(function (d) {
+          var n = String(d.name || '').toUpperCase();
+          if (!pick && (/CLABEL|221B|CT221|LABEL|PRINTER/.test(n))) pick = d;
+        });
+      }
+      if (!pick) pick = devices[0];
+      await attachLabelDevice(pick);
+      if (!silent) showToast('✅ Đã kết nối lại ' + (__labelBt.name || 'máy in tem'));
+      return true;
+    } catch (e) {
+      if (!silent) showToast('Không kết nối lại được - bấm Kết nối CLABEL hoặc Quét BT');
+      return false;
+    }
+  }
+
+  async function requestLabelBleDevice(scanAll) {
+    var req = { optionalServices: LABEL_BLE_SERVICES };
+    if (scanAll) req.acceptAllDevices = true;
+    else {
+      req.filters = [
+        { namePrefix: 'CLABEL' }, { namePrefix: '221B' }, { namePrefix: 'CT221' },
+        { namePrefix: 'Label' }, { namePrefix: 'Printer' }, { namePrefix: 'BT' }
+      ];
+    }
+    var device = await navigator.bluetooth.requestDevice(req);
+    await attachLabelDevice(device);
+    return true;
+  }
+  async function ensureLabelPrinterConnectedInner(opts) {
+    opts = opts || {};
+    if (!navigator.bluetooth) {
+      if (!opts.silent) {
+        showToast(isAndroidDevice()
+          ? '⚠️ Dùng Chrome Android + bật Bluetooth + Vị trí để in tem'
+          : '⚠️ Trình duyệt không hỗ trợ Bluetooth - dùng Chrome/Edge');
+      }
+      return false;
+    }
+    if (labelPrinterIsReady()) return true;
+    if (await tryReconnectLabelPrinter(true)) return true;
+    if (!opts.prompt) return false;
+    if (!opts.silent) showToast('🔵 Đang kết nối máy in Bluetooth…');
+    try {
+      await requestLabelBleDevice(false);
+      return true;
+    } catch (e1) {
+      if (opts.allowScan && e1 && (e1.name === 'NotFoundError' || String(e1.message || '').indexOf('cancel') >= 0)) {
+        try {
+          if (!opts.silent) showToast('Quét tất cả thiết bị BT - chọn CLABEL 221B…');
+          await requestLabelBleDevice(true);
+          return true;
+        } catch (e2) {
+          if (!opts.silent) showToast('Chưa chọn máy in - bật Bluetooth và chọn CLABEL 221B');
+          return false;
+        }
+      }
+      if (e1 && e1.name === 'SecurityError') {
+        if (!opts.silent) showToast('⚠️ Bật Quyền Bluetooth + Vị trí cho Chrome rồi thử lại');
+        return false;
+      }
+      if (!opts.silent && !(e1 && (e1.name === 'NotFoundError' || String(e1.message || '').indexOf('cancel') >= 0))) {
+        showToast('⚠️ ' + ((e1 && e1.message) || e1 || 'Không kết nối được máy in'));
+      }
+      return false;
+    }
+  }
+  /** Tự kết nối BT trước khi in — lần đầu hỏi chọn máy, sau đó tự nối lại. */
+  async function ensureLabelPrinterConnected(opts) {
+    opts = opts || {};
+    if (labelPrinterIsReady()) return true;
+    if (__labelBtConnecting) {
+      try { await __labelBtConnecting; } catch (eW) { }
+      return labelPrinterIsReady();
+    }
+    __labelBtConnecting = ensureLabelPrinterConnectedInner(opts);
+    try { return await __labelBtConnecting; }
+    finally { __labelBtConnecting = null; }
+  }
+  /**
+   * Kết nối máy in tem Bluetooth (dùng khi muốn đổi máy / thiết lập lần đầu).
+   * mode: 'clabel' | 'scan' | 'reconnect'
+   */
+  window.connectLabelPrinter = async function (mode) {
+    mode = mode || 'clabel';
+    if (!navigator.bluetooth) {
+      showToast(isAndroidDevice()
+        ? '⚠️ Dùng Chrome trên Android và bật Bluetooth + Vị trí để in tem'
+        : '⚠️ Trình duyệt không hỗ trợ Bluetooth - dùng Chrome/Edge');
+      return;
+    }
+    if (mode === 'reconnect') {
+      await tryReconnectLabelPrinter(false);
+      return;
+    }
+    showLoading(true);
+    try {
+      if (__labelBt.device && __labelBt.device.gatt && __labelBt.device.gatt.connected) {
+        try { __labelBt.device.gatt.disconnect(); } catch (eD) { }
+      }
+      await requestLabelBleDevice(mode === 'scan');
+      showToast('✅ Đã kết nối ' + (__labelBt.name || 'máy in tem'));
+    } catch (e) {
+      if (e && (e.name === 'NotFoundError' || String(e.message || '').indexOf('cancel') >= 0)) {
+        showToast(mode === 'scan'
+          ? 'Chưa chọn máy in - bật Bluetooth, chọn CLABEL 221B trong danh sách'
+          : 'Không thấy CLABEL - thử bấm Quét BT để tìm tất cả thiết bị');
+      } else if (e && e.name === 'SecurityError') {
+        showToast('⚠️ Android: bật Quyền Vị trí + Bluetooth cho Chrome rồi thử lại');
+      } else {
+        showToast('⚠️ ' + ((e && e.message) || e || 'Không kết nối được máy in'));
+      }
+    }
+    showLoading(false);
+  };
+
+  async function bleWriteLabel(data) {
+    if (!__labelBt.char) throw new Error('Chưa kết nối máy in tem');
+    var chunk = bleChunkSize();
+    var delay = bleChunkDelay();
+    var useResp = !__labelBt.char.properties.writeWithoutResponse && __labelBt.char.properties.write;
+    for (var i = 0; i < data.length; i += chunk) {
+      var slice = data.subarray(i, Math.min(i + chunk, data.length));
+      if (useResp) {
+        await __labelBt.char.writeValue(slice);
+      } else {
+        await __labelBt.char.writeValueWithoutResponse(slice);
+      }
+      if (i + chunk < data.length) await new Promise(function (r) { setTimeout(r, delay); });
+    }
+    await new Promise(function (r) { setTimeout(r, delay * 2); });
+  }
+  /** Vẽ tem 30×40mm lên canvas (Arial, tiếng Việt) → ESC/POS raster. */
+  function buildLabelEscPos(payload) {
+    var w = labelDots(LABEL_W_MM);
+    var h = labelDots(LABEL_H_MM);
+    w = Math.ceil(w / 8) * 8;
+    var canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#000';
+    ctx.textBaseline = 'top';
+    var y = 6;
+    var pad = 8;
+    var maxW = w - pad * 2;
+    function drawLines(text, size, weight, maxLines) {
+      if (!text) return;
+      ctx.font = (weight || 'bold') + ' ' + size + 'px Arial, Helvetica, sans-serif';
+      var words = String(text).split(/\s+/);
+      var line = '';
+      var lines = 0;
+      for (var wi = 0; wi < words.length; wi++) {
+        var test = line ? line + ' ' + words[wi] : words[wi];
+        if (ctx.measureText(test).width > maxW && line) {
+          ctx.fillText(line, pad, y);
+          y += size + 3;
+          lines++;
+          if (maxLines && lines >= maxLines) return;
+          line = words[wi];
+        } else {
+          line = test;
+        }
+      }
+      if (line && (!maxLines || lines < maxLines)) {
+        ctx.fillText(line, pad, y);
+        y += size + 4;
+      }
+    }
+    drawLines(payload.drink || 'Món', 15, 'bold', 2);
+    ctx.font = 'bold 13px Arial, Helvetica, sans-serif';
+    ctx.fillText('KH: ' + (payload.member || 'Khách'), pad, y);
+    y += 17;
+    drawLines(payload.opts || '', 10, 'normal', 2);
+    if (payload.note) {
+      ctx.font = '600 10px Arial, Helvetica, sans-serif';
+      drawLines('GC: ' + payload.note, 10, '600', 2);
+    }
+    var img = ctx.getImageData(0, 0, w, h);
+    var bytesPerRow = w / 8;
+    var raster = new Uint8Array(bytesPerRow * h);
+    for (var row = 0; row < h; row++) {
+      for (var bx = 0; bx < bytesPerRow; bx++) {
+        var b = 0;
+        for (var bit = 0; bit < 8; bit++) {
+          var x = bx * 8 + bit;
+          var idx = (row * w + x) * 4;
+          var gray = (img.data[idx] + img.data[idx + 1] + img.data[idx + 2]) / 3;
+          if (gray < 168) b |= (0x80 >> bit);
+        }
+        raster[row * bytesPerRow + bx] = b;
+      }
+    }
+    var xL = bytesPerRow & 0xff;
+    var xH = (bytesPerRow >> 8) & 0xff;
+    var yL = h & 0xff;
+    var yH = (h >> 8) & 0xff;
+    var out = new Uint8Array(10 + raster.length + 6);
+    var p = 0;
+    out[p++] = 0x1B; out[p++] = 0x40; // init
+    out[p++] = 0x1D; out[p++] = 0x76; out[p++] = 0x30; out[p++] = 0x00; // GS v 0 raster
+    out[p++] = xL; out[p++] = xH; out[p++] = yL; out[p++] = yH;
+    out.set(raster, p); p += raster.length;
+    out[p++] = 0x1B; out[p++] = 0x64; out[p++] = 0x04; // feed
+    out[p++] = 0x1D; out[p++] = 0x56; out[p++] = 0x00; // partial cut (nếu máy hỗ trợ)
+    return out.subarray(0, p);
+  }
+  /** Fallback: in tem qua hộp thoại trình duyệt (30×40mm). */
+  function printLabelViaBrowser(payload) {
+    var w = document.open('', '_blank', 'width=320,height=420');
+    if (!w) { showToast('Cho phép popup để in tem nhé'); return; }
+    var esc = function (s) { return escHtml(s); };
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tem ly</title><style>' +
+      '@page{size:30mm 40mm;margin:0}*{box-sizing:border-box;margin:0;padding:0}' +
+      'body{width:30mm;height:40mm;padding:2mm;font-family:Arial,Helvetica,sans-serif;color:#000;background:#fff;overflow:hidden}' +
+      '.n{font-size:9pt;font-weight:900;line-height:1.2;margin-bottom:1mm}' +
+      '.m{font-size:8pt;font-weight:800;margin-bottom:1mm}' +
+      '.o{font-size:7pt;line-height:1.25;color:#222;margin-bottom:.5mm}' +
+      '.t{font-size:7pt;font-weight:600;color:#7c2d12}' +
+      '</style></head><body>' +
+      '<div class="n">' + esc(payload.drink) + '</div>' +
+      '<div class="m">👤 ' + esc(payload.member) + '</div>' +
+      (payload.opts ? '<div class="o">' + esc(payload.opts) + '</div>' : '') +
+      (payload.note ? '<div class="t">📝 ' + esc(payload.note) + '</div>' : '') +
+      '</body></html>');
+    w.document.close();
+    w.focus();
+    setTimeout(function () { try { w.print(); } catch (eP) { } }, 350);
+  }
+  async function printCupLabel(payload, opts) {
+    opts = opts || {};
+    var connected = await ensureLabelPrinterConnected({ prompt: true, allowScan: true, silent: !!opts.quiet });
+    if (!connected) return false;
+    try {
+      await bleWriteLabel(buildLabelEscPos(payload));
+      if (!opts.quiet) showToast('🏷️ Đã in: ' + (payload.drink || 'tem'));
+      return true;
+    } catch (e) {
+      __labelBt.connected = false;
+      __labelBt.char = null;
+      updateLabelPrinterUi();
+      if (await ensureLabelPrinterConnected({ prompt: true, allowScan: true, silent: true })) {
+        try {
+          await bleWriteLabel(buildLabelEscPos(payload));
+          if (!opts.quiet) showToast('🏷️ Đã in: ' + (payload.drink || 'tem'));
+          return true;
+        } catch (e2) { e = e2; }
+      }
+      showToast('⚠️ In lỗi: ' + ((e && e.message) || e));
+      return false;
+    }
+  }
+  window.printCupLabelClick = async function (oid, idx) {
+    var o = (__onlineOrdersCache || []).find(function (x) { return String(x.id) === String(oid); });
+    if (!o) return;
+    var items = parseOrderItemsJson(o.items);
+    var it = items[idx];
+    if (!it) return;
+    showLoading(true);
+    try {
+      await printCupLabel({
+        drink: it.name || it.productName || 'Món',
+        member: getItemMemberName(it),
+        opts: onlineOrderItemOptsText(it),
+        note: getItemNoteClean(it),
+        orderId: oid
+      });
+    } finally {
+      showLoading(false);
+    }
+  };
+  window.printAllCupLabels = async function (oid) {
+    var o = (__onlineOrdersCache || []).find(function (x) { return String(x.id) === String(oid); });
+    if (!o) return;
+    var items = parseOrderItemsJson(o.items);
+    if (!items.length) { showToast('Đơn không có món để in tem'); return; }
+    showLoading(true);
+    try {
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        await printCupLabel({
+          drink: it.name || it.productName || 'Món',
+          member: getItemMemberName(it),
+          opts: onlineOrderItemOptsText(it),
+          note: getItemNoteClean(it),
+          orderId: oid
+        }, { quiet: true });
+        await new Promise(function (r) { setTimeout(r, 400); });
+      }
+      showToast('✅ Đã in ' + items.length + ' tem cho đơn ' + oid);
+    } catch (e) {
+      showToast('⚠️ ' + ((e && e.message) || e));
+    }
+    showLoading(false);
+  };
+  // ---- Checklist bếp: tick từng món đã pha (lưu trên máy POS) ----
+  function getOoChecks(oid) {
+    try { return JSON.parse(localStorage.getItem('sun_pos_check_' + oid) || '{}'); } catch (e) { return {}; }
+  }
+  function setOoChecks(oid, c) {
+    try { localStorage.setItem('sun_pos_check_' + oid, JSON.stringify(c)); } catch (e) { }
+  }
+  function ooCheckedCount(o) {
+    var items = parseOrderItemsJson(o && o.items);
+    var c = getOoChecks(o.id);
+    var n = 0;
+    items.forEach(function (_, i) { if (c[i]) n++; });
+    return { done: n, total: items.length };
+  }
+  window.toggleOoCheck = function (oid, idx) {
+    var c = getOoChecks(oid);
+    if (c[idx]) delete c[idx]; else c[idx] = 1;
+    setOoChecks(oid, c);
+    renderOnlineOrdersList();
+  };
+  /** Chi tiết món — checklist cho bếp, đơn nhóm gộp theo từng người. */
+  function renderOnlineOrderItemsDetail(o) {
+    var items = parseOrderItemsJson(o && o.items);
+    if (!items.length) return '<p style="color:#a8a29e;padding:8px 0;">Không có món.</p>';
+    var gi = parseGroupInfoFromNote(o && o.note);
+    var checks = getOoChecks(o.id);
+    var oidJs = escHtml(String(o.id)).replace(/'/g, "\\'");
+    var lineHtml = function (it, idx) {
+      var qty = it.qty || it.quantity || 1;
+      var unit = parseFloat(it.price || it.unitPrice) || (qty ? (parseFloat(it.totalPrice) || 0) / qty : 0);
+      var opts = onlineOrderItemOptsText(it);
+      var itemNote = getItemNoteClean(it);
+      var done = !!checks[idx];
+      return '<div class="oo-item' + (done ? ' done' : '') + '">' +
+        '<span class="oo-check" onclick="toggleOoCheck(\'' + oidJs + '\',' + idx + ')" title="Tick món đã pha"><i class="fa-solid fa-check"></i></span>' +
+        '<div class="oo-item-main" onclick="toggleOoCheck(\'' + oidJs + '\',' + idx + ')">' +
+        '<div class="oo-item-line"><strong class="oo-item-nm">' + escHtml(it.name || it.productName || '') + ' ×' + qty + '</strong><span>' + fmt(unit * qty) + '</span></div>' +
+        (opts ? '<div class="oo-item-opts">' + escHtml(opts) + '</div>' : '') +
+        (itemNote ? '<div class="oo-item-note">📝 ' + escHtml(itemNote) + '</div>' : '') +
+        '</div>' +
+        '<button type="button" class="oo-print-btn" onclick="event.stopPropagation(); printCupLabelClick(\'' + oidJs + '\',' + idx + ')" title="In tem - tự kết nối Bluetooth"><i class="fa-solid fa-tag"></i></button>' +
+        '</div>';
+    };
+    // Đơn thường: 1 khối chung
+    if (!gi) {
+      return '<div class="oo-member"><div class="oo-member-h"><span><i class="fa-solid fa-mug-hot"></i> Món cần pha</span></div>' +
+        items.map(function (it, i) { return lineHtml(it, i); }).join('') + '</div>';
+    }
+    // Đơn nhóm: gộp theo từng người (giữ nguyên index gốc để checklist đúng món)
+    var byMember = {};
+    var order = [];
+    items.forEach(function (it, i) {
+      var who = String(it.groupMember || '').trim();
+      if (!who) {
+        var mN = String(it.note || '').match(/^\[([^\]]{1,40})\]/);
+        who = mN ? mN[1] : 'Khách';
+      }
+      if (!byMember[who]) { byMember[who] = []; order.push(who); }
+      byMember[who].push({ it: it, idx: i });
+    });
+    return order.map(function (who) {
+      var list = byMember[who];
+      var qtyTotal = list.reduce(function (s, e) { return s + (e.it.qty || e.it.quantity || 1); }, 0);
+      var sub = list.reduce(function (s, e) {
+        var q = e.it.qty || e.it.quantity || 1;
+        var u = parseFloat(e.it.price || e.it.unitPrice) || (q ? (parseFloat(e.it.totalPrice) || 0) / q : 0);
+        return s + u * q;
+      }, 0);
+      return '<div class="oo-member"><div class="oo-member-h">' +
+        '<span><i class="fa-solid fa-circle-user"></i> ' + escHtml(who) + ' <span class="n">(' + qtyTotal + ' món)</span></span><span>' + fmt(sub) + '</span></div>' +
+        list.map(function (e) { return lineHtml(e.it, e.idx); }).join('') + '</div>';
+    }).join('');
+  }
+
+  function ooActBtnClass(status, allDone) {
+    var s = String(status || '');
+    if (s.indexOf('Hủy') >= 0) return 'oo-btn oo-btn-danger';
+    if (s.indexOf('hoàn tất chế biến') >= 0) return 'oo-btn oo-btn-success' + (allDone ? ' ready' : '');
+    if (s.indexOf('Hoàn thành') >= 0) return 'oo-btn oo-btn-success';
+    if (s.indexOf('giao') >= 0 || s.indexOf('nhận') >= 0) return 'oo-btn oo-btn-info';
+    return 'oo-btn oo-btn-secondary';
+  }
+  function ooActIcon(status) {
+    var s = String(status || '');
+    if (s.indexOf('Hủy') >= 0) return '<i class="fa-solid fa-ban"></i> ';
+    if (s.indexOf('hoàn tất chế biến') >= 0) return '<i class="fa-solid fa-bell-concierge"></i> ';
+    if (s.indexOf('Hoàn thành') >= 0) return '<i class="fa-solid fa-circle-check"></i> ';
+    if (s.indexOf('giao') >= 0) return '<i class="fa-solid fa-motorcycle"></i> ';
+    if (s.indexOf('nhận') >= 0) return '<i class="fa-solid fa-store"></i> ';
+    return '';
+  }
+  function onlineStatusActions(st) {
+    var s = String(st || '');
+    if (s.indexOf('Chờ') === 0 || s.indexOf('chờ') === 0) {
+      return [
+        { label: 'Hoàn tất chế biến', status: 'Đơn đã hoàn tất chế biến' },
+        { label: 'Hủy', status: 'Hủy' }
+      ];
+    }
+    if (s.indexOf('chế biến') >= 0) {
+      return [
+        { label: 'Chờ nhận / đang giao', status: 'Đang giao hàng' },
+        { label: 'Nhận tại quầy', status: 'Chờ nhận hàng' }
+      ];
+    }
+    if (s.indexOf('giao') >= 0 || s.indexOf('nhận') >= 0) {
+      return [{ label: 'Hoàn tất đơn', status: 'Hoàn thành' }];
+    }
+    return [{ label: 'Hoàn tất đơn', status: 'Hoàn thành' }];
+  }
+
+  function normalizeOnlineOrders(list) {
+    (list || []).forEach(function (o) { if (o && !o.id) o.id = o.orderId; });
+    return list || [];
+  }
+
+  async function refreshOnlineOrdersBadge() {
+    try {
+      var r = await api.call('getOnlineOrdersForAdmin', 30);
+      var list = normalizeOnlineOrders((r && r.orders) || []);
+      var pending = list.filter(function (o) {
+        var st = String(o.status || '');
+        return st.indexOf('Hoàn') < 0 && st.indexOf('Hủy') < 0;
+      });
+      var badge = document.getElementById('online-orders-badge');
+      if (badge) {
+        if (pending.length) { badge.style.display = 'inline-flex'; badge.textContent = String(pending.length); }
+        else badge.style.display = 'none';
+      }
+      list.forEach(function (o) {
+        if (!__knownOnlineIds[o.id] && String(o.status || '').indexOf('Chờ') >= 0) {
+          showToast('📱 Đơn online mới: ' + o.id);
+        }
+        __knownOnlineIds[o.id] = true;
+      });
+      __onlineOrdersCache = list;
+    } catch (e) { /* ignore poll */ }
+  }
+
+  // Tab Đang chờ làm / Đã hoàn tất + trạng thái mở/đóng từng đơn
+  var __onlineTab = 'active';
+  var __ooOpen = {};
+  function isOnlineOrderDone(o) {
+    var s = String((o && o.status) || '');
+    return s.indexOf('Hoàn thành') >= 0 || s.indexOf('Hủy') >= 0;
+  }
+  window.switchOnlineTab = function (t) {
+    __onlineTab = t === 'done' ? 'done' : 'active';
+    var ta = document.getElementById('oo-tab-active');
+    var td = document.getElementById('oo-tab-done');
+    if (ta) ta.classList.toggle('on', __onlineTab === 'active');
+    if (td) td.classList.toggle('on', __onlineTab === 'done');
+    renderOnlineOrdersList();
+  };
+  function ooFmtTime(t) {
+    var d = typeof t === 'number' ? new Date(t) : new Date(String(t || ''));
+    if (isNaN(d.getTime())) return '';
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1);
+  }
+  function renderOnlineOrdersList() {
+    var box = document.getElementById('online-orders-list');
+    if (!box) return;
+    var all = __onlineOrdersCache || [];
+    var active = all.filter(function (o) { return !isOnlineOrderDone(o); });
+    var done = all.filter(isOnlineOrderDone);
+    var ca = document.getElementById('oo-count-active');
+    var cd = document.getElementById('oo-count-done');
+    if (ca) ca.textContent = String(active.length);
+    if (cd) cd.textContent = String(done.length);
+    var list = __onlineTab === 'done' ? done : active;
+    if (!list.length) {
+      box.innerHTML = '<div class="oo-empty">' + (__onlineTab === 'done'
+        ? '<i class="fa-solid fa-mug-hot"></i> Chưa có đơn hoàn tất / hủy.'
+        : '🎉 Không còn đơn chờ làm — bếp thảnh thơi!') + '</div>';
+      return;
+    }
+    box.innerHTML = list.map(function (o) {
+      var oidJs = escHtml(String(o.id)).replace(/'/g, "\\'");
+      var isDone = isOnlineOrderDone(o);
+      var isOpen = __ooOpen[o.id] != null ? !!__ooOpen[o.id] : !isDone; // đơn đang làm: mở sẵn chi tiết
+      var gi = parseGroupInfoFromNote(o.note);
+      var prog = ooCheckedCount(o);
+      var allDone = prog.total > 0 && prog.done >= prog.total;
+      var acts = '<button type="button" class="oo-btn oo-btn-label" onclick="printAllCupLabels(\'' + oidJs + '\')"><i class="fa-solid fa-tags"></i> In tem tất cả</button>' +
+        onlineStatusActions(o.status).map(function (a) {
+          return '<button type="button" class="' + ooActBtnClass(a.status, allDone) + '" onclick="updateOnlineOrderStatusClick(\'' + oidJs + '\',\'' + escHtml(a.status).replace(/'/g, "\\'") + '\')">' +
+            ooActIcon(a.status) + escHtml(a.label) + '</button>';
+        }).join('');
+      var members = gi ? parseOrderItemsJson(o.items).reduce(function (acc, it) {
+        var who = String(it.groupMember || '').trim() || (String(it.note || '').match(/^\[([^\]]{1,40})\]/) || [])[1] || '';
+        if (who && acc.indexOf(who) < 0) acc.push(who);
+        return acc;
+      }, []) : [];
+      var groupBanner = gi
+        ? ('<div class="oo-group-banner"><i class="fa-solid fa-user-group"></i> ĐƠN NHÓM' + (gi.name ? ' — ' + escHtml(gi.name) : '') + ' (mã ' + escHtml(gi.code) + ')' +
+          (members.length ? '<small>' + members.length + ' người: ' + escHtml(members.join(', ')) + '</small>' : '') + '</div>')
+        : '';
+      var progress = (!isDone && prog.total)
+        ? ('<div class="oo-progress' + (allDone ? ' done' : '') + '"><span>' + (allDone ? '✅ Đã pha xong hết' : '☕ Đã pha ' + prog.done + '/' + prog.total + ' món') + '</span>' +
+          '<span class="oo-progress-bar"><i style="width:' + Math.round(prog.done / prog.total * 100) + '%;"></i></span></div>')
+        : '';
+      var tStr = ooFmtTime(o.time);
+      var meta = [escHtml(o.customerName || ''), escHtml(o.customerPhone || ''), escHtml(o.paymentMethod || '')]
+        .filter(Boolean).join(' · ') + (tStr ? ' · 🕐 ' + tStr : '');
+      var disc = parseFloat(o.discount) > 0 ? ' <span style="color:#15803d;font-weight:700;font-size:11px;">(−' + fmt(parseFloat(o.discount)) + ')</span>' : '';
+      return '<div class="oo-card' + (isOpen ? ' open' : '') + '">' +
+        '<div class="oo-card-h" onclick="toggleOnlineOrderDetail(\'' + oidJs + '\')">' +
+        '<div style="min-width:0;"><div class="oo-id">' + (gi ? '<i class="fa-solid fa-user-group" style="color:#ea580c;"></i> ' : '') + escHtml(o.id) + '</div>' +
+        '<div class="oo-meta">' + meta + '</div></div>' +
+        '<div class="oo-right">' + onlineOrderStatusChip(o.status) +
+        '<span class="oo-total">' + fmt(parseFloat(o.finalAmount) || 0) + disc + '</span>' +
+        '<i class="fa-solid fa-chevron-down oo-chev"></i></div></div>' +
+        groupBanner + progress +
+        '<div class="oo-body">' + (isOpen ? renderOnlineOrderItemsDetail(o) : '') + '</div>' +
+        '<div class="oo-acts">' + acts + '</div></div>';
+    }).join('');
+  }
+
+  window.toggleOnlineOrderDetail = function (oid) {
+    var o = (__onlineOrdersCache || []).find(function (x) { return String(x.id) === String(oid); });
+    var cur = __ooOpen[oid] != null ? !!__ooOpen[oid] : (o ? !isOnlineOrderDone(o) : false);
+    __ooOpen[oid] = !cur;
+    renderOnlineOrdersList();
+  };
+
+  window.updateOnlineOrderStatusClick = async function (oid, st) {
+    showLoading(true);
+    try {
+      await api.call('updateOnlineOrderStatus', oid, st);
+      if (st.indexOf('Hoàn thành') >= 0 || st.indexOf('Hủy') >= 0) {
+        try { localStorage.removeItem('sun_pos_check_' + oid); } catch (eC) { }
+      }
+      showToast('✅ ' + oid + ' → ' + st);
+      await loadOnlineOrdersModal();
+      await refreshOnlineOrdersBadge();
+    } catch (e) {
+      showToast('⚠️ ' + (e.message || e));
+    }
+    showLoading(false);
+  };
+
+  async function loadOnlineOrdersModal() {
+    var r = await api.call('getOnlineOrdersForAdmin', 40);
+    __onlineOrdersCache = normalizeOnlineOrders((r && r.orders) || []);
+    renderOnlineOrdersList();
+  }
+
+  window.openOnlineOrdersModal = async function () {
+    document.getElementById('onlineOrdersModal').classList.add('open');
+    updateLabelPrinterUi();
+    initLabelPrinterAndroidTip();
+    // Android: tự thử kết nối lại máy in đã cấp quyền (không hiện popup chọn thiết bị)
+    if (navigator.bluetooth && navigator.bluetooth.getDevices) {
+      tryReconnectLabelPrinter(true).then(function (ok) {
+        if (ok) updateLabelPrinterUi();
+      });
+    }
+    showLoading(true);
+    try { await loadOnlineOrdersModal(); } catch (e) { showToast('⚠️ Không tải đơn online'); }
+    showLoading(false);
+  };
+  window.closeOnlineOrdersModal = function () {
+    document.getElementById('onlineOrdersModal').classList.remove('open');
+  };
+
+  async function loadGiaoMemberModal() {
+    var r = await api.call('getMemberDeliveriesTodayEnriched');
+    var list = (r && r.deliveries) || [];
+    var dateEl = document.getElementById('giao-member-date');
+    if (dateEl) dateEl.textContent = r.dateLabel || 'Hôm nay';
+    var box = document.getElementById('giao-member-list');
+    if (!box) return;
+    if (!list.length) { box.innerHTML = '<p style="color:var(--text-3);">Không có giao gói hôm nay.</p>'; return; }
+    box.innerHTML = list.map(function (d) {
+      var tel = String(d.phone || '').replace(/\D/g, '');
+      var sms = encodeURIComponent(d.smsBody || '');
+      return '<div class="card" style="margin-bottom:10px;padding:12px;border:1px solid var(--border);border-radius:12px;">' +
+        '<div style="font-weight:900;font-size:14px;">' + escHtml(d.customerName) + '</div>' +
+        '<p style="margin:4px 0;font-size:12px;"><i class="fa-solid fa-phone"></i> <a href="tel:' + tel + '">' + escHtml(d.phone) + '</a> · Mã ' + escHtml(d.memberCode) + '</p>' +
+        '<p style="margin:0 0 4px;font-size:12px;"><i class="fa-solid fa-mug-hot"></i> ' + escHtml(d.drinkToday || d.milkProduct) + ' · ' + escHtml(d.timeSlot || '7:00–8:30') + '</p>' +
+        '<p style="margin:0 0 8px;font-size:12px;color:var(--text-3);"><i class="fa-solid fa-location-dot"></i> ' + escHtml(d.fulfillment) + (d.address ? (' — ' + escHtml(d.address)) : '') + '</p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+        '<a class="btn" style="padding:8px 12px;font-size:11px;text-decoration:none;" href="tel:' + tel + '"><i class="fa-solid fa-phone"></i> Gọi</a>' +
+        '<a class="btn btn-sec" style="padding:8px 12px;font-size:11px;text-decoration:none;" href="sms:' + tel + '?body=' + sms + '"><i class="fa-solid fa-comment-sms"></i> SMS</a>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  window.openGiaoMemberModal = async function () {
+    document.getElementById('giaoMemberModal').classList.add('open');
+    showLoading(true);
+    try { await loadGiaoMemberModal(); } catch (e) { showToast('⚠️ Không tải Giao Member'); }
+    showLoading(false);
+  };
+  window.closeGiaoMemberModal = function () {
+    document.getElementById('giaoMemberModal').classList.remove('open');
+  };
+
+  // ====== BOOT ======
+  window.addEventListener('load', () => {
+    try {
+      if (typeof window.speechSynthesis !== 'undefined') {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = function () { try { window.speechSynthesis.getVoices(); } catch (eV) { } };
+      }
+    } catch (eVo) { }
+    try { loadData(); } catch (e) { menuData = getFallbackMenu(); renderMenu(); renderCategories(); }
+    refreshOnlineOrdersBadge();
+    setInterval(refreshOnlineOrdersBadge, 45000);
+    updateLabelPrinterUi();
+    if (navigator.bluetooth && navigator.bluetooth.getDevices) {
+      tryReconnectLabelPrinter(true).then(function (ok) { if (ok) updateLabelPrinterUi(); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      const g = document.getElementById('products-grid');
+      if (g && (g.children.length === 0 || g.querySelector('.skel-img'))) { menuData = getFallbackMenu(); renderMenu(); renderCategories(); }
+    }, 8000);
+  });
+</script>

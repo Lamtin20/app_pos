@@ -1,0 +1,63 @@
+:root {
+  --sun-primary: #9a3412;
+  --sun-bg: #f3ede6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  background: var(--sun-bg);
+  color: #1a1410;
+}
+
+a {
+  color: var(--sun-primary);
+}
+
+.home-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.home-wrap h1 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.home-nav {
+  display: grid;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.home-nav a {
+  display: block;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1px solid rgba(120, 82, 48, 0.15);
+  border-radius: 14px;
+  text-decoration: none;
+  font-weight: 700;
+  color: #7c2d12;
+  transition: transform 0.15s;
+}
+
+.home-nav a:hover {
+  transform: translateY(-2px);
+}
+
+.legacy-page-root:empty::after {
+  content: 'Đang tải…';
+  display: block;
+  text-align: center;
+  padding: 48px;
+  color: #8b7765;
+}

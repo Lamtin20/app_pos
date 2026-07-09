@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Đặt hàng | SUN Nut Milk</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { --primary:#9A3412; --primary-dk:#7C2D12; --primary-lt:#EA580C; --bg:#F3EDE6; --surface:#FFFCF8; --border:rgba(120,82,48,.15); --text:#1A1410; --text3:#8B7765; --green:#15803D; --red:#B91C1C; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--text); padding-bottom:96px; }
+    .pk-top { background:linear-gradient(135deg,#7c2d12,#ea580c); color:#fff; padding:12px 16px; position:sticky; top:0; z-index:50; }
+    .pk-top-row { display:flex; align-items:center; gap:12px; }
+    .pk-back { color:#fff; text-decoration:none; font-size:12px; font-weight:700; white-space:nowrap; padding:8px 10px; background:rgba(255,255,255,.12); border-radius:999px; }
+    .pk-top h1 { margin:0; font-size:17px; flex:1; }
+    .pk-top p { margin:4px 0 0; font-size:11px; opacity:.92; }
+    .pk-wrap { max-width:520px; margin:0 auto; padding:12px; }
+    .pk-promo-bar { display:flex; gap:8px; margin-bottom:12px; }
+    .pk-promo-bar input { flex:1; padding:10px 12px; border:1.5px solid var(--border); border-radius:12px; font-weight:700; text-transform:uppercase; }
+    .pk-promo-bar button { border:none; border-radius:12px; padding:10px 14px; font-weight:800; background:var(--primary-dk); color:#fff; cursor:pointer; white-space:nowrap; }
+    .pk-promo-msg { font-size:12px; font-weight:700; margin:-4px 0 10px; min-height:18px; }
+    .pk-promo-msg.ok { color:var(--green); }
+    .pk-promo-msg.err { color:var(--red); }
+    .pk-cats { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; scrollbar-width:none; }
+    .pk-cats::-webkit-scrollbar { display:none; }
+    .pk-cats button { flex:0 0 auto; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:8px 14px; font-weight:700; font-size:12px; cursor:pointer; }
+    .pk-cats button.on { background:var(--primary-dk); color:#fff; border-color:var(--primary-dk); }
+    .pk-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .pk-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; cursor:pointer; transition:transform .15s; }
+    .pk-card:active { transform:scale(.98); }
+    .pk-card img { width:100%; height:100px; object-fit:cover; background:#eee; }
+    .pk-card .b { padding:10px; }
+    .pk-card .nm { font-size:12px; font-weight:700; line-height:1.35; min-height:2.6em; }
+    .pk-card .pr { color:var(--primary); font-weight:900; font-size:14px; margin-top:6px; }
+    .pk-cart { position:fixed; left:0; right:0; bottom:0; background:rgba(255,252,248,.98); border-top:1px solid var(--border); padding:10px 14px calc(10px + env(safe-area-inset-bottom)); z-index:60; display:flex; gap:10px; align-items:center; backdrop-filter:blur(8px); }
+    .pk-cart .sum { flex:1; font-weight:900; font-size:15px; }
+    .pk-btn { border:none; border-radius:12px; padding:12px 18px; font-weight:800; cursor:pointer; background:var(--primary-dk); color:#fff; }
+    .pk-btn:disabled { opacity:.55; cursor:not-allowed; }
+    .pk-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; align-items:flex-end; justify-content:center; }
+    .pk-modal.open { display:flex; }
+    .pk-sheet { background:var(--surface); width:100%; max-width:520px; max-height:92vh; overflow:auto; border-radius:18px 18px 0 0; padding:16px; }
+    .pk-sheet h2 { margin:0 0 12px; font-size:16px; }
+    label { font-size:11px; font-weight:800; color:var(--text3); display:block; margin:8px 0 4px; }
+    input, select, textarea { width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; font-family:inherit; }
+    .pk-pay { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
+    .pk-pay button { padding:10px; border:1.5px solid var(--border); border-radius:12px; background:var(--surface); font-weight:800; font-size:11px; cursor:pointer; }
+    .pk-pay button.on { border-color:var(--primary); background:rgba(154,52,18,.08); color:var(--primary-dk); }
+    .pk-line { display:flex; justify-content:space-between; font-size:13px; margin:6px 0; }
+    .pk-applied { background:rgba(21,128,61,.1); border:1px solid rgba(21,128,61,.25); border-radius:10px; padding:8px 10px; font-size:12px; font-weight:700; color:var(--green); margin-bottom:8px; }
+    .pk-toast { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:#1a1410; color:#fff; padding:10px 16px; border-radius:999px; font-size:12px; font-weight:700; z-index:99; display:none; max-width:90vw; text-align:center; }
+    .pk-toast.show { display:block; }
+    .mem-hidden { display:none !important; }
+    body.pk-embed { padding-bottom: 88px; }
+    body.pk-embed .pk-top { border-radius: 0; }
+  </style>
+</head>
+<body>
+  <header class="pk-top">
+    <div class="pk-top-row">
+      <a class="pk-back" id="pk-back" href="#"><i class="fa-solid fa-arrow-left"></i> Hội viên</a>
+      <div style="flex:1;min-width:0;">
+        <h1><i class="fa-solid fa-mug-hot"></i> Đặt hàng</h1>
+        <p id="pk-greet">Nhận tại quầy hoặc giao trong khu vực</p>
+      </div>
+    </div>
+  </header>
+  <div class="pk-wrap">
+    <div class="pk-promo-bar" id="pk-promo-row">
+      <input type="text" id="pk-promo-input" placeholder="Mã ưu đãi" maxlength="32" autocomplete="off">
+      <button type="button" id="pk-promo-apply">Áp dụng</button>
+    </div>
+    <p class="pk-promo-msg" id="pk-promo-msg"></p>
+    <div class="pk-cats" id="pk-cats"></div>
+    <div class="pk-grid" id="pk-grid"><p style="color:var(--text3);">Đang tải menu…</p></div>
+  </div>
+  <div class="pk-cart" id="pk-cart-bar" style="display:none;">
+    <div class="sum"><span id="pk-cart-n">0</span> món · <span id="pk-cart-t">0đ</span></div>
+    <button type="button" class="pk-btn" id="pk-checkout-btn">Thanh toán</button>
+  </div>
+  <div class="pk-modal" id="pk-checkout-modal">
+    <div class="pk-sheet">
+      <h2>Xác nhận đơn</h2>
+      <div class="pk-applied mem-hidden" id="pk-promo-applied"></div>
+      <label>Họ tên</label><input id="pk-name" type="text" placeholder="Tên người nhận">
+      <label>SĐT</label><input id="pk-phone" type="tel" readonly>
+      <label>Hình thức nhận</label>
+      <div class="pk-pay" id="pk-fulfillment">
+        <button type="button" class="on" data-f="pickup"><i class="fa-solid fa-store"></i> Nhận tại quầy</button>
+        <button type="button" data-f="delivery"><i class="fa-solid fa-truck"></i> Giao hàng</button>
+      </div>
+      <div id="pk-addr-block" style="display:none;">
+        <label>Địa chỉ giao</label><textarea id="pk-addr" rows="2" placeholder="Số nhà, đường…"></textarea>
+        <label>Khu vực giao</label><select id="pk-zone"><option value="">- Chọn khu vực -</option></select>
+      </div>
+      <label>Thanh toán</label>
+      <div class="pk-pay" id="pk-pay">
+        <button type="button" class="on" data-p="Thanh toán khi nhận"><i class="fa-solid fa-hand-holding-dollar"></i> Khi nhận</button>
+        <button type="button" data-p="Chuyển khoản"><i class="fa-solid fa-building-columns"></i> Chuyển khoản</button>
+      </div>
+      <div class="pk-line"><span>Tạm tính</span><span id="pk-sub">0đ</span></div>
+      <div class="pk-line"><span>Giảm KM</span><span id="pk-disc">0đ</span></div>
+      <div class="pk-line" style="font-weight:900;font-size:16px;color:var(--primary);"><span>Tổng</span><span id="pk-total">0đ</span></div>
+      <button type="button" class="pk-btn" style="width:100%;margin-top:12px;" id="pk-submit">Gửi đơn</button>
+      <button type="button" style="width:100%;margin-top:8px;padding:10px;border:none;background:transparent;color:var(--text3);font-weight:700;cursor:pointer;" id="pk-close">Đóng</button>
+    </div>
+  </div>
+  <div class="pk-toast" id="pk-toast"></div>
+  <script>
+  (function () {
+    var SCRIPT_URL = typeof __SUN_URL_INJECT__ !== 'undefined' ? __SUN_URL_INJECT__ : '';
+    var params = new URLSearchParams(location.search);
+    var phone = (params.get('phone') || sessionStorage.getItem('sun_member_phone') || '').replace(/\D/g, '');
+    var promoFromUrl = (params.get('promo') || '').trim().toUpperCase();
+    var embed = params.get('embed') === '1';
+    var menu = [], cart = [], fulfillment = 'pickup', pay = 'Thanh toán khi nhận';
+    var discount = 0, appliedPromo = '';
+
+    function toast(m) {
+      var t = document.getElementById('pk-toast');
+      t.textContent = m;
+      t.classList.add('show');
+      setTimeout(function () { t.classList.remove('show'); }, 2800);
+    }
+    function fmt(n) { return Math.round(n || 0).toLocaleString('vi-VN') + 'đ'; }
+    function cartSubtotal() {
+      return cart.reduce(function (s, c) { return s + c.price * c.qty; }, 0);
+    }
+    function api(method) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return new Promise(function (res, rej) {
+        google.script.run.withSuccessHandler(res).withFailureHandler(function (e) {
+          rej(new Error(e && e.message ? e.message : String(e)));
+        })[method].apply(null, args);
+      });
+    }
+    function posBase() {
+      return (SCRIPT_URL || '').split('?')[0] || location.href.split('?')[0].replace(/[?#].*$/, '');
+    }
+    function syncPromoUi() {
+      var sub = cartSubtotal();
+      var total = Math.max(0, sub - discount);
+      document.getElementById('pk-sub').textContent = fmt(sub);
+      document.getElementById('pk-disc').textContent = fmt(discount);
+      document.getElementById('pk-total').textContent = fmt(total);
+      var n = cart.reduce(function (s, c) { return s + c.qty; }, 0);
+      document.getElementById('pk-cart-bar').style.display = n ? 'flex' : 'none';
+      document.getElementById('pk-cart-n').textContent = n;
+      document.getElementById('pk-cart-t').textContent = fmt(total);
+      var ap = document.getElementById('pk-promo-applied');
+      if (appliedPromo && discount > 0) {
+        ap.textContent = 'Đã áp mã ' + appliedPromo + ' - giảm ' + fmt(discount);
+        ap.classList.remove('mem-hidden');
+      } else if (appliedPromo) {
+        ap.textContent = 'Mã ' + appliedPromo + ' đã áp dụng';
+        ap.classList.remove('mem-hidden');
+      } else {
+        ap.classList.add('mem-hidden');
+      }
+    }
+    async function applyPromo(code, silent) {
+      var c = String(code || '').trim().toUpperCase();
+      if (!c) { discount = 0; appliedPromo = ''; syncPromoUi(); return; }
+      if (!cart.length) {
+        if (!silent) toast('Thêm món vào giỏ trước khi áp mã');
+        return;
+      }
+      var msg = document.getElementById('pk-promo-msg');
+      try {
+        var r = await api('applyPickupPromo', c, phone, cart);
+        if (r && r.ok) {
+          discount = parseFloat(r.discount) || 0;
+          appliedPromo = c;
+          document.getElementById('pk-promo-input').value = c;
+          if (msg) { msg.textContent = r.message || ('Giảm ' + fmt(discount)); msg.className = 'pk-promo-msg ok'; }
+          if (!silent) toast('✅ ' + (r.message || 'Đã áp mã'));
+        } else {
+          discount = 0;
+          appliedPromo = '';
+          if (msg) { msg.textContent = (r && r.message) || 'Mã không hợp lệ'; msg.className = 'pk-promo-msg err'; }
+          if (!silent) toast('❌ ' + ((r && r.message) || 'Mã không hợp lệ'));
+        }
+      } catch (e) {
+        discount = 0;
+        appliedPromo = '';
+        if (msg) { msg.textContent = e.message || 'Lỗi áp mã'; msg.className = 'pk-promo-msg err'; }
+        if (!silent) toast(e.message || 'Lỗi áp mã');
+      }
+      syncPromoUi();
+    }
+    function renderMenu() {
+      var cats = ['all'];
+      menu.forEach(function (m) { if (m.category && cats.indexOf(m.category) < 0) cats.push(m.category); });
+      document.getElementById('pk-cats').innerHTML = cats.map(function (c) {
+        return '<button type="button" data-c="' + c + '"' + (c === 'all' ? ' class="on"' : '') + '>' + (c === 'all' ? 'Tất cả' : c) + '</button>';
+      }).join('');
+      document.querySelectorAll('#pk-cats button').forEach(function (btn) {
+        btn.onclick = function () {
+          document.querySelectorAll('#pk-cats button').forEach(function (b) { b.classList.remove('on'); });
+          btn.classList.add('on');
+          drawGrid(btn.getAttribute('data-c'));
+        };
+      });
+      drawGrid('all');
+    }
+    function drawGrid(cat) {
+      var list = cat === 'all' ? menu : menu.filter(function (m) { return m.category === cat; });
+      document.getElementById('pk-grid').innerHTML = list.filter(function (m) { return m.available !== false; }).map(function (m) {
+        return '<article class="pk-card" data-id="' + m.id + '"><img src="' + (m.image || '') + '" alt=""><div class="b"><div class="nm">' + (m.name || '') + '</div><div class="pr">' + fmt(m.price) + '</div></div></article>';
+      }).join('') || '<p>Chưa có món.</p>';
+      document.querySelectorAll('.pk-card').forEach(function (card) {
+        card.onclick = function () {
+          var id = card.getAttribute('data-id');
+          var item = menu.find(function (x) { return String(x.id) === String(id); });
+          if (!item) return;
+          var ex = cart.find(function (c) { return String(c.id) === String(id); });
+          if (ex) ex.qty++; else cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
+          syncPromoUi();
+          if (appliedPromo) applyPromo(appliedPromo, true);
+          toast('Đã thêm ' + item.name);
+        };
+      });
+    }
+    var pkBack = document.getElementById('pk-back');
+    if (embed) {
+      if (pkBack) pkBack.style.display = 'none';
+      document.body.classList.add('pk-embed');
+    } else if (pkBack) {
+      pkBack.href = posBase() + '?page=member&phone=' + encodeURIComponent(phone);
+    }
+    document.getElementById('pk-checkout-btn').onclick = function () {
+      if (!cart.length) return;
+      document.getElementById('pk-checkout-modal').classList.add('open');
+      document.getElementById('pk-phone').value = phone;
+      syncPromoUi();
+    };
+    document.getElementById('pk-close').onclick = function () {
+      document.getElementById('pk-checkout-modal').classList.remove('open');
+    };
+    document.querySelectorAll('#pk-fulfillment button').forEach(function (b) {
+      b.onclick = function () {
+        document.querySelectorAll('#pk-fulfillment button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        fulfillment = b.getAttribute('data-f');
+        document.getElementById('pk-addr-block').style.display = fulfillment === 'delivery' ? 'block' : 'none';
+      };
+    });
+    document.querySelectorAll('#pk-pay button').forEach(function (b) {
+      b.onclick = function () {
+        document.querySelectorAll('#pk-pay button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        pay = b.getAttribute('data-p');
+      };
+    });
+    document.getElementById('pk-promo-apply').onclick = function () {
+      applyPromo(document.getElementById('pk-promo-input').value, false);
+    };
+    document.getElementById('pk-promo-input').addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { ev.preventDefault(); document.getElementById('pk-promo-apply').click(); }
+    });
+    document.getElementById('pk-submit').onclick = async function () {
+      if (!phone || phone.length < 9) { toast('Thiếu SĐT - quay lại cổng hội viên'); return; }
+      if (!cart.length) { toast('Giỏ trống'); return; }
+      if (fulfillment === 'delivery' && !document.getElementById('pk-addr').value.trim()) {
+        toast('Nhập địa chỉ giao hàng'); return;
+      }
+      var sub = cartSubtotal();
+      var total = Math.max(0, sub - discount);
+      var btn = document.getElementById('pk-submit');
+      btn.disabled = true;
+      try {
+        if (appliedPromo) await applyPromo(appliedPromo, true);
+        var res = await api('savePickupOnlineOrder', {
+          customerPhone: phone,
+          customerName: document.getElementById('pk-name').value,
+          items: cart,
+          totalAmount: sub,
+          discount: discount,
+          finalAmount: total,
+          paymentMethod: pay,
+          fulfillment: fulfillment,
+          addressDetail: document.getElementById('pk-addr').value,
+          deliveryZone: document.getElementById('pk-zone').value,
+          promoCode: appliedPromo,
+          note: 'Pickup web'
+        });
+        toast('✅ Đã gửi đơn ' + (res.orderId || ''));
+        cart = [];
+        discount = 0;
+        appliedPromo = '';
+        document.getElementById('pk-promo-input').value = '';
+        document.getElementById('pk-promo-msg').textContent = '';
+        syncPromoUi();
+        document.getElementById('pk-checkout-modal').classList.remove('open');
+      } catch (e) {
+        toast(e.message || 'Lỗi gửi đơn');
+      }
+      btn.disabled = false;
+    };
+    (async function init() {
+      if (!phone) {
+        toast('Vui lòng đăng nhập SĐT tại cổng hội viên');
+        setTimeout(function () { location.href = posBase() + '?page=member'; }, 2200);
+        return;
+      }
+      try {
+        var prof = await api('getMemberProfile', phone);
+        if (prof && prof.profile) {
+          document.getElementById('pk-name').value = prof.profile.name || '';
+          document.getElementById('pk-greet').textContent = 'Xin chào ' + (prof.profile.name || phone) + ' · Mã ' + (prof.profile.memberCode || '');
+        }
+      } catch (e) {}
+      try {
+        menu = await api('getMenu') || [];
+        renderMenu();
+      } catch (e) {
+        document.getElementById('pk-grid').innerHTML = '<p style="color:var(--red);">Không tải menu</p>';
+      }
+      try {
+        var z = await api('getMemberDeliveryZones');
+        var sel = document.getElementById('pk-zone');
+        (z.zones || []).forEach(function (zone) {
+          (zone.wards || []).forEach(function (w) {
+            var o = document.createElement('option');
+            o.value = w;
+            o.textContent = w + ' - ' + (zone.province || '');
+            sel.appendChild(o);
+          });
+        });
+      } catch (eZ) {}
+      if (promoFromUrl) {
+        document.getElementById('pk-promo-input').value = promoFromUrl;
+        toast('Thêm món rồi bấm Áp dụng mã ' + promoFromUrl);
+      }
+      syncPromoUi();
+    })();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<script>
+try { var SCRIPT_URL = __SUN_URL_INJECT__; } catch (e) { var SCRIPT_URL = ''; }
+if (typeof SCRIPT_URL === 'undefined') var SCRIPT_URL = '';
+function posBase() {
+  var u = (typeof SCRIPT_URL === 'string' && SCRIPT_URL) ? SCRIPT_URL.split('?')[0] : '';
+  return u || window.location.href.split('?')[0].replace(/[?#].*$/, '');
+}
+function memPage(p) { return posBase() + '?page=' + p; }
+function wireTopLinks() {
+  var lp = document.getElementById('link-pos');
+  if (lp) lp.href = posBase() + '?page=order';
+  var pk = document.getElementById('link-pickup');
+  if (pk) pk.href = posBase() + '?page=pickup';
+}
+function gsErrMessage(e) {
+  if (e == null) return 'Lỗi không xác định';
+  if (typeof e === 'string') return e;
+  if (e.message) return String(e.message);
+  if (e.details) return String(e.details);
+  try { return JSON.stringify(e); } catch (x) { return String(e); }
+}
+function api(method) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function (resolve, reject) {
+    var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, 42000);
+    try {
+      var runner = google.script.run
+        .withSuccessHandler(function (r) { clearTimeout(t); resolve(r); })
+        .withFailureHandler(function (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); });
+      runner[method].apply(runner, args);
+    } catch (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); }
+  });
+}
+function apiLong(method, ms) {
+  var args = Array.prototype.slice.call(arguments, 2);
+  return new Promise(function (resolve, reject) {
+    var t = setTimeout(function () { reject(new Error('Hết thời gian chờ, bạn thử lại nhé.')); }, ms || 55000);
+    try {
+      var runner = google.script.run
+        .withSuccessHandler(function (r) { clearTimeout(t); resolve(r); })
+        .withFailureHandler(function (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); });
+      runner[method].apply(runner, args);
+    } catch (e) { clearTimeout(t); reject(new Error(gsErrMessage(e))); }
+  });
+}
+/**
+ * Tra cứu hội viên qua GET JSON (cùng origin với Web App).
+ * Dùng khi google.script.run không gọi được / treo im lặng trên một số trình duyệt hoặc bản triển khai.
+ */
+function portalMemberLookupHttp(phone) {
+  var base = posBase();
+  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
+  var sep = base.indexOf('?') === -1 ? '?' : '&';
+  var url = base + sep + 'api=memberPortal&phone=' + encodeURIComponent(String(phone || ''));
+  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    });
+}
+/** Một GET: settings + menu + packages (một lần thực thi server, nhanh hơn 3× google.script.run). */
+function portalMemberBootstrapHttp() {
+  var base = posBase();
+  if (!base) return Promise.reject(new Error('Chưa có URL Web App (SCRIPT_URL).'));
+  var sep = base.indexOf('?') === -1 ? '?' : '&';
+  var url = base + sep + 'api=memberPortalBootstrap';
+  return fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    });
+}
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function () { el.classList.remove('show'); }, 2800);
+}
+function normPhone(v) {
+  var d = String(v || '').replace(/\D/g, '');
+  if (!d) return '';
+  if (d.indexOf('84') === 0 && d.length >= 10) d = '0' + d.slice(2);
+  if (d.length === 9 && d.charAt(0) !== '0') d = '0' + d;
+  return d;
+}
+function isPhone10(ph) {
+  return /^0\d{9}$/.test(String(ph || ''));
+}
+function esc(s) {
+  var d = document.createElement('div');
+  d.textContent = s == null ? '' : s;
+  return d.innerHTML;
+}
+function fmt(n) { return Math.round(n || 0).toLocaleString('vi-VN') + '₫'; }
+
+var memberPortalSettings = null;
+var memCarouselTimer = null;
+var memCarouselIndex = 0;
+
+function stopMemCarousel() {
+  if (memCarouselTimer) { clearInterval(memCarouselTimer); memCarouselTimer = null; }
+}
+function buildMemCarouselSlides(banners) {
+  var box = document.getElementById('mem-carousel');
+  var dots = document.getElementById('mem-carousel-dots');
+  if (!box || !dots) return;
+  stopMemCarousel();
+  var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
+  list = list.filter(function (b) { return b && String(b.image || '').trim(); });
+  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
+  box.innerHTML = list.map(function (b, i) {
+    var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
+    var bd = esc(b.badge || '');
+    var t = esc(b.title || '');
+    var s = esc(b.subtitle || '');
+    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="background-image:url(\'' + img + '\');">' +
+      '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
+      (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
+  }).join('');
+  dots.innerHTML = list.map(function (_b, i) {
+    return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
+  }).join('');
+  memCarouselIndex = 0;
+  if (list.length < 2) return;
+  memCarouselTimer = setInterval(function () {
+    memCarouselIndex = (memCarouselIndex + 1) % list.length;
+    box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === memCarouselIndex); });
+    dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === memCarouselIndex); });
+  }, 5200);
+  dots.querySelectorAll('button').forEach(function (btn) {
+    btn.onclick = function () {
+      var ix = parseInt(btn.getAttribute('data-i'), 10) || 0;
+      memCarouselIndex = ix;
+      box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === ix); });
+      dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === ix); });
+    };
+  });
+}
+function applyMemberPortalFromSettings(raw) {
+  var d = {
+    brandTitle: 'SUN Nut Milk',
+    brandTagline: 'Tinh hoa từ hạt, trọn vẹn yêu thương.',
+    loginCardTitle: 'Cổng vào Hội viên',
+    loginCardSubtitle: 'Đăng nhập bằng số điện thoại để xem gói, lịch uống và ưu đãi.',
+    heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=900&q=80',
+    heroFeature1Title: 'Thực đơn cá nhân hóa',
+    heroFeature1Text: 'Lộ trình sữa hạt phù hợp thể trạng và mục tiêu sức khỏe của bạn.',
+    heroFeature2Title: 'Ưu đãi thành viên',
+    heroFeature2Text: 'Tích điểm đổi quà, ưu đãi theo từng giai đoạn hội viên.',
+    heroFeature3Title: 'Gợi ý lịch uống theo menu',
+    heroFeature3Text: 'Lịch 7 ngày với món có trên thực đơn, thành phần hạt và gợi ý lợi ích (không công thức nấu).',
+    aiBotName: 'NutriBot AI',
+    aiWelcome: 'Chào bạn! Hãy cho biết mục tiêu (đẹp da, giảm cân nhẹ, tim khỏe…). Mình sẽ gợi ý lịch uống 7 ngày từ menu SUN - mỗi ngày một món, kèm thành phần hạt và lợi ích tham khảo.',
+    aiPlaceholder: 'Mục tiêu của bạn (vd: đẹp da, tim khỏe…)',
+    scheduleLockHint: 'Khóa thay đổi món lúc 22:00 hàng ngày',
+    menuHeroTitle: 'Tinh hoa từ hạt',
+    menuHeroSubtitle: 'Khám phá thực đơn sữa hạt nguyên chất, thiết kế cho từng mục tiêu sức khỏe.',
+    footerCopy: '© 2024 SUN Nut Milk. Tinh hoa từ hạt, trọn vẹn yêu thương.',
+    banners: []
+  };
+  var s = Object.assign({}, d, raw || {});
+  memberPortalSettings = s;
+  var setTxt = function (id, v) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = v != null ? String(v) : '';
+  };
+  setTxt('mem-disp-brand-title', s.brandTitle);
+  setTxt('mem-disp-brand-tag', s.brandTagline);
+  setTxt('mem-disp-login-title', s.loginCardTitle);
+  setTxt('mem-disp-login-sub', s.loginCardSubtitle);
+  setTxt('mem-disp-f1t', s.heroFeature1Title);
+  setTxt('mem-disp-f1x', s.heroFeature1Text);
+  setTxt('mem-disp-f2t', s.heroFeature2Title);
+  setTxt('mem-disp-f2x', s.heroFeature2Text);
+  setTxt('mem-disp-f3t', s.heroFeature3Title);
+  setTxt('mem-disp-f3x', s.heroFeature3Text);
+  setTxt('mem-disp-ai-name', s.aiBotName);
+  setTxt('mem-disp-sched-hint', s.scheduleLockHint);
+  setTxt('mem-disp-menu-hero-title', s.menuHeroTitle);
+  setTxt('mem-disp-menu-hero-sub', s.menuHeroSubtitle);
+  var hi = document.getElementById('mem-disp-hero-img');
+  if (hi && s.heroImageUrl) hi.src = s.heroImageUrl;
+  var carouselBanners = Array.isArray(s.banners) && s.banners.length ? s.banners : d.banners;
+  buildMemCarouselSlides(carouselBanners);
+  var carWrap = document.getElementById('mem-carousel-wrap');
+  if (carWrap) carWrap.style.display = (carouselBanners && carouselBanners.length) ? '' : 'none';
+  var heroReg = document.getElementById('mem-disp-hero-register-img');
+  if (heroReg && s.heroRegisterImageUrl) {
+    heroReg.src = s.heroRegisterImageUrl;
+    heroReg.style.display = 'block';
+  }
+  var menuHero = document.querySelector('.mem-menu-hero');
+  if (menuHero && s.menuHeroBgUrl) {
+    menuHero.style.backgroundImage = 'linear-gradient(105deg, rgba(124,45,18,.82), rgba(154,52,18,.72)), url(' + String(s.menuHeroBgUrl).replace(/'/g, '%27') + ')';
+    menuHero.style.backgroundSize = 'cover';
+    menuHero.style.backgroundPosition = 'center';
+  }
+  var th = document.getElementById('mem-ai-thread');
+  var inp = document.getElementById('mem-ai-input');
+  if (inp) inp.placeholder = s.aiPlaceholder || d.aiPlaceholder;
+  if (th) th.innerHTML = '<div class="mem-bubble-bot">' + esc(s.aiWelcome || d.aiWelcome) + '</div>';
+  var phone = String(s.supportPhone || '').trim();
+  var zalo = String(s.supportZalo || '').trim();
+  var sp = document.getElementById('mem-support-phone');
+  if (sp && phone) sp.href = 'tel:' + phone.replace(/\s/g, '');
+  var sl = document.getElementById('mem-support-zalo');
+  if (sl && zalo) sl.href = zalo.indexOf('http') === 0 ? zalo : ('https://zalo.me/' + zalo.replace(/\D/g, ''));
+  var lab = document.getElementById('mem-support-label');
+  if (lab && phone) lab.textContent = 'Liên hệ & Góp ý · ' + phone;
+}
+
+(function () {
+  var U = '__SUN_FAVICON_URL__';
+  if (typeof window.setFaviconUrl !== 'function') {
+    window.SUN_FAVICON_URL = U;
+    window.setFaviconUrl = function (url) {
+      var u = url || window.SUN_FAVICON_URL || U;
+      function ensure(rel, mime) {
+        var link = document.querySelector('link[rel="' + rel + '"]');
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = rel;
+          if (mime) link.type = mime;
+          document.head.appendChild(link);
+        }
+        link.href = u;
+      }
+      ensure('icon', 'image/png');
+      ensure('apple-touch-icon', null);
+    };
+  }
+  if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
+  window.setFaviconUrl(window.SUN_FAVICON_URL);
+})();
+</script>
