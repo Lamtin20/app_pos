@@ -50,9 +50,19 @@ export default function LegacyPage({ src, title }) {
 
         hostRef.current.innerHTML = doc.body.innerHTML;
 
-        const extScripts = [...doc.querySelectorAll('script[src]')];
-        for (const s of extScripts) {
-          await loadScript(s.getAttribute('src'));
+        const scriptSrcs = [];
+        const seenSrc = new Set();
+        doc.querySelectorAll('head script[src], body script[src]').forEach((node) => {
+          const src = node.getAttribute('src');
+          if (!src || seenSrc.has(src)) return;
+          seenSrc.add(src);
+          scriptSrcs.push(src);
+        });
+        if (!seenSrc.has('/sun-api-client.js')) {
+          scriptSrcs.unshift('/sun-api-client.js');
+        }
+        for (const src of scriptSrcs) {
+          await loadScript(src);
         }
 
         const inlineScripts = [...doc.querySelectorAll('script:not([src])')];

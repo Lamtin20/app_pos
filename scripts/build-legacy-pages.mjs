@@ -105,10 +105,10 @@ function transform(html, opts = {}) {
     'if (window.__SUN_INSTALL_API__) __SUN_INSTALL_API__();'
   );
 
+  const SUN_API_SCRIPT = /<script[^>]+src=["']\/sun-api-client\.js["']/i;
   const inject = '<script src="/sun-api-client.js"></script>\n  ';
-  if (!s.includes('sun-api-client.js')) {
+  if (!SUN_API_SCRIPT.test(s)) {
     s = s.replace(/<head>/i, '<head>\n  ' + inject);
-    s = s.replace(/<script>\s*try \{ var SCRIPT_URL/i, inject + '<script>try { var SCRIPT_URL');
   }
 
   if (!s.includes('sun-legacy-root-css')) {
