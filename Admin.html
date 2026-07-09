@@ -70,7 +70,11 @@
     .pin-error { text-align:center; color:var(--red); font-size:13px; min-height:20px; margin-bottom:8px; }
 
     /* ADMIN LAYOUT */
-    #admin-screen { display:none; min-height:100vh; }
+    #admin-screen { display:none; min-height:100vh; flex:1; min-height:0; flex-direction:column; overflow:hidden; }
+    #admin-screen[style*="display: flex"], #admin-screen[style*="display:flex"] { height:100%; }
+    .admin-header { flex-shrink:0; }
+    .admin-tabs { flex-shrink:0; }
+    .admin-content { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; scrollbar-width:thin; }
     .admin-header { background:var(--bg2); border-bottom:1px solid var(--border); padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
     .admin-logo { display:flex; align-items:center; gap:10px; }
     .admin-logo-icon { font-size:24px; }
@@ -1826,7 +1830,7 @@ function updatePinDots() {
 function submitPin() {
   if (pinInput === ADMIN_PIN) {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-screen').style.display = 'block';
+    document.getElementById('admin-screen').style.display = 'flex';
     initAdmin();
   } else {
     document.getElementById('pin-error').textContent = '❌ PIN không đúng!';

@@ -6,7 +6,10 @@
 .legacy-page-root{height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .legacy-page-root .topbar,.legacy-page-root .bottom-nav{flex-shrink:0}
 .legacy-page-root .pos-layout,.legacy-page-root .mem-shell{flex:1;min-height:0}
-.legacy-page-root .products-scroll,.legacy-page-root .mem-main,.legacy-page-root .mem-portal-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;flex:1}
+.legacy-page-root .products-scroll,.legacy-page-root .mem-main,.legacy-page-root .mem-portal-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;flex:1;scrollbar-width:none;-ms-overflow-style:none}
+.legacy-page-root .products-scroll::-webkit-scrollbar,.legacy-page-root .mem-main::-webkit-scrollbar,.legacy-page-root .mem-portal-main::-webkit-scrollbar{display:none;width:0;height:0}
+.legacy-page-root #admin-screen[style*="display: flex"],.legacy-page-root #admin-screen[style*="display:flex"]{display:flex!important;flex-direction:column;flex:1;min-height:0;height:100%;overflow:hidden}
+.legacy-page-root #admin-screen .admin-content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
 </style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -76,7 +79,11 @@
     .pin-error { text-align:center; color:var(--red); font-size:13px; min-height:20px; margin-bottom:8px; }
 
     /* ADMIN LAYOUT */
-    #admin-screen { display:none; min-height:100vh; }
+    #admin-screen { display:none; min-height:100vh; flex:1; min-height:0; flex-direction:column; overflow:hidden; }
+    #admin-screen[style*="display: flex"], #admin-screen[style*="display:flex"] { height:100%; }
+    .admin-header { flex-shrink:0; }
+    .admin-tabs { flex-shrink:0; }
+    .admin-content { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; scrollbar-width:thin; }
     .admin-header { background:var(--bg2); border-bottom:1px solid var(--border); padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
     .admin-logo { display:flex; align-items:center; gap:10px; }
     .admin-logo-icon { font-size:24px; }
@@ -1832,7 +1839,7 @@ function updatePinDots() {
 function submitPin() {
   if (pinInput === ADMIN_PIN) {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-screen').style.display = 'block';
+    document.getElementById('admin-screen').style.display = 'flex';
     initAdmin();
   } else {
     document.getElementById('pin-error').textContent = '❌ PIN không đúng!';

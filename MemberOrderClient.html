@@ -1064,7 +1064,7 @@
     // Thanh toán đang tạm ẩn cho đơn thường; riêng trưởng nhóm mở lại để chọn
     // Chuyển khoản → hệ thống show QR sau khi chốt đơn
     var payBlock = $('mem-cart-pay-block');
-    if (payBlock) payBlock.style.display = (inGroup() && isHost()) ? '' : 'none';
+    if (payBlock) payBlock.style.display = memberOnly ? 'none' : '';
     var wait = $('mem-group-wait');
     if (wait) wait.style.display = memberOnly ? '' : 'none';
     var sub = $('mem-cart-submit');
@@ -1611,6 +1611,7 @@
     renderPromoApplied();
     refreshPromoOptions();
     loadZones();
+    applyGroupModeUi();
     syncCartTotals();
     if (inGroup()) pollGroupState();
   }
@@ -1700,13 +1701,7 @@
     if (closeBtn) closeBtn.onclick = function () { closeModal(); };
     var modal = $('mem-product-modal');
     if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(e); });
-    document.querySelectorAll('#mem-sheet-temp-options .opt-btn').forEach(function (b) {
-      b.onclick = function () { selectServeTemp(b, b.getAttribute('data-temp')); };
-    });
-    document.querySelectorAll('#mem-sheet-pack-options .opt-btn').forEach(function (b) {
-      b.onclick = function () { selectPackaging(b, b.getAttribute('data-pack')); };
-    });
-    document.querySelectorAll('#mem-sheet-ice-group .opt-btn').forEach(function (b) {
+    document.querySelectorAll('#mem-sheet-ice-options .opt-btn, #mem-sheet-ice-group .opt-btn').forEach(function (b) {
       b.onclick = function () { selectOpt(b, 'ice', b.getAttribute('data-ice')); };
     });
     document.querySelectorAll('#mem-product-modal .opt-btn[data-sweet]').forEach(function (b) {
@@ -1821,5 +1816,7 @@
     categoryList: function () { return MEM_CAT_LIST.slice(); }
   };
   loadAwait();
+  try { wireOnce(); } catch (eWire) { }
+  try { bootstrap(); } catch (eBoot) { }
 })(typeof window !== 'undefined' ? window : this);
 </script>
