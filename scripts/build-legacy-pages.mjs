@@ -69,12 +69,12 @@ function transform(html, opts = {}) {
     "var url = '/api/member/bootstrap'"
   );
   s = s.replace(
-    /base \+ sep \+ 'api=groupOrder&group='/g,
-    "('/api/group-order?group='"
+    /base \+ sep \+ 'api=orderStatus&order='/g,
+    "'/api/order-status?order='"
   );
   s = s.replace(
-    /base \+ sep \+ 'api=orderStatus&order='/g,
-    "('/api/order-status?order='"
+    /base \+ sep \+ 'api=groupOrder&group='/g,
+    "'/api/group-order?group='"
   );
   s = s.replace(
     /base \+ sep \+ 'api=menu'/g,

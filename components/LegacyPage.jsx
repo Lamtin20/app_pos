@@ -26,6 +26,10 @@ export default function LegacyPage({ src, title }) {
 
     async function runInlineScripts(scripts) {
       for (const s of scripts) {
+        const key = s.textContent.slice(0, 80);
+        if (!window.__SUN_LEGACY_INLINE__) window.__SUN_LEGACY_INLINE__ = new Set();
+        if (window.__SUN_LEGACY_INLINE__.has(key)) continue;
+        window.__SUN_LEGACY_INLINE__.add(key);
         const el = document.createElement('script');
         el.textContent = s.textContent;
         document.body.appendChild(el);
