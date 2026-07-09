@@ -918,7 +918,7 @@
     }
     .menu-card .bd .pr::after,
     .mem-home-menu-grid .menu-card .bd .pr::after {
-      content: '+'; width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      content: '+'; width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
       background: var(--primary-dk); color: #fff; font-size: 16px; font-weight: 900;
       display: inline-flex; align-items: center; justify-content: center; line-height: 1;
       box-shadow: 0 3px 8px rgba(154, 52, 18, .28);
@@ -928,6 +928,20 @@
       content: none !important;
       display: none !important;
     }
+    .mem-pk-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-top: 6px;
+    }
+    .mem-pk-footer .pr { margin-top: 0 !important; flex: 1; min-width: 0; }
+    .mem-pk-add-btn {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: var(--primary-dk); color: #fff; font-size: 16px; font-weight: 900;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 8px rgba(154, 52, 18, .28); line-height: 1;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .mem-pk-add-btn:hover { transform: scale(1.06); box-shadow: 0 6px 16px rgba(124, 45, 18, .34); }
+    .mem-pk-add-btn:active { transform: scale(.94); }
 
     /* App shell - mobile: menu dưới | tablet/desktop (≥900px): menu trên */
     .mem-nav-desktop {
@@ -1339,11 +1353,25 @@
     .mem-pd-scroll .opt-btn.opt-nut-chip.active .nut-chip-img {
       border-color: rgba(255, 255, 255, 0.35);
     }
-    .mem-pd-scroll .size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mem-pd-scroll .size-label-row { margin-bottom: 4px; }
+    .mem-pd-scroll .size-label-title { font-size: 14px; font-weight: 800; color: var(--text); }
+    .mem-pd-scroll .size-label-title .req { color: #dc2626; margin-left: 2px; }
+    .mem-pd-scroll .size-sub-hint { font-size: 12px; color: var(--text3); margin: 0 0 10px; }
+    .mem-pd-scroll .size-grid { display: flex; flex-wrap: wrap; gap: 10px; }
     .mem-pd-scroll .size-btn {
-      border: 1.5px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; background: var(--surface);
+      flex: 1 1 auto; min-width: 0; border: 1.5px solid var(--border2); border-radius: 999px;
+      padding: 12px 14px; text-align: center; cursor: pointer; background: #fff;
+      font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap;
     }
+    .mem-pd-scroll .size-btn .sz-icon { display: none; }
+    .mem-pd-scroll .size-btn .sz-name,
+    .mem-pd-scroll .size-btn .sz-price { display: inline; font-size: 13px; font-weight: 700; }
+    .mem-pd-scroll .size-btn .sz-price::before { content: ': '; }
     .mem-pd-scroll .size-btn.active { border-color: var(--primary); background: rgba(154,52,18,.08); }
+    .mem-pd-scroll .mem-pd-qty-row {
+      display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+    }
+    .mem-pd-scroll .mem-pd-qty-row .opt-label { margin-bottom: 0; margin-right: auto; }
     .mem-pd-scroll .sub-options { display: none; }
     .mem-pd-scroll .sub-options.show { display: block; }
     .mem-pd-scroll .modal-qty { display: flex; align-items: center; gap: 10px; }
@@ -2868,7 +2896,7 @@
         <div class="sheet-hero" id="mem-sheet-hero"><div class="sheet-hero-emoji" id="mem-sheet-hero-emoji">🥛</div></div>
         <div class="mem-pd-head"><div class="sheet-name" id="mem-sheet-name">Món</div><div class="sheet-price" id="mem-sheet-price">0đ</div></div>
         <div id="mem-product-detail-meta"></div>
-        <div class="opt-group" id="mem-sheet-size-group"><div class="opt-label"><i class="fa-solid fa-ruler-vertical"></i> Kích cỡ</div><div class="size-grid" id="mem-sheet-size-options"></div></div>
+        <div class="opt-group" id="mem-sheet-size-group"><div class="opt-label size-label-row"><span class="size-label-title">Size <span class="req">*</span></span></div><p class="size-sub-hint">Chọn 1 loại size</p><div class="size-grid" id="mem-sheet-size-options"></div></div>
         <div class="opt-group" id="mem-family-pack-toggle-row" style="display:none;"><label class="family-pack-toggle"><input type="checkbox" id="mem-family-pack-toggle"><span><i class="fa-solid fa-house-chimney"></i> Gói sữa gia đình</span></label></div>
         <div class="opt-group" id="mem-sheet-temp-group"><div class="opt-label"><i class="fa-solid fa-temperature-half"></i> Cách dùng</div><div class="opt-grid" id="mem-sheet-temp-options">
           <button type="button" class="opt-btn active" data-temp="cold_steep">Sữa ủ lạnh</button>
@@ -2881,7 +2909,7 @@
           <button type="button" class="opt-btn active" data-ice="Vừa">Vừa</button>
           <button type="button" class="opt-btn" data-ice="Nhiều">Nhiều</button>
         </div></div>
-        <div class="opt-group" id="mem-sheet-pack-group"><div class="opt-label"><i class="fa-solid fa-mug-hot"></i> Đóng gói</div><div class="opt-grid" id="mem-sheet-pack-options">
+        <div class="opt-group mem-hidden" id="mem-sheet-pack-group" hidden aria-hidden="true"><div class="opt-label"><i class="fa-solid fa-mug-hot"></i> Đóng gói</div><div class="opt-grid" id="mem-sheet-pack-options">
           <button type="button" class="opt-btn active" data-pack="paper">Ly giấy</button>
           <button type="button" class="opt-btn" data-pack="plastic">Chai nhựa</button>
         </div></div>

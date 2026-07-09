@@ -21,7 +21,10 @@ const LEGACY_CSS = `
 .legacy-page-root .products-scroll,.legacy-page-root .mem-main,.legacy-page-root .mem-portal-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;flex:1;scrollbar-width:none;-ms-overflow-style:none}
 .legacy-page-root .products-scroll::-webkit-scrollbar,.legacy-page-root .mem-main::-webkit-scrollbar,.legacy-page-root .mem-portal-main::-webkit-scrollbar{display:none;width:0;height:0}
 .legacy-page-root #admin-screen[style*="display: flex"],.legacy-page-root #admin-screen[style*="display:flex"]{display:flex!important;flex-direction:column;flex:1;min-height:0;height:100%;overflow:hidden}
-.legacy-page-root #admin-screen .admin-content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.legacy-page-root #admin-screen .admin-content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+.legacy-page-root #admin-screen .admin-content::-webkit-scrollbar{display:none;width:0;height:0}
+.legacy-page-root #admin-screen .admin-tabs{scrollbar-width:none;-ms-overflow-style:none}
+.legacy-page-root #admin-screen .admin-tabs::-webkit-scrollbar{display:none;width:0;height:0}
 </style>`;
 
 function read(name) {

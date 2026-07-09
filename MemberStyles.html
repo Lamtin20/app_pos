@@ -891,6 +891,17 @@
     content: none !important;
     display: none !important;
   }
+  .mem-pk-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-top: 6px;
+  }
+  .mem-pk-footer .pr { margin-top: 0 !important; flex: 1; min-width: 0; }
+  .mem-pk-add-btn {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: none;
+    background: var(--primary-dk); color: #fff; font-size: 16px; font-weight: 900;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(154, 52, 18, .28); line-height: 1;
+  }
 
   /* App shell - mobile: menu dưới | tablet/desktop (≥900px): menu trên */
   .mem-nav-desktop {

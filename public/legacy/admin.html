@@ -9,7 +9,10 @@
 .legacy-page-root .products-scroll,.legacy-page-root .mem-main,.legacy-page-root .mem-portal-main{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;flex:1;scrollbar-width:none;-ms-overflow-style:none}
 .legacy-page-root .products-scroll::-webkit-scrollbar,.legacy-page-root .mem-main::-webkit-scrollbar,.legacy-page-root .mem-portal-main::-webkit-scrollbar{display:none;width:0;height:0}
 .legacy-page-root #admin-screen[style*="display: flex"],.legacy-page-root #admin-screen[style*="display:flex"]{display:flex!important;flex-direction:column;flex:1;min-height:0;height:100%;overflow:hidden}
-.legacy-page-root #admin-screen .admin-content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.legacy-page-root #admin-screen .admin-content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+.legacy-page-root #admin-screen .admin-content::-webkit-scrollbar{display:none;width:0;height:0}
+.legacy-page-root #admin-screen .admin-tabs{scrollbar-width:none;-ms-overflow-style:none}
+.legacy-page-root #admin-screen .admin-tabs::-webkit-scrollbar{display:none;width:0;height:0}
 </style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -84,7 +87,8 @@
     #admin-screen[style*="display: flex"], #admin-screen[style*="display:flex"] { height:100%; }
     .admin-header { flex-shrink:0; }
     .admin-tabs { flex-shrink:0; }
-    .admin-content { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; scrollbar-width:thin; }
+    .admin-content { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; scrollbar-width:none; -ms-overflow-style:none; }
+    .admin-content::-webkit-scrollbar { display:none; width:0; height:0; }
     .admin-header { background:var(--bg2); border-bottom:1px solid var(--border); padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
     .admin-logo { display:flex; align-items:center; gap:10px; }
     .admin-logo-icon { font-size:24px; }
@@ -99,11 +103,9 @@
     .order-btn { background:var(--green); border:none; color:#fff; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-family:'Sora',sans-serif; display:flex; align-items:center; gap:6px; }
     
     /* TABS */
-    .admin-tabs { background:var(--bg2); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:thin; scrollbar-color:rgba(100,116,139,.45) var(--bg2); }
-    .admin-tabs::-webkit-scrollbar { height:6px; }
-    .admin-tabs::-webkit-scrollbar-thumb { background:rgba(100,116,139,.45); border-radius:6px; }
-    .admin-tabs::-webkit-scrollbar-track { background:var(--bg2); }
-    .tabs-inner { display:flex; padding:0 24px; }
+    .admin-tabs { background:var(--bg2); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; }
+    .admin-tabs::-webkit-scrollbar { display:none; width:0; height:0; }
+    .tabs-inner { display:flex; padding:0 24px; min-width:min-content; }
     .admin-tab { padding:14px 20px; font-size:13px; font-weight:500; cursor:pointer; border-bottom:2px solid transparent; color:var(--text3); white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:8px; }
     .admin-tab:hover { color:var(--text2); }
     .admin-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
@@ -155,13 +157,15 @@
     .data-table td { padding:10px 12px; border-bottom:1px solid var(--border); color:var(--text); white-space:nowrap; }
     .data-table tr:hover td { background:var(--bg3); }
     .data-table tbody tr:last-child td { border-bottom:none; }
-    .table-scroll { overflow-x:auto; border-radius:8px; border:1px solid var(--border); }
+    .table-scroll { overflow-x:auto; border-radius:8px; border:1px solid var(--border); scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; }
+    .table-scroll::-webkit-scrollbar { display:none; width:0; height:0; }
 
     .menu-admin-grid { display:flex; flex-direction:column; gap:20px; }
     .menu-admin-products .card-title { margin-bottom:0; }
     .menu-admin-products .menu-card-sub { font-size:12px; font-weight:400; color:var(--text3); text-transform:none; letter-spacing:0; margin-top:4px; line-height:1.45; }
     .menu-admin-toolbar { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
-    .menu-admin-products .table-scroll { max-height:min(48vh,480px); overflow:auto; }
+    .menu-admin-products .table-scroll { max-height:min(48vh,480px); overflow:auto; scrollbar-width:none; -ms-overflow-style:none; }
+    .menu-admin-products .table-scroll::-webkit-scrollbar { display:none; width:0; height:0; }
     .menu-admin-products .data-table thead th { position:sticky; top:0; z-index:2; }
     .menu-admin-form-card .card-title { margin-bottom:4px; }
     .menu-admin-form-card .menu-card-sub { font-size:12px; font-weight:400; color:var(--text3); text-transform:none; letter-spacing:0; margin-bottom:16px; line-height:1.45; }
@@ -179,7 +183,8 @@
     /* FORM */
     .form-grid { display:grid; grid-template-columns:1fr; gap:14px; }
     .mixhat-modal-panel { max-width:520px;width:100%;max-height:min(92vh,720px);display:flex;flex-direction:column;background:rgba(17,24,39,.98);border:1px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:hidden; }
-    .mixhat-modal-body { padding:14px 18px 16px;overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px; }
+    .mixhat-modal-body { padding:14px 18px 16px;overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;scrollbar-width:none;-ms-overflow-style:none; }
+    .mixhat-modal-body::-webkit-scrollbar { display:none; width:0; height:0; }
     .mixhat-modal-body .form-group { margin:0; }
     .mixhat-modal-body .form-control:not(textarea) { min-height:42px;box-sizing:border-box; }
     .mixhat-modal-body textarea.form-control { min-height:76px;resize:vertical;box-sizing:border-box; }
@@ -271,8 +276,55 @@
     .cost-margin-fill { height:100%; border-radius:5px; transition:width 0.5s; }
 
     @media(max-width:768px) {
-      .admin-content { padding:16px; }
-      .kpi-value { font-size:20px; }
+      .admin-content { padding:12px 14px 20px; width:100%; }
+      .admin-header { padding:8px 12px; height:auto; min-height:52px; gap:8px; flex-wrap:wrap; }
+      .admin-logo-text { font-size:14px; }
+      .header-right { gap:6px; flex-wrap:wrap; margin-left:auto; }
+      #current-time, .live-text { display:none; }
+      .order-btn, .refresh-btn { padding:8px 10px; font-size:0; min-width:36px; justify-content:center; }
+      .order-btn i, .refresh-btn i { font-size:13px; }
+      .logout-btn { padding:8px 10px; min-width:36px; }
+      .tabs-inner { padding:0 10px; }
+      .admin-tab { padding:12px 14px; font-size:12px; min-height:44px; }
+      .admin-tab i { font-size:12px; }
+      .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+      .kpi-card { padding:14px; border-radius:12px; }
+      .kpi-value { font-size:18px; }
+      .kpi-icon { font-size:16px; margin-bottom:8px; }
+      .kpi-label { font-size:10px; }
+      .card { padding:14px; border-radius:12px; }
+      .card-title { font-size:12px; margin-bottom:12px; line-height:1.4; }
+      .two-col, .three-col { gap:14px; margin-bottom:16px; }
+      .period-tabs { width:100%; }
+      .period-tab { flex:1; text-align:center; padding:8px 8px; font-size:11px; min-height:36px; }
+      .tab-view > div:first-child[style*="justify-content:space-between"] { flex-direction:column !important; align-items:stretch !important; }
+      .tab-view > div:first-child[style*="justify-content:space-between"] h2 { font-size:1.05rem; }
+      .btn { padding:10px 14px; font-size:12px; min-height:40px; }
+      .btn-sm { padding:8px 10px; min-height:34px; }
+      .form-control { padding:12px 14px; font-size:16px; min-height:44px; }
+      .form-group label { font-size:10px; }
+      .data-table { font-size:11px; }
+      .data-table th, .data-table td { padding:8px 10px; }
+      .mini-list-item { flex-wrap:wrap; gap:4px; }
+      .mini-item-val { font-size:12px; }
+      .menu-admin-toolbar { flex-direction:column; align-items:stretch; }
+      .menu-admin-products .table-scroll { max-height:none; }
+      .cost-ingredient-row, .cost-size-ingredient-row { flex-direction:column; align-items:stretch; }
+      .cost-ingredient-row select, .cost-ingredient-row input, .cost-size-ingredient-row select, .cost-size-ingredient-row input { width:100%; min-height:40px; }
+      .mixhat-modal-panel { max-width:100%; border-radius:16px 16px 0 0; max-height:94vh; }
+      .mixhat-modal-footer { flex-direction:column; align-items:stretch; }
+      .mixhat-modal-footer .mixhat-footer-left { width:100%; }
+      .toast { left:12px; right:12px; bottom:16px; max-width:none; }
+      .login-box { padding:32px 22px; border-radius:20px; }
+      .num-btn { min-height:48px; }
+      .alert { font-size:12px; padding:12px 14px; }
+      .timeline-item { flex-wrap:wrap; }
+      .stock-alert-item { flex-wrap:wrap; gap:6px; }
+    }
+    @media(max-width:480px) {
+      .kpi-grid { grid-template-columns:1fr; }
+      .admin-tab { font-size:0; padding:12px 14px; min-width:44px; justify-content:center; }
+      .admin-tab i { font-size:14px; }
     }
   </style>
 </head>
