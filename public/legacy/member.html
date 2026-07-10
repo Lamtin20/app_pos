@@ -252,14 +252,20 @@
     #portal-panel { display: none; }
     #portal-panel.show { display: block; animation: portalReveal 0.55s cubic-bezier(0.34, 1.2, 0.64, 1) both; }
     @keyframes portalReveal { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
-    .mem-topbar { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 14px rgba(60,40,25,0.06); }
-    .mem-topbar-inner { max-width: 1100px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .mem-topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 2px 14px rgba(60,40,25,0.06);
+      width: 100%; transition: transform .28s ease;
+    }
+    .mem-topbar.mem-topbar-hidden { transform: translateY(-100%); pointer-events: none; }
+    .mem-topbar-inner { max-width: 1100px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; }
     .mem-logo-txt { font-family: var(--display); font-weight: 800; font-size: 1.25rem; color: var(--primary-dk); letter-spacing: -0.02em; }
     .mem-topbar-actions { display: flex; gap: 8px; align-items: center; }
     .mem-topbar-actions a { color: var(--primary-dk); text-decoration: none; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); display: inline-flex; align-items: center; gap: 6px; }
-    .mem-carousel-wrap { max-width: none; margin: 0 auto; padding: 12px 16px 0; }
-    .mem-carousel { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; min-height: 200px; background: #1a1410; }
-    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 4/3; min-height: 210px; } }
+    .mem-carousel-wrap { max-width: none; margin: 0 auto; padding: 10px 12px 0; width: 100%; box-sizing: border-box; }
+    .mem-carousel { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/9; min-height: 168px; background: #1a1410; max-width: 100%; }
+    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 2/1; min-height: 160px; } }
     .mem-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; background-size: cover; background-position: center; }
     .mem-slide.on { opacity: 1; z-index: 1; }
     .mem-slide-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px; background: linear-gradient(transparent, rgba(0,0,0,.72)); color: #fff; z-index: 2; }
@@ -530,23 +536,35 @@
     @media (max-width: 520px) { .mem-two { grid-template-columns: 1fr; } }
     .mem-pay-panel { background: linear-gradient(180deg, rgba(124,45,18,.04), transparent); border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
 
-    .pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 420px) { .pay-methods { grid-template-columns: 1fr; } }
     .pay-method {
-      border: 1.5px solid var(--border);
+      border: 2px solid var(--border);
       background: var(--surface2);
-      border-radius: 14px;
-      padding: 12px 12px;
-      font-weight: 900;
-      font-size: 12px;
-      color: var(--primary-dk);
+      border-radius: 16px;
+      padding: 16px 14px;
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--text2);
       cursor: pointer;
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
+      min-height: 96px;
+      font-family: var(--font);
+      transition: border-color .15s, box-shadow .15s, background .15s;
     }
-    .pay-method.selected { border-color: rgba(124,45,18,.65); box-shadow: 0 0 0 3px rgba(124,45,18,.12); background: var(--surface); }
+    .pay-method i { font-size: 26px; color: var(--primary); }
+    .pay-method.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(234,88,12,.12);
+      background: rgba(255,237,213,.45);
+      color: var(--primary-dk);
+    }
+    .pay-method.selected i { color: var(--primary-dk); }
+    #reg-fulfillment-block { display: none !important; }
 
     .mem-sum { margin-top: 8px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface); }
     .mem-sum .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--border); }
@@ -559,7 +577,7 @@
     .mem-confirm { width: 100%; margin-top: 12px; }
 
     /* -- App V2: bottom nav + offers + more -- */
-    body { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+    body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
     @media (min-width: 900px) { body { padding-bottom: 100px; } }
     .mem-topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
     .mem-topbar-actions.mem-hidden { display: none !important; }
@@ -579,12 +597,13 @@
     }
     .mem-nav-desktop button.on { background: var(--primary-dk); color: #fff; border-color: var(--primary-dk); }
     .mem-bottom-nav {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
-      background: rgba(255,252,248,.96); backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
-      padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+      position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 120;
+      background: rgba(255,252,248,.97); backdrop-filter: blur(14px);
+      border: 1px solid var(--border); border-radius: 22px;
+      box-shadow: 0 10px 36px rgba(40, 25, 15, .14);
+      padding: 8px 10px 8px;
       display: flex; justify-content: space-around; align-items: stretch; gap: 4px;
-      max-width: 520px; margin: 0 auto;
+      max-width: 480px; margin: 0 auto;
     }
     @media (min-width: 900px) { .mem-bottom-nav { display: none; } }
     .mem-bottom-nav button {
@@ -601,43 +620,41 @@
     @media (min-width: 900px) { .mem-offers-shell { max-width: 1100px; } }
     .mem-offers-page .section-title { display: none; }
     .mem-offers-hero {
-      margin: 0; padding: 22px 16px 0; position: relative; overflow: hidden;
-      background: linear-gradient(165deg, #7c2d12 0%, #b45309 28%, #ea580c 58%, #fb923c 100%);
+      margin: 0; padding: 20px 16px 0; position: relative; overflow: hidden;
+      background: linear-gradient(155deg, #1c1917 0%, #292524 45%, #44403c 100%);
       color: #fff;
     }
     .mem-offers-hero.tier-silver {
-      background: linear-gradient(155deg, #57534e 0%, #78716c 40%, #a8a29e 100%);
+      background: linear-gradient(155deg, #292524 0%, #44403c 50%, #78716c 100%);
     }
     .mem-offers-hero.tier-gold {
-      background: linear-gradient(155deg, #b45309 0%, #d97706 42%, #fbbf24 100%);
+      background: linear-gradient(155deg, #1c1917 0%, #78350f 42%, #b45309 100%);
     }
     .mem-offers-hero.tier-diamond {
-      background: linear-gradient(155deg, #0e7490 0%, #0891b2 45%, #67e8f9 100%);
+      background: linear-gradient(155deg, #0c4a6e 0%, #0369a1 45%, #38bdf8 100%);
     }
     .mem-offers-hero-pattern {
-      position: absolute; inset: 0; opacity: .14; pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 50c8-12 16-18 28-20 6-1 12 2 16 8M10 30c12-4 24-2 34 6' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E");
-      background-size: 120px 120px;
+      position: absolute; inset: 0; opacity: .22; pointer-events: none;
+      background: radial-gradient(circle at 88% 12%, rgba(251,191,36,.35) 0%, transparent 42%),
+        url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 50c8-12 16-18 28-20 6-1 12 2 16 8M10 30c12-4 24-2 34 6' fill='none' stroke='%23fbbf24' stroke-width='1.5' opacity='.4'/%3E%3C/svg%3E");
+      background-size: auto, 120px 120px;
     }
     .mem-offers-hero-top {
       position: relative; z-index: 1;
       display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
     }
-    .mem-offers-eyebrow { font-size: 10px; font-weight: 800; opacity: .88; letter-spacing: .08em; text-transform: uppercase; }
+    .mem-offers-eyebrow { font-size: 11px; font-weight: 700; opacity: .82; letter-spacing: .04em; margin: 0 0 4px; }
     .mem-offers-tier-badge {
-      display: inline-flex; align-items: center; gap: 5px; margin-bottom: 8px;
-      padding: 5px 11px; border-radius: 999px; font-size: 10px; font-weight: 800;
-      background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.28);
-      backdrop-filter: blur(4px);
+      display: none;
     }
     .mem-offers-tier-name {
       font-family: var(--display); font-size: clamp(1.45rem, 5vw, 1.85rem); font-weight: 900; margin: 0 0 6px; line-height: 1.15;
     }
-    .mem-offers-cups-line { margin: 0; font-size: 12px; font-weight: 600; opacity: .92; }
-    .mem-offers-cups-line strong { font-size: 14px; font-weight: 900; }
+    .mem-offers-cups-line { margin: 0; font-size: 13px; font-weight: 700; opacity: .9; letter-spacing: .02em; }
+    .mem-offers-cups-line strong { font-size: 15px; font-weight: 900; }
     .mem-voucher-pill {
-      flex-shrink: 0; border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.18);
-      color: #fff; border-radius: 999px; padding: 8px 12px; font-size: 11px; font-weight: 800;
+      flex-shrink: 0; border: 1px solid rgba(251,191,36,.55); background: rgba(251,191,36,.12);
+      color: #fef3c7; border-radius: 999px; padding: 8px 13px; font-size: 11px; font-weight: 800;
       display: inline-flex; align-items: center; gap: 6px; cursor: pointer; backdrop-filter: blur(6px);
       font-family: var(--font);
     }
@@ -684,9 +701,29 @@
     .mem-tier-maxed .mem-tier-to { color: #16a34a; }
     .mem-tier-maxed .mem-tier-marker { border-color: #16a34a; color: #16a34a; }
     .mem-offers-body {
-      background: var(--bg); padding: 18px 14px 28px; position: relative; z-index: 2;
+      background: #f5f5f4; padding: 16px 12px 28px; position: relative; z-index: 2;
       border-radius: 22px 22px 0 0; margin-top: -6px;
     }
+    .mem-offers-quick {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;
+    }
+    .mem-offers-quick-btn {
+      display: flex; align-items: center; gap: 10px; padding: 14px 12px;
+      background: #fff; border: 1px solid #e7e5e4; border-radius: 14px;
+      font-size: 12px; font-weight: 800; color: var(--text); cursor: pointer;
+      font-family: var(--font); text-align: left; box-shadow: 0 2px 8px rgba(40,25,15,.04);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .mem-offers-quick-btn:active { transform: scale(.98); }
+    .mem-offers-quick-btn i {
+      width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .mem-offers-quick-btn i.ic-tier { background: #fef3c7; color: #b45309; }
+    .mem-offers-quick-btn i.ic-bean { background: #ffedd5; color: #ea580c; }
+    .mem-offers-quick-btn i.ic-history { background: #fef9c3; color: #a16207; }
+    .mem-offers-quick-btn i.ic-benefit { background: #dbeafe; color: #2563eb; }
+    .mem-offers-expiry { margin: 10px 0 0; font-size: 10px; color: rgba(255,255,255,.72); line-height: 1.45; text-align: center; padding: 0 8px 14px; }
     @media (min-width: 900px) {
       .mem-offers-body { max-width: 1100px; margin: -6px auto 0; border-radius: 0 0 20px 20px; padding: 22px 22px 32px; }
       .mem-offers-hero { max-width: 1100px; margin: 0 auto; border-radius: 20px 20px 0 0; }
@@ -702,6 +739,7 @@
     .mem-promo-see-all {
       font-size: 11px; font-weight: 800; color: var(--primary);
       padding: 5px 10px; border-radius: 999px; background: rgba(234,88,12,.08);
+      border: none; cursor: pointer; font-family: var(--font);
     }
     .mem-promo-list { display: flex; flex-direction: column; gap: 10px; }
     .mem-promo-empty {
@@ -765,7 +803,57 @@
       border: none; background: var(--surface2); padding: 8px 12px; border-radius: 999px;
       font-weight: 800; font-size: 12px; color: var(--primary-dk); cursor: pointer;
     }
-    .mem-profile-form .field-locked { background: #f0ebe4; color: var(--text3); cursor: not-allowed; }
+    .mem-profile-form input[type="date"] {
+      text-align: left; direction: ltr; appearance: auto; -webkit-appearance: auto;
+    }
+    .mem-profile-avatar-row {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .mem-profile-avatar-preview {
+      width: 72px; height: 72px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+      background: linear-gradient(145deg, #ffedd5, #fed7aa);
+      display: flex; align-items: center; justify-content: center; color: var(--primary-dk); font-size: 28px;
+      border: 2px solid rgba(234,88,12,.25);
+    }
+    .mem-profile-avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .mem-profile-avatar-actions { flex: 1; min-width: 0; }
+    .mem-profile-avatar-actions p { margin: 0 0 8px; font-size: 11px; color: var(--text3); line-height: 1.4; }
+    .mem-profile-avatar-upload {
+      display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px;
+      border-radius: 10px; border: 1px solid var(--border); background: var(--surface2);
+      font-size: 12px; font-weight: 800; color: var(--primary-dk); cursor: pointer;
+    }
+    .mem-topbar-brand-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(145deg, #fff7ed, #ffedd5);
+      display: none; align-items: center; justify-content: center; font-size: 20px;
+      box-shadow: 0 2px 8px rgba(234,88,12,.12);
+    }
+    .mem-topbar-brand-icon:not(.mem-hidden) { display: inline-flex !important; }
+    .mem-avatar.mem-hidden { display: none !important; }
+    body[data-mem-tab="home"] .mem-topbar-user { gap: 8px; }
+    .mem-group-feedback-overlay {
+      position: fixed; inset: 0; z-index: 200; background: rgba(20,12,8,.45);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .mem-group-feedback-overlay.mem-hidden { display: none !important; }
+    .mem-group-feedback-card {
+      background: #fff; border-radius: 20px; max-width: 360px; width: 100%;
+      padding: 20px 18px; box-shadow: 0 20px 50px rgba(40,25,15,.2);
+    }
+    .mem-group-feedback-card h3 { margin: 0 0 6px; font-size: 16px; font-weight: 900; color: var(--primary-dk); }
+    .mem-group-feedback-card p { margin: 0 0 12px; font-size: 12px; color: var(--text3); line-height: 1.45; }
+    .mem-group-feedback-drink {
+      display: flex; gap: 12px; align-items: center; padding: 12px;
+      background: var(--surface2); border-radius: 14px; margin-bottom: 14px;
+    }
+    .mem-group-feedback-drink img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; }
+    .mem-group-feedback-stars { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+    .mem-group-feedback-stars button {
+      border: none; background: transparent; font-size: 28px; cursor: pointer; padding: 4px; opacity: .35;
+    }
+    .mem-group-feedback-stars button.on { opacity: 1; }
     .mem-danger-zone { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
     #mem-profile-modal.mem-pd-overlay { align-items: center; justify-content: center; padding: 12px; }
     #mem-profile-modal .mem-profile-sheet {
@@ -897,7 +985,7 @@
     #home-portal-card .mem-home-eyebrow { color: rgba(255,255,255,.85); }
     #home-portal-card .mem-home-lede { color: rgba(255,255,255,.92); }
     #home-portal-card #home-welcome { color: #fff; font-family: var(--display); margin: 0 0 6px; }
-    .mem-home-menu-block { margin-top: 0; padding: 12px 14px; }
+    .mem-home-menu-block { margin-top: 0; padding: 0; border: none; background: transparent; box-shadow: none; }
     .mem-section-head {
       display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
     }
@@ -1127,10 +1215,30 @@
       body.mem-view-cart #sec-cart > .mem-page-head,
       body.mem-view-group #sec-group .mem-group-page-head { display: none; }
     }
-    .mem-home-menu-sections { display: flex; flex-direction: column; gap: 18px; }
+    .mem-home-menu-sections { display: flex; flex-direction: column; gap: 22px; padding: 0 12px 8px; width: 100%; box-sizing: border-box; }
     .mem-home-cat-block { margin: 0; }
-    .mem-home-cat-block .mem-section-head { margin-bottom: 10px; }
-    .mem-home-cat-block .mem-section-head h2 { font-size: 1rem; }
+    .mem-home-cat-block .mem-section-head { margin-bottom: 10px; padding: 0 2px; }
+    .mem-home-cat-block .mem-section-head h2 { font-size: 1.05rem; }
+    .mem-home-cat-banner {
+      width: 100%; border-radius: 14px; overflow: hidden; margin-bottom: 12px;
+      aspect-ratio: 24/5; min-height: 72px; max-height: 120px;
+      background: linear-gradient(135deg, #ffedd5, #fed7aa); border: 1px solid var(--border);
+    }
+    .mem-home-cat-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .mem-home-curated { padding: 0 12px 20px; }
+    .mem-home-curated-block { margin-bottom: 22px; }
+    .mem-home-curated-block .mem-section-head h2 { font-size: 1.05rem; }
+    .mem-home-curated-scroll {
+      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+      scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .mem-home-curated-scroll::-webkit-scrollbar { display: none; }
+    .mem-home-curated-scroll .menu-card {
+      flex: 0 0 42%; max-width: 180px; scroll-snap-align: start;
+    }
+    @media (min-width: 640px) {
+      .mem-home-curated-scroll .menu-card { flex: 0 0 28%; max-width: 200px; }
+    }
     .mem-top-fav-btn {
       width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
       background: var(--surface2); color: var(--primary); cursor: pointer; flex-shrink: 0;
@@ -1169,7 +1277,7 @@
     .mem-home-quick, .mem-home-kpis, #home-portal-card { display: none !important; }
 
     #mem-home-dashboard { padding: 0 0 18px; max-width: none; width: 100%; margin: 0 auto; }
-    .mem-carousel-wrap { width: 90%; max-width: none; margin: 0 auto; padding: 6px 0 0 !important; }
+    .mem-carousel-wrap { width: 100%; max-width: none; margin: 0 auto; padding: 8px 12px 0 !important; box-sizing: border-box; }
     .mem-home-toolbar {
       display: flex; align-items: center; gap: 8px; margin: 8px 0 6px;
     }
@@ -1943,8 +2051,9 @@
     .mem-carousel-dots { padding: 8px 0 0; }
     .mem-home-toolbar { margin: 10px auto 6px; width: 90%; }
     .mem-fav-chip, #btn-top-favorites { display: none !important; } /* Yêu thích tạm ẩn */
-    .mem-home-menu-block { padding: 12px 12px 10px; border-radius: 16px; margin: 0 auto; width: 90%; }
+    .mem-home-menu-block { padding: 0; border-radius: 0; margin: 0; width: 100%; background: transparent; border: none; box-shadow: none; }
     .mem-home-menu-block .mem-section-head { margin: 0 0 8px; }
+    .mem-home-toolbar { width: 100%; padding: 0 12px; box-sizing: border-box; }
     .mem-home-menu-grid,
     .mem-home-menu-grid.portal-menu-pro { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
     @media (min-width: 640px) {
@@ -1961,9 +2070,10 @@
     @media (min-width: 900px) {
       body.mem-logged-in #sec-home { padding: 8px 0 16px; }
       #mem-home-dashboard { max-width: 1100px; padding: 0 0 28px; margin: 0 auto; }
-      .mem-carousel-wrap { width: 90%; max-width: 990px; }
-      .mem-home-toolbar, .mem-home-menu-block { width: 90%; max-width: 990px; }
-      .mem-carousel { min-height: 260px; aspect-ratio: 16/9; }
+      .mem-carousel-wrap { width: 100%; max-width: 990px; padding-left: 0 !important; padding-right: 0 !important; }
+      .mem-home-toolbar { width: 100%; max-width: 990px; margin: 0 auto; }
+      .mem-home-menu-sections, .mem-home-curated { max-width: 990px; margin: 0 auto; }
+      .mem-carousel { min-height: 220px; aspect-ratio: 16/9; }
     }
 
     /* ===== Chờ nhận nước (thành viên nhóm sau khi trưởng nhóm gửi đơn) ===== */
@@ -2529,10 +2639,11 @@
 </head>
 <body class="mem-gate-mode">
   <div class="mem-boot-bar" id="mem-boot-bar" aria-hidden="true"></div>
-  <header class="mem-topbar">
+  <header class="mem-topbar" id="mem-topbar">
     <div class="mem-topbar-inner">
       <span class="mem-logo-txt mem-brand-gate" id="mem-disp-brand-title">SUN Nut Milk</span>
       <div class="mem-topbar-user mem-hidden" id="mem-topbar-user">
+        <span class="mem-topbar-brand-icon mem-hidden" id="mem-topbar-brand-icon" aria-hidden="true">☀️</span>
         <button type="button" class="mem-avatar" id="mem-avatar-btn" aria-label="Thông tin cá nhân"><i class="fa-solid fa-user"></i></button>
         <div class="mem-topbar-greet">
           <strong id="home-welcome">Xin chào</strong>
@@ -2540,7 +2651,6 @@
         </div>
       </div>
       <div class="mem-topbar-actions mem-hidden" id="mem-topbar-actions">
-        <button type="button" class="mem-top-icon-btn" id="btn-top-offers" title="Ưu đãi" aria-label="Ưu đãi"><i class="fa-solid fa-ticket"></i></button>
         <div class="mem-top-notif-wrap">
           <button type="button" class="mem-top-icon-btn" id="btn-top-notify" title="Thông báo" aria-label="Thông báo"><i class="fa-solid fa-bell"></i></button>
           <div class="mem-notif-pop mem-hidden" id="mem-notif-pop" role="dialog" aria-label="Thông báo">
@@ -2615,10 +2725,11 @@
       <button type="button" class="mem-fav-chip" id="btn-home-favorites" title="Món yêu thích"><i class="fa-solid fa-heart"></i></button>
     </div>
 
-    <div class="mem-home-menu-block card">
+    <div class="mem-home-menu-block">
       <div id="mem-home-menu-sections" class="mem-home-menu-sections">
-        <p style="color:var(--text3);font-size:13px;">Đang tải thực đơn…</p>
+        <p style="color:var(--text3);font-size:13px;padding:0 12px;">Đang tải thực đơn…</p>
       </div>
+      <div id="mem-home-curated" class="mem-home-curated"></div>
     </div>
     </div>
 
@@ -2653,6 +2764,7 @@
       <div class="card">
         <div class="mem-pay-grid">
           <div>
+          <div id="reg-fulfillment-block" class="mem-hidden" style="display:none !important;">
             <div class="mem-mini-title">HÌNH THỨC NHẬN GÓI</div>
             <div class="pay-methods" id="reg-fulfillment-tiles" role="tablist" aria-label="Hình thức nhận">
               <button type="button" class="pay-method selected" data-ful="pickup"><i class="fa-solid fa-store"></i> Nhận tại cửa hàng</button>
@@ -2660,6 +2772,7 @@
             </div>
             <input type="hidden" id="reg-fulfillment" value="pickup">
             <p style="font-size:11px;color:var(--text3);margin:0 0 12px;line-height:1.45;">Giao hàng chỉ áp dụng gói thành viên trong khu vực được chỉ định.</p>
+          </div>
             <div class="mem-mini-title">THÔNG TIN CÁ NHÂN</div>
             <label>Họ và tên</label>
             <input type="text" id="reg-name" placeholder="Họ và tên khách hàng">
@@ -2701,7 +2814,7 @@
             <div class="mem-mini-title">PHƯƠNG THỨC THANH TOÁN</div>
             <div class="pay-methods" id="reg-pay-tiles" role="tablist" aria-label="Phương thức thanh toán">
               <button type="button" class="pay-method selected" data-pay="Chuyển khoản"><i class="fa-solid fa-building-columns"></i> Chuyển khoản</button>
-              <button type="button" class="pay-method" data-pay="Tại cửa hàng"><i class="fa-solid fa-money-bill-wave"></i> Tại cửa hàng</button>
+              <button type="button" class="pay-method" data-pay="Tiền mặt"><i class="fa-solid fa-money-bill-wave"></i> Tiền mặt</button>
             </div>
             <input type="hidden" id="reg-pay-method" value="Chuyển khoản">
 
@@ -2722,7 +2835,6 @@
             </div>
 
             <button type="button" class="btn mem-confirm" id="btn-register"><i class="fa-solid fa-check"></i> Xác nhận đăng ký</button>
-            <div class="mem-hint"><i class="fa-solid fa-circle-info"></i> Chọn gói và bấm <strong>Chọn gói &amp; thanh toán</strong> ở trên để mở bước này; tổng tiền cập nhật theo gói đã chọn.</div>
           </div>
         </div>
       </div>
@@ -3023,12 +3135,13 @@
       <div class="mem-offers-hero-pattern" aria-hidden="true"></div>
       <div class="mem-offers-hero-top">
         <div class="mem-offers-hero-text">
+          <p class="mem-offers-eyebrow">Ưu đãi</p>
           <span class="mem-offers-tier-badge" id="mem-offers-tier-badge"><i class="fa-solid fa-crown"></i> Hội viên SUN</span>
           <h1 class="mem-offers-tier-name" id="mem-offers-tier">Thành viên</h1>
-          <p class="mem-offers-cups-line">Đã tích lũy <strong id="mem-offers-cups">0</strong> ly</p>
+          <p class="mem-offers-cups-line"><strong id="mem-offers-cups">0</strong> BEAN</p>
         </div>
         <button type="button" class="mem-voucher-pill" id="mem-voucher-pill" title="Voucher của tôi">
-          <i class="fa-solid fa-ticket"></i> Voucher
+          <i class="fa-solid fa-ticket"></i> Voucher của tôi
         </button>
       </div>
       <div class="mem-offers-card">
@@ -3048,11 +3161,18 @@
           <p class="mem-tier-hint" id="mem-tier-hint">Tích ly để nâng hạng và nhận thêm quyền lợi.</p>
         </div>
       </div>
+      <p class="mem-offers-expiry" id="mem-offers-expiry">Điểm BEAN được cộng sau mỗi đơn hoàn tất.</p>
     </div>
     <div class="mem-offers-body">
+      <div class="mem-offers-quick" id="mem-offers-quick">
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="tier"><i class="fa-solid fa-crown ic-tier"></i> Hạng thành viên</button>
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="redeem"><i class="fa-solid fa-gift ic-bean"></i> Đổi Bean</button>
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="history"><i class="fa-solid fa-mug-saucer ic-history"></i> Lịch sử BEAN</button>
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="benefits"><i class="fa-solid fa-shield-heart ic-benefit"></i> Quyền lợi của bạn</button>
+      </div>
       <div class="mem-offers-section-head">
         <h2>Phiếu ưu đãi của bạn</h2>
-        <span class="mem-promo-see-all" id="mem-promo-count"></span>
+        <button type="button" class="mem-promo-see-all" id="mem-promo-see-all">Xem tất cả</button>
       </div>
       <div class="mem-promo-list" id="mem-promo-list">
         <p class="mem-promo-empty"><span class="mem-promo-empty-icon" aria-hidden="true">🎟️</span>Chưa có ưu đãi — theo dõi cửa hàng để nhận tin mới.</p>
@@ -6025,10 +6145,10 @@ function applyMemberPortalFromSettings(raw) {
         renderTierProgress(tp);
         paintMemberBarcode();
         var list = $('mem-promo-list');
-        var cnt = $('mem-promo-count');
+        var seeAll = $('mem-promo-see-all');
         if (!list) return;
         var promos = (o && o.promos) || [];
-        if (cnt) cnt.textContent = promos.length ? (promos.length + ' voucher') : '';
+        if (seeAll) seeAll.textContent = promos.length ? ('Xem tất cả · ' + promos.length) : 'Xem tất cả';
         if (!promos.length) {
           list.innerHTML = '<p class="mem-promo-empty"><span class="mem-promo-empty-icon" aria-hidden="true">🎟️</span>Chưa có ưu đãi — theo dõi cửa hàng để nhận tin mới.</p>';
           return;
@@ -6109,6 +6229,17 @@ function applyMemberPortalFromSettings(raw) {
         var p = state.profile || (state.portal && state.portal.profile) || {};
         var lk = p.locked || {};
         var hasPhone = !!state.phone;
+        var avUrl = p.avatarUrl || '';
+        var avPreview = avUrl
+          ? '<img src="' + esc(avUrl) + '" alt="">'
+          : '<i class="fa-solid fa-user"></i>';
+        var avatarBlock = '<div class="mem-profile-avatar-row">' +
+          '<div class="mem-profile-avatar-preview" id="prof-avatar-preview">' + avPreview + '</div>' +
+          '<div class="mem-profile-avatar-actions">' +
+          '<p>Ảnh đại diện (JPG/PNG, tối đa ~200KB)</p>' +
+          '<label class="mem-profile-avatar-upload" for="prof-avatar-file"><i class="fa-solid fa-camera"></i> Chọn ảnh</label>' +
+          '<input type="file" id="prof-avatar-file" accept="image/jpeg,image/png,image/webp" hidden>' +
+          '</div></div>';
         var phoneBlock = hasPhone
           ? ('<label>Số điện thoại hiện tại</label><input type="tel" id="prof-phone" class="form-control field-locked" value="' + esc(p.phone || state.phone || '') + '" readonly>' +
             '<label>Đổi SĐT (nếu cần)</label><div class="mem-profile-phone-row">' +
@@ -6117,7 +6248,8 @@ function applyMemberPortalFromSettings(raw) {
             '<p class="mem-profile-note">SĐT mới không được trùng tài khoản đã đăng ký trước đó.</p>')
           : ('<label>Số điện thoại</label><input type="tel" id="prof-new-phone" class="form-control" placeholder="Nhập SĐT 10 số" maxlength="10" inputmode="numeric">' +
             '<p class="mem-profile-note">Thêm SĐT để lưu hồ sơ và tích điểm.</p>');
-        return '<label>Họ và tên</label><input type="text" id="prof-name" class="form-control" value="' + esc(p.name || '') + '">' +
+        return avatarBlock +
+          '<label>Họ và tên</label><input type="text" id="prof-name" class="form-control" value="' + esc(p.name || '') + '">' +
           '<label>Email</label><input type="email" id="prof-email" class="form-control" value="' + esc(p.email || '') + '" placeholder="Email liên hệ">' +
           '<label>Ngày sinh</label><input type="date" id="prof-dob" class="form-control' + (lk.dob ? ' field-locked' : '') + '" value="' + esc(p.dob || '') + '"' + (lk.dob ? ' readonly' : '') + '>' +
           (lk.dob ? '<p class="mem-profile-note">Ngày sinh chỉ nhập một lần, không thể đổi sau khi lưu.</p>' : '') +
@@ -6126,21 +6258,62 @@ function applyMemberPortalFromSettings(raw) {
           '<button type="button" class="btn" style="margin-top:10px;width:100%;" id="btn-save-profile"><i class="fa-solid fa-save"></i> Lưu thông tin</button>' +
           '<div class="mem-danger-zone"><p>Xóa tài khoản sẽ ẩn SĐT khỏi hệ thống.</p><button type="button" class="btn btn-sec" id="btn-delete-account" style="width:100%;color:var(--red);font-size:13px;padding:10px;"><i class="fa-solid fa-trash"></i> Xóa tài khoản</button></div>';
       }
+      function compressAvatarFile(file, cb) {
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) { cb(''); return; }
+        var reader = new FileReader();
+        reader.onload = function () {
+          var img = new Image();
+          img.onload = function () {
+            var canvas = document.createElement('canvas');
+            var max = 256;
+            var w = img.width;
+            var h = img.height;
+            if (w > h) { if (w > max) { h = Math.round(h * max / w); w = max; } }
+            else { if (h > max) { w = Math.round(w * max / h); h = max; } }
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            cb(canvas.toDataURL('image/jpeg', 0.82));
+          };
+          img.onerror = function () { cb(''); };
+          img.src = reader.result;
+        };
+        reader.onerror = function () { cb(''); };
+        reader.readAsDataURL(file);
+      }
+      var pendingAvatarUrl = '';
       function wireProfileFormHandlers() {
+        pendingAvatarUrl = '';
+        var avFile = $('prof-avatar-file');
+        if (avFile) avFile.onchange = function () {
+          var f = avFile.files && avFile.files[0];
+          if (!f) return;
+          compressAvatarFile(f, function (dataUrl) {
+            if (!dataUrl) { showToast('Không đọc được ảnh'); return; }
+            if (dataUrl.length > 120000) { showToast('Ảnh vẫn quá lớn — chọn ảnh nhỏ hơn'); return; }
+            pendingAvatarUrl = dataUrl;
+            var prev = $('prof-avatar-preview');
+            if (prev) prev.innerHTML = '<img src="' + dataUrl + '" alt="">';
+          });
+        };
         var saveBtn = $('btn-save-profile');
         if (saveBtn) saveBtn.onclick = function () {
           if (!state.phone) { showToast('Đăng nhập SĐT trước'); return; }
-          api('saveMemberProfile', state.phone, {
+          var payload = {
             name: $('prof-name').value,
             email: $('prof-email').value,
             dob: $('prof-dob').value,
             gender: $('prof-gender').value
-          }).then(function (r) {
+          };
+          if (pendingAvatarUrl) payload.avatarUrl = pendingAvatarUrl;
+          api('saveMemberProfile', state.phone, payload).then(function (r) {
             if (r && r.profile) {
               state.profile = r.profile;
               if (state.portal) state.portal.profile = r.profile;
             }
             applyTopbarGreeting(($('prof-name') && $('prof-name').value) || state.phone);
+            applyTopbarAvatar((r.profile && r.profile.avatarUrl) || pendingAvatarUrl || '');
+            pendingAvatarUrl = '';
             showToast('Đã lưu hồ sơ');
           }).catch(function (e) { showToast(e.message || 'Lỗi lưu'); });
         };
@@ -6345,6 +6518,50 @@ function applyMemberPortalFromSettings(raw) {
         });
         return order;
       }
+      function getCategoryBanner(cat) {
+        var banners = (window.memberPortalSettings && memberPortalSettings.categoryBanners) || (state.settings && state.settings.categoryBanners) || [];
+        var norm = window.MemOrder && MemOrder.normalizeCategory ? MemOrder.normalizeCategory.bind(MemOrder) : function (c) { return String(c || '').trim(); };
+        var want = norm(cat);
+        for (var i = 0; i < banners.length; i++) {
+          if (norm(banners[i].category) === want && banners[i].imageUrl) return banners[i];
+        }
+        return null;
+      }
+      function wireHomeMenuCards(container) {
+        if (!container) return;
+        container.querySelectorAll('.menu-card').forEach(function (el) {
+          el.onclick = function () {
+            var id = el.getAttribute('data-home-menu-id');
+            var it = state.menu.find(function (x) { return String(x.id) === String(id); });
+            if (it && window.MemOrder) MemOrder.openProduct(it); else goOrder();
+          };
+        });
+      }
+      function renderHomeCuratedSections() {
+        var box = $('mem-home-curated');
+        if (!box) return;
+        if (!state.menu.length) { box.innerHTML = ''; return; }
+        var sections = [
+          { title: 'Món nên thử', icon: 'fa-star', labelId: 'nen-thu' },
+          { title: 'Món mới', icon: 'fa-sparkles', labelId: 'mon-moi' },
+          { title: 'Món hot', icon: 'fa-fire', labelId: 'hot' }
+        ];
+        var html = '';
+        sections.forEach(function (sec) {
+          var items = state.menu.filter(function (m) {
+            return m.available !== false && resolveMenuLabelId(m) === sec.labelId;
+          }).slice(0, 10);
+          if (!items.length) return;
+          html += '<div class="mem-home-curated-block"><div class="mem-section-head"><h2><i class="fa-solid ' + sec.icon + '"></i> ' + esc(sec.title) + '</h2></div>';
+          html += '<div class="mem-home-curated-scroll">';
+          html += items.map(function (m) {
+            return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
+          }).join('');
+          html += '</div></div>';
+        });
+        box.innerHTML = html;
+        wireHomeMenuCards(box);
+      }
       function renderHomeMenuPreview() {
         var container = $('mem-home-menu-sections');
         if (!container) return;
@@ -6361,23 +6578,25 @@ function applyMemberPortalFromSettings(raw) {
         cats.forEach(function (cat) {
           var catItems = items.filter(function (m) { return norm(m.category) === cat; });
           if (!catItems.length) return;
+          var banner = getCategoryBanner(cat);
           html += '<div class="mem-home-cat-block" data-cat="' + escAttr(cat) + '">';
           html += '<div class="mem-section-head"><h2><i class="fa-solid fa-mug-hot"></i> ' + esc(cat) + '</h2>';
           html += '<button type="button" class="mem-link-btn mem-home-cat-more" data-cat="' + escAttr(cat) + '">Xem thêm</button></div>';
+          if (banner && banner.imageUrl) {
+            html += '<div class="mem-home-cat-banner">' +
+              (banner.linkUrl ? '<a href="' + escAttr(banner.linkUrl) + '" target="_blank" rel="noopener">' : '') +
+              '<img src="' + esc(banner.imageUrl) + '" alt="' + esc(cat) + '" loading="lazy">' +
+              (banner.linkUrl ? '</a>' : '') + '</div>';
+          }
           html += '<div class="mem-home-menu-grid menu-grid portal-menu-pro">';
           html += catItems.slice(0, 4).map(function (m) {
             return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
           }).join('');
           html += '</div></div>';
         });
-        container.innerHTML = html || '<p style="color:var(--text3);font-size:13px;">Chưa có món trong thực đơn.</p>';
-        container.querySelectorAll('.menu-card').forEach(function (el) {
-          el.onclick = function () {
-            var id = el.getAttribute('data-home-menu-id');
-            var it = state.menu.find(function (x) { return String(x.id) === String(id); });
-            if (it && window.MemOrder) MemOrder.openProduct(it); else goOrder();
-          };
-        });
+        container.innerHTML = html || '<p style="color:var(--text3);font-size:13px;padding:0 12px;">Chưa có món trong thực đơn.</p>';
+        wireHomeMenuCards(container);
+        renderHomeCuratedSections();
         container.querySelectorAll('.mem-home-cat-more').forEach(function (btn) {
           btn.onclick = function () {
             var c = btn.getAttribute('data-cat') || '';
@@ -6452,7 +6671,7 @@ function applyMemberPortalFromSettings(raw) {
         var sub = '';
         var icon = '';
         if (s === 'home') {
-          title = first ? (first + ' ơi!') : 'Xin chào!';
+          title = first ? (first + ' ơi, Cà Phê nhé!') : 'Xin chào, Cà Phê nhé!';
           sub = timeGreeting();
         } else if (s === 'order') {
           icon = 'fa-mug-hot'; title = 'Đặt hàng';
@@ -6482,6 +6701,22 @@ function applyMemberPortalFromSettings(raw) {
         if (icon) titleEl.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + esc(title);
         else titleEl.textContent = title;
         subEl.textContent = sub;
+        var brandIco = $('mem-topbar-brand-icon');
+        var avBtn = $('mem-avatar-btn');
+        if (brandIco && avBtn) {
+          var onHome = s === 'home';
+          brandIco.classList.toggle('mem-hidden', !onHome);
+          avBtn.classList.toggle('mem-hidden', onHome);
+        }
+      }
+      function applyTopbarAvatar(url) {
+        var btn = $('mem-avatar-btn');
+        if (!btn) return;
+        if (url) {
+          btn.innerHTML = '<img src="' + esc(url) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        } else {
+          btn.innerHTML = '<i class="fa-solid fa-user"></i>';
+        }
       }
       function applyPortalToHome(r) {
         if (!r || !state.phone) return;
@@ -6489,10 +6724,68 @@ function applyMemberPortalFromSettings(raw) {
         var first = (r.activeSubscriptions || [])[0] || {};
         var name = first.customerName || prof.name || state.phone;
         applyTopbarGreeting(name);
+        applyTopbarAvatar(prof.avatarUrl || '');
         if ($('home-fav')) $('home-fav').textContent = first.favoriteDrink || '-';
         var schedBtn = $('btn-home-schedule');
         if (schedBtn) schedBtn.classList.toggle('mem-hidden', !(r.hasPortalAccess && (r.activeSubscriptions || []).length));
         renderHomeMenuPreview();
+        setTimeout(maybeShowGroupFeedback, 800);
+      }
+      var groupFeedbackStar = 0;
+      function closeGroupFeedback(skipStorage) {
+        var overlay = $('mem-group-feedback');
+        if (!overlay) return;
+        overlay.classList.add('mem-hidden');
+        overlay.setAttribute('hidden', 'hidden');
+        overlay.setAttribute('aria-hidden', 'true');
+        if (skipStorage !== false && state.phone) {
+          try { localStorage.setItem('sun_group_fb_' + state.phone, '1'); } catch (eSt) {}
+        }
+        state._groupFeedbackOrder = null;
+        groupFeedbackStar = 0;
+      }
+      function maybeShowGroupFeedback() {
+        if (!state.phone || !state.menu.length) return;
+        try { if (localStorage.getItem('sun_group_fb_' + state.phone)) return; } catch (e0) {}
+        api('getMemberOrderHistory', state.phone, 30).then(function (res) {
+          var orders = (res && res.orders) || [];
+          var found = null;
+          for (var i = 0; i < orders.length; i++) {
+            var o = orders[i];
+            var note = String(o.note || '');
+            var st = String(o.status || '').toLowerCase();
+            if (note.indexOf('[GROUP:') < 0) continue;
+            if (st.indexOf('hủy') >= 0 || st.indexOf('cancel') >= 0) continue;
+            found = o;
+            break;
+          }
+          if (!found) return;
+          var items = found.items || [];
+          var drink = items[0];
+          if (!drink) return;
+          var drinkName = drink.name || drink.itemName || drink.productName || 'Món bạn đã uống';
+          var menuItem = state.menu.find(function (m) { return String(m.name).trim() === String(drinkName).trim(); });
+          var img = (menuItem && menuItem.imageUrl) || drink.imageUrl || '';
+          var drinkBox = $('mem-group-feedback-drink');
+          var sub = $('mem-group-feedback-sub');
+          var overlay = $('mem-group-feedback');
+          if (!drinkBox || !overlay) return;
+          var note = String(found.note || '');
+          var gname = '';
+          var gm = note.match(/«([^»]+)»/);
+          if (gm) gname = gm[1];
+          drinkBox.innerHTML =
+            (img ? '<img src="' + esc(img) + '" alt="">' : '<div style="width:64px;height:64px;border-radius:12px;background:#ffedd5;display:flex;align-items:center;justify-content:center;font-size:28px;">🥤</div>') +
+            '<div><strong style="font-size:14px;display:block;margin-bottom:4px;">' + esc(drinkName) + '</strong>' +
+            '<span style="font-size:11px;color:var(--text3);">' + esc(gname || 'Đơn nhóm') + '</span></div>';
+          if (sub) sub.textContent = 'Bạn từng đặt qua đơn nhóm — cho SUN biết cảm nhận về món này nhé.';
+          groupFeedbackStar = 0;
+          overlay.querySelectorAll('.mem-group-feedback-stars button').forEach(function (b) { b.classList.remove('on'); });
+          overlay.classList.remove('mem-hidden');
+          overlay.removeAttribute('hidden');
+          overlay.setAttribute('aria-hidden', 'false');
+          state._groupFeedbackOrder = found;
+        }).catch(function () {});
       }
       function renderMemberInfo(r) {
         var st = $('member-status');
@@ -7942,8 +8235,6 @@ function applyMemberPortalFromSettings(raw) {
       };
       var btg = $('btn-top-group');
       if (btg) btg.onclick = function () { goGroup(); };
-      var bto = $('btn-top-offers');
-      if (bto) bto.onclick = goOffers;
       var btn = $('btn-top-notify');
       if (btn) btn.onclick = function (e) {
         e.stopPropagation();
@@ -7961,6 +8252,50 @@ function applyMemberPortalFromSettings(raw) {
       var btf = $('btn-top-favorites');
       if (bhf) bhf.onclick = goFavorites;
       if (btf) btf.onclick = goFavorites;
+      var promoSeeAll = $('mem-promo-see-all');
+      if (promoSeeAll) promoSeeAll.onclick = function () {
+        var list = $('mem-promo-list');
+        if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      document.querySelectorAll('[data-offers-go]').forEach(function (btn) {
+        btn.onclick = function () {
+          var key = btn.getAttribute('data-offers-go');
+          if (key === 'tier') {
+            var hero = $('mem-offers-hero');
+            if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else if (key === 'redeem') showToast('Tính năng đổi Bean sắp ra mắt');
+          else if (key === 'history') { openMoreSub('orders'); switchSection('more'); setTab('more'); }
+          else if (key === 'benefits') { switchSection('packages'); setTab('packages'); }
+        };
+      });
+      var gfSkip = $('mem-group-feedback-skip');
+      var gfSend = $('mem-group-feedback-send');
+      var gfStars = $('mem-group-feedback-stars');
+      if (gfSkip) gfSkip.onclick = function () { closeGroupFeedback(true); };
+      if (gfStars) gfStars.querySelectorAll('button').forEach(function (b) {
+        b.onclick = function () {
+          groupFeedbackStar = parseInt(b.getAttribute('data-star'), 10) || 0;
+          gfStars.querySelectorAll('button').forEach(function (x) {
+            x.classList.toggle('on', parseInt(x.getAttribute('data-star'), 10) <= groupFeedbackStar);
+          });
+        };
+      });
+      if (gfSend) gfSend.onclick = function () {
+        if (!groupFeedbackStar) { showToast('Chọn số sao trước nhé'); return; }
+        showToast('Cảm ơn bạn đã góp ý!');
+        closeGroupFeedback(true);
+      };
+      (function initTopbarScrollHide() {
+        var tb = $('mem-topbar');
+        if (!tb) return;
+        var lastY = 0;
+        window.addEventListener('scroll', function () {
+          var y = window.scrollY || document.documentElement.scrollTop || 0;
+          if (y > 80 && y > lastY + 6) tb.classList.add('mem-topbar-hidden');
+          else if (y < lastY - 6 || y < 48) tb.classList.remove('mem-topbar-hidden');
+          lastY = y;
+        }, { passive: true });
+      })();
       var hs = $('mem-home-search');
       if (hs) hs.addEventListener('input', function () {
         var q = String(hs.value || '').trim().toLowerCase();
@@ -8209,6 +8544,23 @@ function applyMemberPortalFromSettings(raw) {
       await SUN_MEM.init();
     })();
   </script>
+
+  <div class="mem-group-feedback-overlay mem-hidden" id="mem-group-feedback" hidden aria-hidden="true">
+    <div class="mem-group-feedback-card">
+      <h3>Bạn thấy món hôm trước thế nào?</h3>
+      <p id="mem-group-feedback-sub">Góp ý giúp SUN Nut Milk phục vụ tốt hơn cho đơn nhóm.</p>
+      <div class="mem-group-feedback-drink" id="mem-group-feedback-drink"></div>
+      <div class="mem-group-feedback-stars" id="mem-group-feedback-stars">
+        <button type="button" data-star="1" aria-label="1 sao">⭐</button>
+        <button type="button" data-star="2" aria-label="2 sao">⭐</button>
+        <button type="button" data-star="3" aria-label="3 sao">⭐</button>
+        <button type="button" data-star="4" aria-label="4 sao">⭐</button>
+        <button type="button" data-star="5" aria-label="5 sao">⭐</button>
+      </div>
+      <button type="button" class="btn" id="mem-group-feedback-send" style="width:100%;"><i class="fa-solid fa-paper-plane"></i> Gửi góp ý</button>
+      <button type="button" class="btn btn-sec" id="mem-group-feedback-skip" style="width:100%;margin-top:8px;">Để sau</button>
+    </div>
+  </div>
 
   <div class="mem-go-overlay mem-hidden" id="mem-go-overlay" aria-live="polite"><div class="mem-go-overlay-card"><i class="fa-solid fa-circle-notch fa-spin"></i><p>Đang mở trang đặt hàng…</p></div></div>
   <nav class="mem-bottom-nav mem-hidden" aria-label="Menu chính">
