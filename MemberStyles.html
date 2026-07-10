@@ -684,7 +684,41 @@
     font-weight: 800; font-size: 12px; color: var(--primary-dk); cursor: pointer;
   }
   .mem-profile-form .field-locked { background: #f0ebe4; color: var(--text3); cursor: not-allowed; }
-  .mem-danger-zone { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border); }
+  .mem-danger-zone { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  #mem-profile-modal.mem-pd-overlay { align-items: center; justify-content: center; padding: 12px; }
+  #mem-profile-modal .mem-profile-sheet {
+    max-width: min(440px, calc(100vw - 24px)); width: 100%;
+    max-height: none; height: auto; overflow: hidden;
+    border-radius: 20px; box-shadow: 0 20px 50px rgba(40, 25, 15, .22);
+  }
+  #mem-profile-modal .mem-pd-head { padding: 16px 16px 4px; }
+  #mem-profile-modal .mem-profile-body {
+    overflow: visible; flex: 0 0 auto; min-width: 0;
+    padding: 0 16px 16px; box-sizing: border-box;
+  }
+  .mem-profile-form label {
+    display: block; font-size: 11px; font-weight: 800; color: var(--text3);
+    margin: 8px 0 4px; letter-spacing: 0.02em;
+  }
+  .mem-profile-form label:first-of-type { margin-top: 0; }
+  .mem-profile-form input,
+  .mem-profile-form select {
+    width: 100%; max-width: 100%; box-sizing: border-box;
+    padding: 10px 12px; font-size: 14px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--surface2);
+    font-family: var(--font);
+  }
+  .mem-profile-form .btn { box-sizing: border-box; max-width: 100%; }
+  .mem-profile-phone-row {
+    display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 4px;
+  }
+  @media (min-width: 360px) {
+    .mem-profile-phone-row { grid-template-columns: 1fr auto; align-items: center; }
+    .mem-profile-phone-row .btn { width: auto; white-space: nowrap; padding: 10px 12px; font-size: 12px; }
+  }
+  .mem-profile-phone-row .btn { width: 100%; justify-content: center; }
+  .mem-profile-note { font-size: 10px; color: var(--text3); margin: 4px 0 0; line-height: 1.4; }
+  .mem-profile-form .mem-danger-zone p { font-size: 11px; margin-bottom: 6px; }
   .mem-ai-fab {
     position: fixed; right: 16px; bottom: calc(78px + env(safe-area-inset-bottom, 0px));
     width: 52px; height: 52px; border-radius: 50%; border: none;
