@@ -33,7 +33,7 @@
   <!--MEMBER_STYLES_BEGIN-->
 <style>
     :root {
-      --bg: #F3EDE6;
+      --bg: #f3ece4;
       --surface: #FFFCF8;
       --surface2: #FAF6F0;
       --border: rgba(120, 82, 48, 0.14);
@@ -56,6 +56,7 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
+      background: #f3ece4;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; padding-bottom: 100px; }
@@ -744,7 +745,7 @@
     @media (min-width: 900px) { .mem-offers-shell { max-width: none; } }
     .mem-offers-page .section-title { display: none; }
     body[data-mem-tab="offers"] .mem-topbar { display: none !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important; border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
-    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--offers-page-bg, #fffbeb) !important; }
+    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--bg) !important; }
     body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0 !important; margin-top: 0 !important; background: transparent; }
     body[data-mem-tab="offers"] #sec-offers { margin: 0; padding: 0; max-width: none; }
     body[data-mem-tab="offers"] #sec-offers.section { padding: 0; max-width: none; }
@@ -756,8 +757,7 @@
       body.mem-logged-in[data-mem-tab="offers"] .mem-topbar-inner { padding: 14px 24px 16px; }
       body[data-mem-tab="offers"] .mem-topbar-user.mem-hidden { display: flex !important; }
       body[data-mem-tab="offers"] {
-        background: #eceae6;
-        --offers-page-bg: #eceae6;
+        background: var(--bg);
       }
       body[data-mem-tab="offers"] #mem-portal-main {
         padding: 16px 24px 40px; max-width: 1200px; margin: 0 auto; box-sizing: border-box;
@@ -867,12 +867,6 @@
         color: inherit;
       }
       .mem-offers-body { padding: 14px 12px 0; background: #f5f5f4; }
-      body[data-mem-tab="offers"] #sec-offers {
-        padding-bottom: var(--mem-bottom-nav-clearance) !important;
-      }
-      body.mem-logged-in[data-mem-tab="offers"] {
-        padding-bottom: 0 !important;
-      }
       body[data-mem-tab="offers"] .mem-promo-list {
         padding-bottom: var(--mem-menu-row-gap);
       }
@@ -1040,7 +1034,6 @@
     #sec-more { padding: 8px 14px 24px; max-width: 560px; margin: 0 auto; }
     #sec-more.section { padding-top: 8px; padding-bottom: 24px; }
     body[data-mem-tab="more"] #sec-more { padding-top: 6px; }
-    body[data-mem-tab="more"] { background: #f5f3f0; }
     .mem-more-section-title {
       font-size: 15px; font-weight: 900; color: var(--text); margin: 0 0 12px; padding: 0 2px;
     }
@@ -1882,6 +1875,16 @@
       body.mem-logged-in #sec-group {
         padding-bottom: 0;
       }
+      body[data-mem-tab="home"] #sec-home,
+      body[data-mem-tab="more"] #sec-more,
+      body[data-mem-tab="offers"] #sec-offers {
+        padding-bottom: var(--mem-bottom-nav-clearance) !important;
+      }
+      body.mem-logged-in[data-mem-tab="home"],
+      body.mem-logged-in[data-mem-tab="more"],
+      body.mem-logged-in[data-mem-tab="offers"] {
+        padding-bottom: 0 !important;
+      }
       body[data-mem-tab="offers"] .mem-offers-body {
         padding-bottom: 0 !important;
       }
@@ -2053,6 +2056,7 @@
     .mem-home-hot-belt-wrap:hover .mem-home-hot-belt { animation-play-state: paused; }
     .mem-home-hot-belt .menu-card {
       flex: 0 0 42%; max-width: 180px; scroll-snap-align: start;
+      width: 42%; min-width: 0; box-sizing: border-box;
     }
     @keyframes memHotBelt {
       0% { transform: translateX(0); }
@@ -2061,9 +2065,42 @@
     .mem-home-curated-scroll::-webkit-scrollbar { display: none; }
     .mem-home-curated-scroll .menu-card {
       flex: 0 0 42%; max-width: 180px; scroll-snap-align: start;
+      width: 42%; min-width: 0; box-sizing: border-box;
     }
-    @media (min-width: 640px) {
-      .mem-home-curated-scroll .menu-card { flex: 0 0 28%; max-width: 200px; }
+    @media (min-width: 900px) {
+      #mem-home-dashboard .mem-home-menu-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+      #mem-home-dashboard .mem-home-menu-grid .menu-card,
+      #mem-home-dashboard .mem-home-hot-belt .menu-card,
+      #mem-home-dashboard .mem-home-curated-scroll .menu-card,
+      #mem-home-dashboard .mem-home-spotlight .menu-card {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0;
+        flex: unset !important;
+      }
+      .mem-home-hot-belt-wrap {
+        overflow: visible;
+        margin: 0;
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+      .mem-home-hot-belt {
+        animation: none !important;
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .mem-home-curated-scroll,
+      .mem-home-fav-block .mem-home-curated-scroll {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        overflow: visible;
+        scroll-snap-type: none;
+      }
     }
     .mem-top-fav-btn {
       width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
@@ -2111,7 +2148,7 @@
     .mem-bottom-fade {
       display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 115;
       height: calc(64px + env(safe-area-inset-bottom, 0px)); pointer-events: none;
-      background: linear-gradient(to top, var(--bg) 35%, rgba(243,237,230,.45) 60%, transparent 100%);
+      background: linear-gradient(to top, var(--bg) 35%, rgba(243,236,228,.45) 60%, transparent 100%);
     }
     body.mem-logged-in .mem-bottom-fade { display: block; }
     body.mem-gate-mode .mem-bottom-fade { display: none !important; }
@@ -2944,7 +2981,7 @@
 
     /* ===== Trang chủ: bố cục gọn gàng, menu 2 cột trên mobile ===== */
     body.mem-logged-in #sec-home { padding: 0; }
-    #mem-home-dashboard { padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px)); max-width: none; width: 100%; margin-top: -1px; }
+    #mem-home-dashboard { padding: 0; max-width: none; width: 100%; margin-top: -1px; }
     body[data-mem-tab="home"] .mem-topbar { margin-bottom: -10px; z-index: 5; }
     body[data-mem-tab="home"] .mem-topbar-sky-bg { margin-bottom: -2px; }
     body[data-mem-tab="home"] .mem-carousel-wrap {
@@ -2972,14 +3009,14 @@
     .mem-home-menu-block .mem-section-head { margin: 0 0 8px; }
     .mem-home-toolbar { width: 100%; padding: 0 12px; box-sizing: border-box; }
     .mem-home-menu-grid,
-    .mem-home-menu-grid.portal-menu-pro { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
+    .mem-home-menu-grid.portal-menu-pro { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
     @media (min-width: 640px) {
       .mem-home-menu-grid,
-      .mem-home-menu-grid.portal-menu-pro { grid-template-columns: repeat(3, 1fr) !important; gap: 12px; }
+      .mem-home-menu-grid.portal-menu-pro { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 12px; }
     }
     @media (min-width: 1024px) {
       .mem-home-menu-grid,
-      .mem-home-menu-grid.portal-menu-pro { grid-template-columns: repeat(4, 1fr) !important; gap: 14px; }
+      .mem-home-menu-grid.portal-menu-pro { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 14px; }
     }
     .mem-home-menu-grid .menu-card { border-radius: 16px; }
     .mem-home-menu-grid .menu-card .bd { padding: 9px 10px 10px; }
@@ -3143,7 +3180,7 @@
       so users won't see the QR block "stuck" at the bottom of the page.
     */
     :root {
-      --bg: #F3EDE6; --surface: #FFFCF8; --surface2: #FAF6F0;
+      --bg: #f3ece4; --surface: #FFFCF8; --surface2: #FAF6F0;
       --border: rgba(120, 82, 48, 0.14);
       --primary: #9A3412; --primary-dk: #7C2D12; --primary-lt: #EA580C;
       --text: #1A1410; --text2: #5C4A3A; --text3: #8B7765;
@@ -5246,9 +5283,7 @@
           hero.id = 'mem-offers-hero';
         }
         document.body.style.setProperty('--offers-page-bg', offersPageBgForTier(tierCls));
-        if (document.body.getAttribute('data-mem-tab') === 'offers') {
-          document.body.style.backgroundColor = offersPageBgForTier(tierCls);
-        }
+        document.body.style.backgroundColor = '';
         paintOfferSparkles();
         if ($('mem-offers-tier')) $('mem-offers-tier').textContent = tierName;
         if ($('mem-offers-cups')) $('mem-offers-cups').textContent = String(cups);
@@ -6267,7 +6302,9 @@
         var beltCards = beltItems.map(function (m) {
           return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
         }).join('');
-        html += '<div class="mem-home-hot-belt-wrap"><div class="mem-home-hot-belt">' + beltCards + beltCards + '</div></div></div>';
+        html += '<div class="mem-home-hot-belt-wrap"><div class="mem-home-hot-belt">' + beltCards;
+        if (!window.matchMedia || !window.matchMedia('(min-width: 900px)').matches) html += beltCards;
+        html += '</div></div></div>';
         box.innerHTML = html;
         wireHomeMenuCards(box);
       }
@@ -6509,6 +6546,7 @@
         var s = sec === 'menu' ? 'order' : (sec || 'home');
         if (s === 'register') s = 'packages';
         document.body.setAttribute('data-mem-tab', s);
+        document.body.style.backgroundColor = '';
         renderSkyScene();
         var titleEl = $('home-welcome');
         var subEl = $('home-member-code');
