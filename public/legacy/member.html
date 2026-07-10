@@ -561,7 +561,8 @@
     /* -- App V2: bottom nav + offers + more -- */
     body { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
     @media (min-width: 900px) { body { padding-bottom: 100px; } }
-    .mem-topbar-actions { display: none !important; }
+    .mem-topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
+    .mem-topbar-actions.mem-hidden { display: none !important; }
     .mem-tabbar { display: none; }
     .mem-nav-desktop {
       max-width: 1100px; margin: 0 auto; padding: 8px 16px 0;
@@ -594,11 +595,14 @@
     }
     .mem-bottom-nav button i { font-size: 18px; }
     .mem-bottom-nav button.on { color: var(--primary); background: rgba(154,52,18,.08); }
-    .mem-offers-page { padding: 0 !important; max-width: none; }
+    .mem-offers-page { padding: 0 !important; max-width: none; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+    .mem-offers-page::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .mem-offers-shell { width: 100%; max-width: 520px; margin: 0 auto; }
+    @media (min-width: 900px) { .mem-offers-shell { max-width: 1100px; } }
     .mem-offers-page .section-title { display: none; }
     .mem-offers-hero {
-      margin: 0; padding: 18px 16px 0; position: relative; overflow: hidden;
-      background: linear-gradient(155deg, #c2410c 0%, #ea580c 38%, #f59e0b 72%, #fbbf24 100%);
+      margin: 0; padding: 22px 16px 0; position: relative; overflow: hidden;
+      background: linear-gradient(165deg, #7c2d12 0%, #b45309 28%, #ea580c 58%, #fb923c 100%);
       color: #fff;
     }
     .mem-offers-hero.tier-silver {
@@ -619,12 +623,18 @@
       position: relative; z-index: 1;
       display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
     }
-    .mem-offers-eyebrow { font-size: 11px; font-weight: 800; opacity: .92; letter-spacing: .04em; }
-    .mem-offers-tier-name {
-      font-family: var(--display); font-size: 1.75rem; font-weight: 900; margin: 2px 0 6px; line-height: 1.1;
+    .mem-offers-eyebrow { font-size: 10px; font-weight: 800; opacity: .88; letter-spacing: .08em; text-transform: uppercase; }
+    .mem-offers-tier-badge {
+      display: inline-flex; align-items: center; gap: 5px; margin-bottom: 8px;
+      padding: 5px 11px; border-radius: 999px; font-size: 10px; font-weight: 800;
+      background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.28);
+      backdrop-filter: blur(4px);
     }
-    .mem-offers-cups-line { margin: 0; font-size: 13px; font-weight: 600; opacity: .95; }
-    .mem-offers-cups-line strong { font-size: 15px; font-weight: 900; }
+    .mem-offers-tier-name {
+      font-family: var(--display); font-size: clamp(1.45rem, 5vw, 1.85rem); font-weight: 900; margin: 0 0 6px; line-height: 1.15;
+    }
+    .mem-offers-cups-line { margin: 0; font-size: 12px; font-weight: 600; opacity: .92; }
+    .mem-offers-cups-line strong { font-size: 14px; font-weight: 900; }
     .mem-voucher-pill {
       flex-shrink: 0; border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.18);
       color: #fff; border-radius: 999px; padding: 8px 12px; font-size: 11px; font-weight: 800;
@@ -633,9 +643,10 @@
     }
     .mem-voucher-pill:active { transform: scale(.98); }
     .mem-offers-card {
-      position: relative; z-index: 1; margin: 16px 0 0;
-      background: #fff; border-radius: 18px 18px 0 0; padding: 16px 14px 18px;
-      box-shadow: 0 -4px 24px rgba(0,0,0,.08);
+      position: relative; z-index: 1; margin: 16px 12px 0;
+      background: #fff; border-radius: 20px; padding: 18px 16px 16px;
+      box-shadow: 0 16px 40px rgba(30, 15, 5, .14);
+      border: 1px solid rgba(255,255,255,.65);
     }
     .mem-barcode-wrap { text-align: center; padding-bottom: 4px; }
     .mem-barcode-wrap .code-text {
@@ -673,20 +684,31 @@
     .mem-tier-maxed .mem-tier-to { color: #16a34a; }
     .mem-tier-maxed .mem-tier-marker { border-color: #16a34a; color: #16a34a; }
     .mem-offers-body {
-      background: #faf7f2; padding: 16px 16px 24px; min-height: 40vh;
+      background: var(--bg); padding: 18px 14px 28px; position: relative; z-index: 2;
+      border-radius: 22px 22px 0 0; margin-top: -6px;
     }
     @media (min-width: 900px) {
-      .mem-offers-body { max-width: 1100px; margin: 0 auto; border-radius: 0 0 18px 18px; }
-      .mem-offers-hero { max-width: 1100px; margin: 0 auto; border-radius: 18px 18px 0 0; }
+      .mem-offers-body { max-width: 1100px; margin: -6px auto 0; border-radius: 0 0 20px 20px; padding: 22px 22px 32px; }
+      .mem-offers-hero { max-width: 1100px; margin: 0 auto; border-radius: 20px 20px 0 0; }
+      .mem-offers-shell { max-width: 1100px; }
     }
     .mem-offers-section-head {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px;
     }
     .mem-offers-section-head h2 {
-      margin: 0; font-size: 15px; font-weight: 900; color: var(--primary-dk); font-family: var(--display);
+      margin: 0; font-size: 14px; font-weight: 900; color: var(--primary-dk); font-family: var(--display);
+      letter-spacing: .01em;
     }
-    .mem-promo-see-all { font-size: 12px; font-weight: 800; color: var(--primary); }
-    .mem-promo-list { display: flex; flex-direction: column; gap: 12px; }
+    .mem-promo-see-all {
+      font-size: 11px; font-weight: 800; color: var(--primary);
+      padding: 5px 10px; border-radius: 999px; background: rgba(234,88,12,.08);
+    }
+    .mem-promo-list { display: flex; flex-direction: column; gap: 10px; }
+    .mem-promo-empty {
+      font-size: 13px; color: var(--text3); text-align: center; padding: 32px 16px; margin: 0;
+      background: var(--surface); border: 1.5px dashed var(--border); border-radius: 16px; line-height: 1.5;
+    }
+    .mem-promo-empty-icon { font-size: 32px; display: block; margin-bottom: 10px; opacity: .85; }
     @media (min-width: 768px) {
       .mem-promo-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
       .mem-offers-hero { padding: 24px 22px 0; }
@@ -694,18 +716,15 @@
     }
     @media (min-width: 900px) {
       .mem-offers-page { max-width: 1100px; margin: 0 auto; }
-      .mem-offers-body { border-radius: 0 0 20px 20px; padding: 20px 22px 28px; }
-      .mem-offers-hero { border-radius: 20px 20px 0 0; }
-      .mem-offers-card { border-radius: 20px 20px 0 0; padding: 18px 18px 20px; }
+      .mem-offers-card { padding: 20px 20px 18px; }
     }
     .mem-voucher-card {
-      display: grid; grid-template-columns: 96px 1fr; align-items: stretch;
-      background: #fff; border-radius: 14px; overflow: hidden;
-      box-shadow: 0 4px 16px rgba(60,40,25,.07); border: 1px solid rgba(0,0,0,.04);
-      min-height: 96px; transition: transform .2s ease, box-shadow .2s ease;
+      display: grid; grid-template-columns: 88px 1fr; align-items: stretch;
+      background: var(--surface); border-radius: 16px; overflow: hidden;
+      box-shadow: 0 6px 20px rgba(60,40,25,.06); border: 1px solid var(--border);
+      min-height: 92px; transition: transform .2s ease, box-shadow .2s ease;
     }
-    .mem-voucher-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(60,40,25,.12); }
-    .mem-promo-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 24px 12px; margin: 0; }
+    .mem-voucher-card:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(60,40,25,.1); }
     .mem-voucher-stub {
       position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 10px 8px; text-align: center; color: #fff;
@@ -1061,9 +1080,13 @@
       }
     }
     .mem-bottom-nav button {
-      font-size: 10px; gap: 3px; padding: 8px 2px; border-radius: 14px;
-      transition: color .2s, background .2s;
+      font-size: 9px; gap: 2px; padding: 7px 2px; border-radius: 12px;
+      flex: 1; min-width: 0; max-width: 100%;
     }
+    .mem-bottom-nav button span {
+      display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mem-bottom-nav button i { font-size: 17px; }
     .mem-bottom-nav button.on {
       color: var(--primary-dk); background: rgba(234,88,12,.12); font-weight: 900;
     }
@@ -1113,6 +1136,23 @@
       background: var(--surface2); color: var(--primary); cursor: pointer; flex-shrink: 0;
       font-size: 17px;
     }
+    .mem-top-icon-btn {
+      width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--primary-dk); cursor: pointer; flex-shrink: 0;
+      font-size: 16px; display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; font-family: var(--font); transition: background .15s, transform .15s;
+    }
+    .mem-top-icon-btn:hover { background: rgba(234, 88, 12, .1); transform: scale(1.03); }
+    .mem-top-notif-wrap { position: relative; flex-shrink: 0; }
+    .mem-notif-pop {
+      position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+      min-width: 220px; max-width: min(280px, calc(100vw - 32px));
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(40, 25, 15, .14); padding: 12px 14px;
+    }
+    .mem-notif-pop.mem-hidden { display: none !important; }
+    .mem-notif-pop-head { font-size: 13px; font-weight: 900; color: var(--primary-dk); margin-bottom: 8px; }
+    .mem-notif-empty { font-size: 12px; color: var(--text3); margin: 0; line-height: 1.45; }
     .mem-top-group-btn {
       display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
       padding: 9px 14px; border-radius: 999px; border: 1.5px solid rgba(234, 88, 12, .4);
@@ -1350,7 +1390,25 @@
       width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
       background: rgba(255,255,255,.92); color: var(--text);
     }
-    .mem-pd-scroll { overflow: auto; flex: 1; padding-bottom: 8px; }
+    .mem-pd-scroll { overflow: auto; flex: 1; padding-bottom: 8px; scrollbar-width: none; -ms-overflow-style: none; }
+    .mem-pd-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    #mem-product-modal.mem-pd-overlay { overflow: hidden; }
+    #mem-product-modal .mem-pd-sheet { max-height: 96dvh; overflow: hidden; }
+    #mem-product-modal .mem-pd-scroll {
+      overflow-y: auto; overflow-x: hidden; min-height: 0;
+      -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    #mem-product-modal .mem-pd-scroll::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+    @media (max-width: 767px) {
+      #mem-product-modal .mem-pd-scroll .sheet-hero,
+      #mem-product-modal .mem-pd-scroll .sheet-hero-emoji { height: 150px; }
+      #mem-product-modal .mem-pd-head { padding: 10px 16px 0; }
+      #mem-product-modal .mem-pd-head .sheet-name { font-size: 17px; }
+      #mem-product-modal .mem-pd-scroll .opt-group { padding: 0 14px 10px; }
+      #mem-product-modal .mem-pd-meta-card { padding: 8px 10px; margin-bottom: 6px; }
+      #mem-product-modal .mem-pd-sheet .sheet-add-btn { padding: 14px; font-size: 14px; }
+    }
     .mem-pd-scroll .sheet-hero { height: 220px; position: relative; background: var(--surface2); overflow: hidden; }
     .mem-pd-scroll .sheet-hero img { width: 100%; height: 100%; object-fit: cover; }
     .mem-pd-scroll .sheet-hero-emoji { height: 220px; display: flex; align-items: center; justify-content: center; font-size: 72px; }
@@ -2346,7 +2404,8 @@
     }
     .mem-pkg-price-was { font-size: 12px; color: var(--text3); text-decoration: line-through; margin-right: 8px; }
     /* -- Gói Sun (Milk House style) -- */
-    .mem-sun-page { padding: 0 !important; max-width: none; }
+    .mem-sun-page { padding: 0 !important; max-width: none; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+    .mem-sun-page::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .mem-sun-hero {
       position: relative;
       background:
@@ -2442,10 +2501,26 @@
       padding: 10px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text2);
     }
     .mem-sun-trust-item i { display: block; font-size: 18px; color: var(--primary); margin-bottom: 6px; }
+    @media (max-width: 899px) {
+      .mem-sun-sidebar, .mem-sun-trust { display: none; }
+      .mem-sun-hero { padding: 22px 14px 20px; }
+      .mem-sun-layout { padding: 12px 14px 20px; }
+    }
+    .mem-pkg-visual {
+      height: 110px; margin: 10px 0 6px; border-radius: 14px;
+      background: linear-gradient(145deg, #faf6f0 0%, #ffedd5 55%, #fed7aa 100%);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .mem-pkg-visual img { width: 100%; height: 100%; object-fit: cover; }
+    .mem-pkg-visual-ph { font-size: 44px; line-height: 1; filter: drop-shadow(0 4px 8px rgba(0,0,0,.08)); }
+    .mem-pkg-card .mem-pkg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .mem-pkg-card .mem-pkg-btn i.fa-arrow-right { font-size: 12px; opacity: .95; }
     .mem-custom-picks {
       margin-top: 12px; padding: 12px; border-radius: 14px; border: 1px dashed var(--border);
       background: rgba(124, 45, 18, 0.04); max-height: 200px; overflow-y: auto;
+      scrollbar-width: none; -ms-overflow-style: none;
     }
+    .mem-custom-picks::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .mem-custom-picks label {
       display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 6px 0; cursor: pointer;
     }
@@ -2464,7 +2539,17 @@
           <span id="home-member-code" class="mem-topbar-meta"></span>
         </div>
       </div>
-      <button type="button" class="mem-top-group-btn mem-hidden" id="btn-top-group" title="Đơn nhóm - đặt cùng bạn bè" aria-label="Đơn nhóm"><i class="fa-solid fa-user-group"></i><span>Đơn nhóm</span></button>
+      <div class="mem-topbar-actions mem-hidden" id="mem-topbar-actions">
+        <button type="button" class="mem-top-icon-btn" id="btn-top-offers" title="Ưu đãi" aria-label="Ưu đãi"><i class="fa-solid fa-ticket"></i></button>
+        <div class="mem-top-notif-wrap">
+          <button type="button" class="mem-top-icon-btn" id="btn-top-notify" title="Thông báo" aria-label="Thông báo"><i class="fa-solid fa-bell"></i></button>
+          <div class="mem-notif-pop mem-hidden" id="mem-notif-pop" role="dialog" aria-label="Thông báo">
+            <div class="mem-notif-pop-head">Thông báo</div>
+            <p class="mem-notif-empty">Chưa có thông báo mới</p>
+          </div>
+        </div>
+        <button type="button" class="mem-top-group-btn mem-hidden" id="btn-top-group" title="Đơn nhóm - đặt cùng bạn bè" aria-label="Đơn nhóm"><i class="fa-solid fa-user-group"></i><span>Đơn nhóm</span></button>
+      </div>
       <button type="button" class="mem-top-fav-btn mem-hidden" id="btn-top-favorites" title="Món yêu thích" aria-label="Món yêu thích" style="display:none;"><i class="fa-solid fa-heart"></i></button>
     </div>
   </header>
@@ -2474,6 +2559,7 @@
     <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i> Đặt hàng</button>
     <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled><i class="fa-solid fa-cart-shopping"></i> Giỏ <em class="mem-nav-cart-badge" id="mem-nav-cart-badge-dt" style="display:none">0</em></button>
     <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>
+    <button type="button" class="mem-nav-b" data-sec="packages" disabled><i class="fa-solid fa-sun"></i> Gói Sun</button>
     <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i> Ưu đãi</button>
     <button type="button" class="mem-nav-b" data-sec="favorites" disabled style="display:none;"><i class="fa-solid fa-heart"></i> Yêu thích</button>
     <button type="button" class="mem-nav-b" data-sec="more" disabled style="display:none;"><i class="fa-solid fa-bars"></i> Khác</button>
@@ -2932,16 +3018,17 @@
 
   <!-- OFFERS -->
   <section class="section mem-hidden mem-offers-page" id="sec-offers">
+    <div class="mem-offers-shell">
     <div class="mem-offers-hero" id="mem-offers-hero">
       <div class="mem-offers-hero-pattern" aria-hidden="true"></div>
       <div class="mem-offers-hero-top">
         <div class="mem-offers-hero-text">
-          <span class="mem-offers-eyebrow">Ưu đãi</span>
+          <span class="mem-offers-tier-badge" id="mem-offers-tier-badge"><i class="fa-solid fa-crown"></i> Hội viên SUN</span>
           <h1 class="mem-offers-tier-name" id="mem-offers-tier">Thành viên</h1>
-          <p class="mem-offers-cups-line"><strong id="mem-offers-cups">0</strong> ly đã tích lũy</p>
+          <p class="mem-offers-cups-line">Đã tích lũy <strong id="mem-offers-cups">0</strong> ly</p>
         </div>
-        <button type="button" class="mem-voucher-pill" id="mem-voucher-pill" title="Sắp ra mắt">
-          <i class="fa-solid fa-ticket"></i> Voucher của tôi
+        <button type="button" class="mem-voucher-pill" id="mem-voucher-pill" title="Voucher của tôi">
+          <i class="fa-solid fa-ticket"></i> Voucher
         </button>
       </div>
       <div class="mem-offers-card">
@@ -2968,8 +3055,9 @@
         <span class="mem-promo-see-all" id="mem-promo-count"></span>
       </div>
       <div class="mem-promo-list" id="mem-promo-list">
-        <p class="mem-promo-empty">Đăng nhập để xem ưu đãi.</p>
+        <p class="mem-promo-empty"><span class="mem-promo-empty-icon" aria-hidden="true">🎟️</span>Chưa có ưu đãi — theo dõi cửa hàng để nhận tin mới.</p>
       </div>
+    </div>
     </div>
   </section>
 
@@ -5384,10 +5472,12 @@ function applyMemberPortalFromSettings(raw) {
           }
         });
         var tu = $('mem-topbar-user');
+        var ta = $('mem-topbar-actions');
         var bf = $('btn-top-favorites');
         var bg = $('btn-top-group');
         var lg = document.querySelector('.mem-brand-gate');
         if (tu) tu.classList.toggle('mem-hidden', !on);
+        if (ta) ta.classList.toggle('mem-hidden', !on);
         if (bf) bf.classList.toggle('mem-hidden', !on);
         if (bg) bg.classList.toggle('mem-hidden', !on);
         if (lg) lg.classList.toggle('mem-hidden', !!on);
@@ -5600,6 +5690,8 @@ function applyMemberPortalFromSettings(raw) {
         document.body.classList.toggle('mem-view-order', s === 'order');
         document.body.classList.toggle('mem-view-cart', s === 'cart');
         document.body.classList.toggle('mem-view-group', s === 'group');
+        document.body.classList.toggle('mem-view-packages', s === 'packages');
+        document.body.classList.toggle('mem-view-offers', s === 'offers');
         show('sec-home', s === 'home');
         show('sec-register', s === 'register');
         show('sec-order', s === 'order');
@@ -5729,15 +5821,20 @@ function applyMemberPortalFromSettings(raw) {
         if (opts.registerBtn) btnText = isCus ? 'Chọn gói Custom & thanh toán' : (isMonth ? 'Chọn gói tháng & thanh toán' : 'Chọn gói tuần & thanh toán');
         var cardCls = 'mem-pkg-card' + (isMonth ? ' month vip' : (isWeek ? ' week' : '')) + sel;
         var periodNote = isCus ? '/ tuỳ chọn' : (isMonth ? '/ tháng' : '/ tuần');
+        var imgUrl = String(p.imageUrl || p.coverImageUrl || p.image || '').trim();
+        var visual = imgUrl
+          ? '<div class="mem-pkg-visual"><img src="' + esc(imgUrl) + '" alt=""></div>'
+          : '<div class="mem-pkg-visual"><span class="mem-pkg-visual-ph">' + (isMonth ? '🌰' : '🥛') + '</span></div>';
         return (
           '<div class="' + cardCls + '" data-id="' + esc(p.id) + '">' +
             ribbon +
+            visual +
             '<div class="mem-pkg-toprow"><span class="mem-pkg-label-pill">' + esc(String(p.type || 'Gói').toUpperCase()) + '</span></div>' +
-            '<div class="mem-pkg-price-row">' + priceHtml + '<span class="mem-pkg-price-note">' + periodNote + '</span></div>' +
-            saveTag + promo +
             '<div class="mem-pkg-title">' + esc(p.name || '') + '</div>' +
             '<ul class="mem-pkg-perks">' + perks + '</ul>' +
-            '<button type="button" class="btn mem-pkg-btn">' + btnText + '</button>' +
+            '<div class="mem-pkg-price-row">' + priceHtml + '<span class="mem-pkg-price-note">' + periodNote + '</span></div>' +
+            saveTag + promo +
+            '<button type="button" class="btn mem-pkg-btn">' + btnText + ' <i class="fa-solid fa-arrow-right"></i></button>' +
           '</div>'
         );
       }
@@ -5922,6 +6019,8 @@ function applyMemberPortalFromSettings(raw) {
         }
         if ($('mem-offers-tier')) $('mem-offers-tier').textContent = tierName;
         if ($('mem-offers-cups')) $('mem-offers-cups').textContent = String(cups);
+        var tierBadge = $('mem-offers-tier-badge');
+        if (tierBadge) tierBadge.innerHTML = '<i class="fa-solid fa-crown"></i> ' + esc(tierName);
         if ($('mem-offers-code')) $('mem-offers-code').textContent = (prof && prof.memberCode) || (o && o.memberCode) || '-';
         renderTierProgress(tp);
         paintMemberBarcode();
@@ -5931,7 +6030,7 @@ function applyMemberPortalFromSettings(raw) {
         var promos = (o && o.promos) || [];
         if (cnt) cnt.textContent = promos.length ? (promos.length + ' voucher') : '';
         if (!promos.length) {
-          list.innerHTML = '<p class="mem-promo-empty">Chưa có ưu đãi - theo dõi cửa hàng để nhận tin mới.</p>';
+          list.innerHTML = '<p class="mem-promo-empty"><span class="mem-promo-empty-icon" aria-hidden="true">🎟️</span>Chưa có ưu đãi — theo dõi cửa hàng để nhận tin mới.</p>';
           return;
         }
         list.innerHTML = promos.map(function (p) {
@@ -5970,6 +6069,22 @@ function applyMemberPortalFromSettings(raw) {
         var m = $('mem-voucher-modal');
         if (m) m.classList.add('mem-hidden');
         stateVoucherPromo = null;
+      }
+      function closeNotifPop() {
+        var pop = $('mem-notif-pop');
+        if (pop) pop.classList.add('mem-hidden');
+      }
+      function toggleNotifPop() {
+        var pop = $('mem-notif-pop');
+        if (!pop) return;
+        pop.classList.toggle('mem-hidden');
+      }
+      function goOffers() {
+        if (!state.phone && !state.guest) { showToast('Đăng nhập SĐT trước'); return; }
+        closeNotifPop();
+        switchSection('offers');
+        setTab('offers');
+        renderOffers();
       }
       function goPickupWithPromo() {
         var promoCode = stateVoucherPromo && stateVoucherPromo.code ? stateVoucherPromo.code : '';
@@ -6352,8 +6467,8 @@ function applyMemberPortalFromSettings(raw) {
           icon = 'fa-ticket'; title = 'Ưu đãi';
           sub = code ? ('Mã ' + code) : 'Phiếu & quyền lợi hội viên';
         } else if (s === 'packages') {
-          icon = 'fa-box'; title = 'Gói hội viên';
-          sub = 'Đăng ký & gia hạn gói Sun';
+          icon = 'fa-sun'; title = 'Gói Sun';
+          sub = 'Chọn gói giao sữa phù hợp với bạn';
         } else if (s === 'more') {
           icon = 'fa-bars'; title = 'Khác';
           sub = 'Tiện ích & tài khoản';
@@ -7827,6 +7942,16 @@ function applyMemberPortalFromSettings(raw) {
       };
       var btg = $('btn-top-group');
       if (btg) btg.onclick = function () { goGroup(); };
+      var bto = $('btn-top-offers');
+      if (bto) bto.onclick = goOffers;
+      var btn = $('btn-top-notify');
+      if (btn) btn.onclick = function (e) {
+        e.stopPropagation();
+        toggleNotifPop();
+      };
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.mem-top-notif-wrap')) closeNotifPop();
+      });
       var gph = $('gate-phone');
       if (gph) gph.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') { ev.preventDefault(); runGate(); }
@@ -8090,7 +8215,8 @@ function applyMemberPortalFromSettings(raw) {
     <button type="button" class="mem-nav-b on" data-sec="home"><i class="fa-solid fa-house"></i><span>Trang chủ</span></button>
     <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i><span>Đặt hàng</span></button>
     <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled><i class="fa-solid fa-cart-shopping"></i><span>Giỏ</span><em class="mem-nav-cart-badge" id="mem-nav-cart-badge" style="display:none">0</em></button>
-    <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled><i class="fa-solid fa-user-group"></i><span>Đơn nhóm</span></button>
+    <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled><i class="fa-solid fa-user-group"></i><span>Nhóm</span></button>
+    <button type="button" class="mem-nav-b" data-sec="packages" disabled><i class="fa-solid fa-sun"></i><span>Gói Sun</span></button>
     <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i><span>Ưu đãi</span></button>
     <button type="button" class="mem-nav-b" data-sec="favorites" disabled style="display:none;"><i class="fa-solid fa-heart"></i><span>Yêu thích</span></button>
     <button type="button" class="mem-nav-b" data-sec="more" disabled style="display:none;"><i class="fa-solid fa-bars"></i><span>Khác</span></button>
