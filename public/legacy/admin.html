@@ -2025,6 +2025,7 @@ function goToOrder() {
 let inventoryData = [];
 let menuDataAdmin = [];
 let currentOrderPeriod = 'today';
+let currentDashPeriod = 'today';
 let currentCashPeriod = 'month';
 
 function initStockTxDateDefault() {
@@ -2403,18 +2404,41 @@ function startRealtimePolling() {
 // ========================
 // DASHBOARD
 // ========================
+async function apiCallWithRetry(fn, retries) {
+  var lastErr;
+  for (var i = 0; i <= (retries || 0); i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (i < (retries || 0)) await new Promise(function (r) { setTimeout(r, 800 * (i + 1)); });
+    }
+  }
+  throw lastErr;
+}
+
 async function loadDashboard(silent = false) {
   const dashEmpty = {
+    period: currentDashPeriod,
     todayRevenue: 0, yesterdayRevenue: 0, todayOrders: 0, yesterdayOrders: 0, monthRevenue: 0, monthOrders: 0,
+    periodRevenue: 0, periodOrders: 0, prevPeriodRevenue: 0,
     revenueChange: 0, topItems: [], preferences: null, recentOrders: []
   };
+  const periodLabels = { today: 'Hôm nay', week: 'Tuần này', month: 'Tháng này' };
+  const prevLabels = { today: 'so hôm qua', week: 'so tuần trước', month: 'so tháng trước' };
   try {
-    const dr = await api.callLong('getDashboardData', 45000);
+    const dr = await apiCallWithRetry(function () {
+      return api.callLong('getDashboardData', 60000, currentDashPeriod || 'today');
+    }, 2);
     const dataRaw = (dr && typeof dr === 'object') ? dr : null;
     const data = Object.assign({}, dashEmpty, dataRaw || {});
+    const rev = data.periodRevenue != null ? data.periodRevenue : data.todayRevenue;
+    const ord = data.periodOrders != null ? data.periodOrders : data.todayOrders;
     let stock = [];
     try {
-      stock = await api.callLong('getStockReportAdvanced', 45000, 'month', false);
+      stock = await apiCallWithRetry(function () {
+        return api.callLong('getStockReportAdvanced', 60000, 'month', false);
+      }, 1);
     } catch (eSt) {
       console.warn('stock alerts', eSt);
     }
@@ -2422,20 +2446,22 @@ async function loadDashboard(silent = false) {
     stockData = stock;
     try { renderStockTable(); } catch (eR) { /* bảng tồn có thể chưa mount */ }
     const kpi = document.getElementById('kpi-grid');
-    const estProfit = data.todayRevenue * 0.35;
-    const avgOrder = data.todayOrders > 0 ? data.todayRevenue / data.todayOrders : 0;
+    const estProfit = rev * 0.35;
+    const avgOrder = ord > 0 ? rev / ord : 0;
     const change = parseFloat(data.revenueChange);
+    const pl = periodLabels[currentDashPeriod] || 'Hôm nay';
+    const ppl = prevLabels[currentDashPeriod] || 'so kỳ trước';
     kpi.innerHTML = `
       <div class="kpi-card revenue">
         <div class="kpi-icon">💰</div>
-        <div class="kpi-value">${fmtShort(data.todayRevenue)}₫</div>
-        <div class="kpi-label">Doanh thu</div>
-        <div class="kpi-change ${change >= 0 ? 'up' : 'down'}">${change >= 0 ? '▲' : '▼'} ${Math.abs(change)}% so hôm qua</div>
+        <div class="kpi-value">${fmtShort(rev)}₫</div>
+        <div class="kpi-label">Doanh thu · ${pl}</div>
+        <div class="kpi-change ${change >= 0 ? 'up' : 'down'}">${change >= 0 ? '▲' : '▼'} ${Math.abs(change)}% ${ppl}</div>
       </div>
       <div class="kpi-card orders">
         <div class="kpi-icon">🧾</div>
-        <div class="kpi-value">${data.todayOrders}</div>
-        <div class="kpi-label">Đơn hàng</div>
+        <div class="kpi-value">${ord}</div>
+        <div class="kpi-label">Đơn hàng · ${pl}</div>
         <div class="kpi-change neutral">Tháng: ${data.monthOrders} đơn</div>
       </div>
       <div class="kpi-card profit">
@@ -2583,6 +2609,7 @@ async function loadDashboard(silent = false) {
 }
 
 function changeDashPeriod(p, el) {
+  currentDashPeriod = p || 'today';
   document.querySelectorAll('#tab-dashboard .period-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   loadDashboard();

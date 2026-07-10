@@ -42,7 +42,7 @@
     setFaviconUrl(SUN_FAVICON_URL);
   })();
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Inter:wght@400;500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Inter:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap&subset=vietnamese" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!--MEMBER_STYLES_BEGIN-->
 <style>
@@ -281,27 +281,56 @@
     body[data-mem-tab="home"] .mem-topbar { border-radius: 0 0 22px 22px; }
     body.mem-logged-in:not([data-mem-tab="offers"]) .mem-topbar-inner {
       padding: 12px 14px 14px;
-      margin: 0 10px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.22);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,.28);
-      box-shadow: 0 4px 18px rgba(15,23,42,.08);
+      margin: 0;
+      border-radius: 0;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border: none;
+      box-shadow: none;
     }
     body[data-sky-dark="1"] .mem-topbar-inner {
-      background: rgba(15,23,42,.28);
-      border-color: rgba(255,255,255,.16);
-      box-shadow: 0 6px 22px rgba(0,0,0,.18);
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
     }
     body.mem-logged-in:not([data-sky-dark="1"]) .mem-logo-txt,
     body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-greet strong {
       color: #431407;
       text-shadow: 0 1px 0 rgba(255,255,255,.85), 0 0 12px rgba(255,255,255,.55);
     }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-meta { color: rgba(67,20,7,.72); }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-meta { color: rgba(67,20,7,.82); text-shadow: 0 1px 0 rgba(255,255,255,.7); }
     body[data-sky-dark="1"] .mem-topbar-greet strong { color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.35), 0 0 1px rgba(0,0,0,.25); }
     body[data-sky-dark="1"] .mem-topbar-meta { color: rgba(255,255,255,.92); text-shadow: 0 1px 6px rgba(0,0,0,.25); }
+    .mem-neon-name {
+      font-family: 'Caveat', 'Be Vietnam Pro', cursive;
+      font-weight: 700;
+      font-size: 1.35em;
+      letter-spacing: 0.02em;
+      display: inline-block;
+      position: relative;
+      animation: memNeonPulse 2.4s ease-in-out infinite;
+    }
+    body[data-sky-dark="1"] .mem-neon-name {
+      color: #fef08a;
+      text-shadow:
+        0 0 4px #fff,
+        0 0 8px #fde047,
+        0 0 16px #fbbf24,
+        0 0 24px rgba(251, 191, 36, .55);
+    }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-neon-name {
+      color: #ea580c;
+      text-shadow:
+        0 0 4px #fff,
+        0 0 8px #fdba74,
+        0 0 14px #fb923c,
+        0 0 22px rgba(234, 88, 12, .45);
+    }
+    @keyframes memNeonPulse {
+      0%, 100% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.15); transform: scale(1.02); }
+    }
     body[data-sky-dark="1"] .mem-top-icon-btn,
     body[data-sky-dark="1"] .mem-top-cart-btn {
       background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.28); color: #fff;
@@ -317,18 +346,33 @@
     .mem-logo-txt { font-family: var(--display); font-weight: 800; font-size: 1.25rem; color: var(--primary-dk); letter-spacing: -0.02em; }
     .mem-topbar-actions { display: flex; gap: 8px; align-items: center; }
     .mem-topbar-actions a { color: var(--primary-dk); text-decoration: none; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); display: inline-flex; align-items: center; gap: 6px; }
-    .mem-carousel-wrap { max-width: none; margin: 0 auto; padding: 10px 12px 0; width: 100%; box-sizing: border-box; }
-    .mem-carousel { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/9; min-height: 168px; background: #1a1410; max-width: 100%; }
-    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 2/1; min-height: 160px; } }
+    .mem-carousel-wrap { max-width: none; margin: 0 auto; padding: 12px 14px 0; width: 100%; box-sizing: border-box; position: relative; }
+    .mem-carousel {
+      position: relative; border-radius: 16px; overflow: hidden;
+      border: none; aspect-ratio: 2.15 / 1; min-height: 148px; max-height: 200px;
+      background: #1a1410; max-width: 100%;
+      box-shadow: 0 8px 28px rgba(40, 25, 15, .12);
+    }
+    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 2.05 / 1; min-height: 156px; max-height: 188px; } }
+    @media (min-width: 900px) { .mem-carousel { max-height: 220px; border-radius: 18px; } }
     .mem-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; background-size: cover; background-position: center; }
     .mem-slide.on { opacity: 1; z-index: 1; }
     .mem-slide-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px; background: linear-gradient(transparent, rgba(0,0,0,.72)); color: #fff; z-index: 2; }
     .mem-slide-cap .bdg { display: inline-block; font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(234,180,60,.95); color: #1a1410; margin-bottom: 8px; }
     .mem-slide-cap h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 6px; font-family: var(--display); line-height: 1.25; }
     .mem-slide-cap p { margin: 0; font-size: 13px; opacity: 0.96; line-height: 1.45; }
-    .mem-carousel-dots { display: none !important; }
-    .mem-carousel-dots button { width: 8px; height: 8px; border-radius: 50%; border: none; background: var(--border); cursor: pointer; padding: 0; }
-    .mem-carousel-dots button.on { background: var(--primary); }
+    .mem-carousel-dots {
+      display: flex !important; justify-content: center; align-items: center; gap: 6px;
+      position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 4; padding: 0;
+      pointer-events: none;
+    }
+    .mem-carousel-dots button { pointer-events: auto; }
+    .mem-carousel-dots button {
+      width: 22px; height: 3px; border-radius: 999px; border: none;
+      background: rgba(255,255,255,.45); cursor: pointer; padding: 0;
+      transition: width .25s, background .25s;
+    }
+    .mem-carousel-dots button.on { width: 32px; background: #fff; }
     .mem-shell { max-width: 1100px; margin: 0 auto; padding: 8px 16px 8px; }
     .mem-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
     @media (max-width: 900px) { .mem-split { grid-template-columns: 1fr; } }
@@ -1735,7 +1779,7 @@
       #mem-nav-desktop { display: none !important; }
       body.mem-logged-in .mem-bottom-nav { display: flex !important; }
       body.mem-logged-in {
-        padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
       }
     }
     @media (min-width: 900px) {
@@ -1918,9 +1962,28 @@
     }
     .mem-notif-pop.mem-hidden { display: none !important; }
     .mem-notif-pop-head {
-      font-size: 13px; font-weight: 900; color: var(--primary-dk); padding: 12px 14px 8px;
-      border-bottom: 1px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 10px 12px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
+    .mem-notif-tabs { display: flex; gap: 4px; background: var(--surface2); padding: 3px; border-radius: 10px; }
+    .mem-notif-tab {
+      border: none; background: transparent; border-radius: 8px; padding: 6px 10px;
+      font-size: 11px; font-weight: 800; color: var(--text3); cursor: pointer; font-family: var(--font);
+    }
+    .mem-notif-tab.on { background: var(--surface); color: var(--primary-dk); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .mem-notif-mark-all {
+      border: none; background: transparent; color: var(--primary); font-size: 11px; font-weight: 800;
+      cursor: pointer; padding: 4px 6px; font-family: var(--font); white-space: nowrap;
+    }
+    .mem-bottom-fade {
+      display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 115;
+      height: calc(108px + env(safe-area-inset-bottom, 0px)); pointer-events: none;
+      background: linear-gradient(to top, var(--bg) 42%, rgba(243,237,230,.94) 62%, transparent 100%);
+    }
+    body.mem-logged-in .mem-bottom-fade { display: block; }
+    body.mem-gate-mode .mem-bottom-fade,
+    body[data-mem-tab="offers"] .mem-bottom-fade { display: none !important; }
+    @media (min-width: 900px) { .mem-bottom-fade { display: none !important; } }
     .mem-notif-list { overflow-y: auto; padding: 6px 0; flex: 1; }
     .mem-notif-item {
       display: block; width: 100%; text-align: left; border: none; background: transparent;
@@ -3386,7 +3449,13 @@
             <em class="mem-notif-badge mem-hidden" id="mem-notif-badge" aria-hidden="true">0</em>
           </button>
           <div class="mem-notif-pop mem-hidden" id="mem-notif-pop" role="dialog" aria-label="Thông báo">
-            <div class="mem-notif-pop-head">Thông báo</div>
+            <div class="mem-notif-pop-head">
+              <div class="mem-notif-tabs" role="tablist">
+                <button type="button" class="mem-notif-tab on" data-notif-tab="new" role="tab">Thông báo</button>
+                <button type="button" class="mem-notif-tab" data-notif-tab="read" role="tab">Đã đọc</button>
+              </div>
+              <button type="button" class="mem-notif-mark-all" id="btn-notif-mark-all">Xem tất cả</button>
+            </div>
             <div id="mem-notif-list" class="mem-notif-list">
               <p class="mem-notif-empty">Chưa có thông báo mới</p>
             </div>
@@ -3586,11 +3655,11 @@
             <div class="mem-two">
               <div>
                 <label>Tỉnh / Thành phố</label>
-                <input type="text" id="reg-province" value="Tây Ninh">
+                <input type="text" id="reg-province" placeholder="Tỉnh / Thành phố">
               </div>
               <div>
                 <label>Xã / Phường</label>
-                <input type="text" id="reg-ward" value="Xã Dương Minh Châu">
+                <input type="text" id="reg-ward" placeholder="Phường / Xã">
               </div>
             </div>
 
@@ -4287,6 +4356,7 @@ function buildMemCarouselSlides(banners) {
     return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
   }).join('');
   memCarouselIndex = 0;
+  if (dots) dots.style.display = list.length > 1 ? 'flex' : 'none';
   if (list.length < 2) return;
   memCarouselTimer = setInterval(function () {
     memCarouselIndex = (memCarouselIndex + 1) % list.length;
@@ -6471,42 +6541,7 @@ function applyMemberPortalFromSettings(raw) {
       var homeScrollSpyWired = false;
       var homeScrollObs = null;
       function initHomeScrollSpy() {
-        var blocks = document.querySelectorAll('#mem-home-personal .mem-home-spotlight-block, #mem-home-curated .mem-home-spotlight-block, #mem-home-menu-sections .mem-home-cat-block');
-        if (!blocks.length) return;
-        if (!homeScrollObs) {
-          homeScrollObs = new IntersectionObserver(function (entries) {
-            if ((document.body.getAttribute('data-mem-tab') || '') !== 'home') return;
-            var best = null;
-            var bestRatio = 0;
-            entries.forEach(function (e) {
-              if (e.isIntersecting && e.intersectionRatio > bestRatio) {
-                bestRatio = e.intersectionRatio;
-                best = e.target;
-              }
-            });
-            if (!best || bestRatio < 0.12) return;
-            var label = best.getAttribute('data-scroll-label') || best.getAttribute('data-cat') || '';
-            var titleEl = $('home-welcome');
-            var subEl = $('home-member-code');
-            if (label && titleEl) {
-              titleEl.textContent = label;
-              if (subEl) subEl.textContent = '';
-            }
-          }, { root: null, rootMargin: '-68px 0px -55% 0px', threshold: [0, 0.12, 0.3, 0.5] });
-          if (!homeScrollSpyWired) {
-            homeScrollSpyWired = true;
-            window.addEventListener('scroll', function () {
-              if ((document.body.getAttribute('data-mem-tab') || '') !== 'home') return;
-              var y = window.scrollY || document.documentElement.scrollTop || 0;
-              if (y > 72 || !state.homeHeaderDefault) return;
-              var titleEl = $('home-welcome');
-              var subEl = $('home-member-code');
-              if (titleEl) titleEl.textContent = state.homeHeaderDefault.title || '';
-              if (subEl) subEl.textContent = state.homeHeaderDefault.sub || '';
-            }, { passive: true });
-          }
-        }
-        blocks.forEach(function (b) { homeScrollObs.observe(b); });
+        /* Header giữ lời chào — không đổi tiêu đề theo section cuộn */
       }
       function syncGatePhoneUi() {
         var inp = $('gate-phone');
@@ -6804,6 +6839,11 @@ function applyMemberPortalFromSettings(raw) {
         renderHomePackages(r);
         loadMemberOrderInsights();
         refreshMemberNotifications();
+        if (typeof api === 'function') {
+          api('getMemberPortalSettings', true).then(function (s) {
+            if (s && typeof applyMemberPortalFromSettings === 'function') applyMemberPortalFromSettings(s);
+          }).catch(function () { });
+        }
       }
       function parsePkgPerks(p, variant) {
         var desc = String(p.description || '').trim();
@@ -7374,12 +7414,18 @@ function applyMemberPortalFromSettings(raw) {
         var box = $('mem-notif-list');
         if (!box) return;
         var list = state.notifications || [];
-        if (!list.length) {
-          box.innerHTML = '<p class="mem-notif-empty">Chưa có thông báo mới</p>';
+        var tab = state.notifTab || 'new';
+        var read = getReadNotifIds();
+        var filtered = list.filter(function (n) {
+          var unread = n.id && read.indexOf(n.id) < 0;
+          return tab === 'new' ? unread : !unread;
+        });
+        if (!filtered.length) {
+          box.innerHTML = '<p class="mem-notif-empty">' + (tab === 'new' ? 'Chưa có thông báo mới' : 'Chưa có thông báo đã đọc') + '</p>';
           return;
         }
-        var read = getReadNotifIds();
-        box.innerHTML = list.map(function (n, idx) {
+        box.innerHTML = filtered.map(function (n) {
+          var idx = list.indexOf(n);
           var unread = n.id && read.indexOf(n.id) < 0;
           return '<button type="button" class="mem-notif-item' + (unread ? ' unread' : '') + '" data-notif-idx="' + idx + '">' +
             '<div class="mem-notif-item-kind">' + esc(notifKindLabel(n.kind)) + '</div>' +
@@ -7397,6 +7443,13 @@ function applyMemberPortalFromSettings(raw) {
             handleNotifAction(n);
           };
         });
+      }
+      function setNotifTab(tab) {
+        state.notifTab = tab === 'read' ? 'read' : 'new';
+        document.querySelectorAll('.mem-notif-tab').forEach(function (b) {
+          b.classList.toggle('on', b.getAttribute('data-notif-tab') === state.notifTab);
+        });
+        renderNotifList();
       }
       function getDismissedCampaignIds() {
         try {
@@ -7533,7 +7586,7 @@ function applyMemberPortalFromSettings(raw) {
           pop.classList.remove('mem-hidden');
           if (btn) btn.setAttribute('aria-expanded', 'true');
           if (!state.notifications || !state.notifications.length) refreshMemberNotifications({ showPopup: false });
-          else markAllNotifsRead();
+          else { state.notifTab = state.notifTab || 'new'; setNotifTab(state.notifTab); }
         } else {
           closeNotifPop();
         }
@@ -7720,19 +7773,62 @@ function applyMemberPortalFromSettings(raw) {
         var box = $('more-panel-addresses');
         if (!box) return;
         var addrs = (state.profile && state.profile.addresses) || [];
-        box.innerHTML = '<p style="font-size:12px;color:var(--text3);">Địa chỉ dùng cho gói giao trong khu vực chỉ định.</p>' +
+        box.innerHTML = '<p style="font-size:12px;color:var(--text3);">Chọn Tỉnh/TP và Phường/Xã — địa chỉ dùng cho gói giao hàng.</p>' +
           addrs.map(function (a, i) {
             return '<div class="card" style="margin-bottom:8px;font-size:12px;"><strong>' + esc(a.label || 'Địa chỉ ' + (i+1)) + '</strong><p style="margin:4px 0;">' + esc(a.detail || '') + ', ' + esc(a.ward || '') + ', ' + esc(a.province || '') + '</p></div>';
           }).join('') +
           '<label>Nhãn</label><input id="addr-label" class="form-control" placeholder="Nhà / Công ty">' +
-          '<label>Chi tiết</label><input id="addr-detail" class="form-control">' +
-          '<label>Xã / Phường</label><input id="addr-ward" class="form-control" value="Xã Dương Minh Châu">' +
-          '<label>Tỉnh</label><input id="addr-province" class="form-control" value="Tây Ninh">' +
+          '<label>Chi tiết</label><input id="addr-detail" class="form-control" placeholder="Số nhà, tên đường">' +
+          '<label>Tỉnh / Thành phố</label><select id="addr-province" class="form-control"><option value="">— Chọn tỉnh/thành —</option></select>' +
+          '<label>Phường / Xã</label><select id="addr-ward" class="form-control" disabled><option value="">— Chọn phường/xã —</option></select>' +
           '<button type="button" class="btn" style="margin-top:10px;width:100%;" id="btn-save-addr">Thêm / cập nhật địa chỉ</button>';
+        var provSel = $('addr-province');
+        var wardSel = $('addr-ward');
+        function fillWards(code, selectedName) {
+          if (!wardSel) return;
+          wardSel.innerHTML = '<option value="">— Chọn phường/xã —</option>';
+          wardSel.disabled = true;
+          if (!code) return;
+          fetch('/api/vn-address?type=wards&province=' + encodeURIComponent(code))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              var wards = Array.isArray(data) ? data : (data && data.data) || [];
+              if (!Array.isArray(wards) && data && Array.isArray(data.wards)) wards = data.wards;
+              wards.forEach(function (w) {
+                var opt = document.createElement('option');
+                opt.value = w.name;
+                opt.textContent = w.name;
+                if (selectedName && w.name === selectedName) opt.selected = true;
+                wardSel.appendChild(opt);
+              });
+              wardSel.disabled = false;
+            }).catch(function () { showToast('Không tải được phường/xã'); });
+        }
+        if (provSel) {
+          fetch('/api/vn-address?type=provinces')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              var list = Array.isArray(data) ? data : (data && data.data) || [];
+              list.forEach(function (p) {
+                var opt = document.createElement('option');
+                opt.value = String(p.code);
+                opt.textContent = p.name;
+                opt.setAttribute('data-name', p.name);
+                provSel.appendChild(opt);
+              });
+            }).catch(function () { showToast('Không tải được tỉnh/thành'); });
+          provSel.onchange = function () {
+            fillWards(provSel.value, '');
+          };
+        }
         var sb = $('btn-save-addr');
         if (sb) sb.onclick = function () {
+          var provOpt = provSel && provSel.selectedOptions && provSel.selectedOptions[0];
+          var provinceName = provOpt ? (provOpt.getAttribute('data-name') || provOpt.textContent) : '';
+          var wardName = wardSel ? wardSel.value : '';
+          if (!provinceName || !wardName) { showToast('Chọn đủ Tỉnh/TP và Phường/Xã'); return; }
           var list = addrs.slice();
-          list.push({ label: $('addr-label').value, detail: $('addr-detail').value, ward: $('addr-ward').value, province: $('addr-province').value });
+          list.push({ label: $('addr-label').value, detail: $('addr-detail').value, ward: wardName, province: provinceName });
           api('saveMemberProfile', state.phone, { addresses: list }).then(function (r) {
             state.profile = r.profile;
             renderAddressesForm();
@@ -7931,15 +8027,17 @@ function applyMemberPortalFromSettings(raw) {
           });
         });
         var keys = Object.keys(counts);
-        var favKeys = keys.filter(function (k) { return counts[k].count >= 2; });
-        favKeys.sort(function (a, b) { return counts[b].count - counts[a].count; });
-        if (!favKeys.length) {
-          favKeys = keys.sort(function (a, b) { return counts[b].count - counts[a].count; }).slice(0, 4);
-        } else {
-          favKeys = favKeys.slice(0, 8);
-        }
+        var distinctCount = keys.length;
+        var sorted = keys.slice().sort(function (a, b) {
+          if (counts[b].count !== counts[a].count) return counts[b].count - counts[a].count;
+          return counts[b].lastTime - counts[a].lastTime;
+        });
+        var frequent = sorted.filter(function (k) { return counts[k].count >= 2; }).slice(0, 8);
+        var topRegular = sorted.slice(0, 2);
         return {
-          favorites: favKeys.map(function (k) { return counts[k]; }),
+          distinctCount: distinctCount,
+          favorites: frequent.length ? frequent.map(function (k) { return counts[k]; }) : topRegular.map(function (k) { return counts[k]; }),
+          frequentItems: topRegular.map(function (k) { return counts[k]; }),
           recentOrders: (orders || []).slice(0, 5)
         };
       }
@@ -7967,25 +8065,28 @@ function applyMemberPortalFromSettings(raw) {
         var box = $('mem-home-personal');
         if (!box) return;
         var ins = state.memberInsights;
-        if (!ins || !ins.favorites.length) {
+        if (!ins || !ins.distinctCount) {
           box.innerHTML = '';
           return;
         }
-        var html = '';
-        if (ins.favorites.length) {
-          html += '<div class="mem-home-spotlight-block mem-home-fav-block" data-scroll-label="Món bạn thích">';
-          html += '<div class="mem-section-head"><h2><i class="fa-solid fa-heart"></i> Gợi ý cho bạn<span class="mem-home-spotlight-tag mem-tag-fav">Món bạn thích</span></h2></div>';
-          html += '<div class="mem-home-curated-scroll">';
-          ins.favorites.forEach(function (f) {
-            var m = findMenuByNameOrId(f.name, f.id);
-            if (!m || m.available === false) return;
-            html += '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false, 'Món bạn thích') + '</div>';
-          });
-          html += '</div></div>';
+        var sectionTitle = ins.distinctCount >= 3 ? 'Gợi ý cho bạn' : 'Món bạn thường dùng';
+        var sectionIcon = ins.distinctCount >= 3 ? 'fa-wand-magic-sparkles' : 'fa-mug-hot';
+        var items = ins.distinctCount >= 3 ? (ins.favorites || []) : (ins.frequentItems || ins.favorites || []).slice(0, 2);
+        if (!items.length) {
+          box.innerHTML = '';
+          return;
         }
+        var html = '<div class="mem-home-spotlight-block mem-home-fav-block">';
+        html += '<div class="mem-section-head"><h2><i class="fa-solid ' + sectionIcon + '"></i> ' + esc(sectionTitle) + '</h2></div>';
+        html += '<div class="mem-home-curated-scroll">';
+        items.forEach(function (f) {
+          var m = findMenuByNameOrId(f.name, f.id);
+          if (!m || m.available === false) return;
+          html += '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false, sectionTitle) + '</div>';
+        });
+        html += '</div></div>';
         box.innerHTML = html;
         wireHomeMenuCards(box);
-        initHomeScrollSpy();
       }
       function renderTermsPanel() {
         var box = $('more-panel-terms');
@@ -8375,9 +8476,13 @@ function applyMemberPortalFromSettings(raw) {
         var title = '';
         var sub = '';
         if (s === 'home') {
-          title = shortName ? (shortName + ' ơi!') : 'Xin chào!';
-          sub = timeGreeting();
-          state.homeHeaderDefault = { title: title, sub: sub };
+          if (shortName) {
+            titleEl.innerHTML = '<span class="mem-neon-name">' + esc(shortName) + '</span> ơi!';
+          } else {
+            titleEl.textContent = 'Xin chào!';
+          }
+          sub = timeGreeting() + '!';
+          state.homeHeaderDefault = { title: shortName ? (shortName + ' ơi!') : 'Xin chào!', sub: sub };
         } else if (s === 'order') {
           title = 'Đặt hàng';
           sub = '';
@@ -8400,7 +8505,7 @@ function applyMemberPortalFromSettings(raw) {
           title = shortName ? (shortName + ' ơi!') : 'Xin chào!';
           sub = s === 'home' ? timeGreeting() : '';
         }
-        titleEl.textContent = title;
+        if (s !== 'home') titleEl.textContent = title;
         subEl.textContent = sub;
         var avBtn = $('mem-avatar-btn');
         var userWrap = $('mem-topbar-user');
@@ -9956,6 +10061,18 @@ function applyMemberPortalFromSettings(raw) {
         e.stopPropagation();
         toggleNotifPop();
       };
+      document.querySelectorAll('.mem-notif-tab').forEach(function (tabBtn) {
+        tabBtn.onclick = function (e) {
+          e.stopPropagation();
+          setNotifTab(tabBtn.getAttribute('data-notif-tab'));
+        };
+      });
+      var btnMarkAll = $('btn-notif-mark-all');
+      if (btnMarkAll) btnMarkAll.onclick = function (e) {
+        e.stopPropagation();
+        markAllNotifsRead();
+        setNotifTab('read');
+      };
       window.addEventListener('resize', function () {
         var pop = $('mem-notif-pop');
         if (pop && !pop.classList.contains('mem-hidden')) positionNotifPop();
@@ -10358,6 +10475,7 @@ function applyMemberPortalFromSettings(raw) {
   </div>
 
   <div class="mem-go-overlay mem-hidden" id="mem-go-overlay" aria-live="polite"><div class="mem-go-overlay-card"><i class="fa-solid fa-circle-notch fa-spin"></i><p>Đang mở trang đặt hàng…</p></div></div>
+  <div class="mem-bottom-fade" aria-hidden="true"></div>
   <nav class="mem-bottom-nav mem-hidden" aria-label="Menu chính">
     <button type="button" class="mem-nav-b on" data-sec="home"><i class="fa-solid fa-house"></i><span>Trang chủ</span></button>
     <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i><span>Đặt hàng</span></button>

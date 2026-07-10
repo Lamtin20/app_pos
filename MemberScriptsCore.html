@@ -155,6 +155,7 @@ function buildMemCarouselSlides(banners) {
     return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
   }).join('');
   memCarouselIndex = 0;
+  if (dots) dots.style.display = list.length > 1 ? 'flex' : 'none';
   if (list.length < 2) return;
   memCarouselTimer = setInterval(function () {
     memCarouselIndex = (memCarouselIndex + 1) % list.length;

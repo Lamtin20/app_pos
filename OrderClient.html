@@ -409,8 +409,8 @@
   async function submitMembershipRegister() {
     var phone = normalizeVnPhoneDigitsClient(document.getElementById('mem-reg-phone') && document.getElementById('mem-reg-phone').value);
     var name = (document.getElementById('mem-reg-name') && document.getElementById('mem-reg-name').value) || '';
-    var province = (document.getElementById('mem-reg-province') && document.getElementById('mem-reg-province').value) || 'Tây Ninh';
-    var ward = (document.getElementById('mem-reg-ward') && document.getElementById('mem-reg-ward').value) || 'Xã Dương Minh Châu';
+    var province = (document.getElementById('mem-reg-province') && document.getElementById('mem-reg-province').value) || '';
+    var ward = (document.getElementById('mem-reg-ward') && document.getElementById('mem-reg-ward').value) || '';
     var addrDetail = (document.getElementById('mem-reg-addr-detail') && document.getElementById('mem-reg-addr-detail').value) || '';
     var landmark = (document.getElementById('mem-reg-landmark') && document.getElementById('mem-reg-landmark').value) || '';
     var fav = (document.getElementById('mem-reg-drink') && document.getElementById('mem-reg-drink').value) || '';
@@ -443,8 +443,8 @@
         }
         document.getElementById('mem-reg-phone').value = '';
         document.getElementById('mem-reg-name').value = '';
-        if (document.getElementById('mem-reg-province')) document.getElementById('mem-reg-province').value = 'Tây Ninh';
-        if (document.getElementById('mem-reg-ward')) document.getElementById('mem-reg-ward').value = 'Xã Dương Minh Châu';
+        if (document.getElementById('mem-reg-province')) document.getElementById('mem-reg-province').value = '';
+        if (document.getElementById('mem-reg-ward')) document.getElementById('mem-reg-ward').value = '';
         if (document.getElementById('mem-reg-addr-detail')) document.getElementById('mem-reg-addr-detail').value = '';
         if (document.getElementById('mem-reg-landmark')) document.getElementById('mem-reg-landmark').value = '';
         if (document.getElementById('mem-reg-drink')) document.getElementById('mem-reg-drink').value = '';
