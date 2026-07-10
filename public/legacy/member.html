@@ -668,6 +668,35 @@
     body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0; background: transparent; }
     body[data-mem-tab="offers"] #sec-offers { margin: 0; padding: 0; max-width: none; }
     body[data-mem-tab="offers"] #sec-offers.section { padding: 0; max-width: none; }
+    @media (min-width: 900px) {
+      body[data-mem-tab="offers"] .mem-topbar {
+        display: block !important; height: auto !important; min-height: 76px !important;
+        overflow: visible !important; border: none !important; box-shadow: none !important;
+      }
+      body.mem-logged-in[data-mem-tab="offers"] .mem-topbar-inner { padding: 14px 24px 16px; }
+      body[data-mem-tab="offers"] .mem-topbar-user.mem-hidden { display: flex !important; }
+      body[data-mem-tab="offers"] {
+        background: #eceae6;
+        --offers-page-bg: #eceae6;
+      }
+      body[data-mem-tab="offers"] #mem-portal-main {
+        padding: 16px 24px 40px; max-width: 1200px; margin: 0 auto; box-sizing: border-box;
+      }
+      body[data-mem-tab="offers"] .mem-offers-shell {
+        max-width: 520px; margin: 0 auto;
+        border-radius: 28px; overflow: hidden;
+        box-shadow: 0 24px 64px rgba(30, 20, 10, .11);
+        background: #fff;
+      }
+      body[data-mem-tab="offers"] .mem-offers-hero {
+        max-width: none; margin: 0; border-radius: 0; padding-top: 12px;
+      }
+      body[data-mem-tab="offers"] .mem-offers-hero .mem-offers-eyebrow { display: none; }
+      body[data-mem-tab="offers"] .mem-offers-body {
+        max-width: none; margin: 0; border-radius: 0; padding: 18px 16px 28px;
+      }
+      body[data-mem-tab="offers"] .mem-offers-card { margin-left: 14px; margin-right: 14px; }
+    }
     .mem-offers-hero {
       margin: 0; padding: calc(14px + env(safe-area-inset-top, 0px)) 0 16px; position: relative; overflow: hidden;
       background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 38%, #fde68a 72%, #fcd34d 100%);
@@ -797,9 +826,9 @@
     .mem-offers-quick-btn i.ic-benefit { background: #dbeafe; color: #2563eb; }
     .mem-offers-expiry { margin: 10px 0 0; font-size: 10px; color: rgba(255,255,255,.72); line-height: 1.45; text-align: center; padding: 0 8px 14px; }
     @media (min-width: 900px) {
-      .mem-offers-body { max-width: 1100px; margin: -6px auto 0; border-radius: 0 0 20px 20px; padding: 22px 22px 32px; }
-      .mem-offers-hero { max-width: 1100px; margin: 0 auto; border-radius: 20px 20px 0 0; }
-      .mem-offers-shell { max-width: 1100px; }
+      .mem-offers-body { max-width: none; margin: 0; border-radius: 0; padding: 18px 16px 28px; }
+      .mem-offers-hero { max-width: none; margin: 0; border-radius: 0; }
+      .mem-offers-shell { max-width: none; }
     }
     .mem-offers-section-head {
       display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px;
@@ -7416,7 +7445,7 @@ function applyMemberPortalFromSettings(raw) {
         var box = $('mem-home-personal');
         if (!box) return;
         var ins = state.memberInsights;
-        if (!ins || (!ins.favorites.length && !ins.recentOrders.length)) {
+        if (!ins || !ins.favorites.length) {
           box.innerHTML = '';
           return;
         }
@@ -7432,26 +7461,8 @@ function applyMemberPortalFromSettings(raw) {
           });
           html += '</div></div>';
         }
-        if (ins.recentOrders.length) {
-          html += '<div class="mem-home-spotlight-block mem-home-recent-block" data-scroll-label="Đặt gần đây">';
-          html += '<div class="mem-section-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Đặt gần đây</h2>';
-          html += '<button type="button" class="mem-link-btn" id="mem-home-see-orders">Xem tất cả</button></div>';
-          html += '<div class="mem-home-recent-list">';
-          ins.recentOrders.forEach(function (o, idx) {
-            html += buildOrderHistoryCardHtml(o, idx);
-          });
-          html += '</div></div>';
-        }
         box.innerHTML = html;
         wireHomeMenuCards(box);
-        box.querySelectorAll('[data-reorder-idx]').forEach(function (btn) {
-          btn.onclick = function () {
-            var i = parseInt(btn.getAttribute('data-reorder-idx'), 10);
-            reorderFromHistory(ins.recentOrders[i]);
-          };
-        });
-        var seeAll = $('mem-home-see-orders');
-        if (seeAll) seeAll.onclick = function () { openMoreSub('orders'); switchSection('more'); setTab('more'); };
         initHomeScrollSpy();
       }
       function renderTermsPanel() {
@@ -7826,7 +7837,10 @@ function applyMemberPortalFromSettings(raw) {
         var avBtn = $('mem-avatar-btn');
         var userWrap = $('mem-topbar-user');
         if (avBtn) avBtn.classList.add('mem-hidden');
-        if (userWrap) userWrap.classList.toggle('mem-hidden', s === 'offers');
+        if (userWrap) {
+          var hideOffersUser = s === 'offers' && window.innerWidth < 900;
+          userWrap.classList.toggle('mem-hidden', hideOffersUser);
+        }
       }
       function applyTopbarAvatar(url) {
         var btn = $('mem-avatar-btn');
@@ -9471,6 +9485,10 @@ function applyMemberPortalFromSettings(raw) {
           lastY = y;
         }, { passive: true });
       })();
+      window.addEventListener('resize', function () {
+        var tab = document.body.getAttribute('data-mem-tab') || 'home';
+        updateContextHeader(tab);
+      }, { passive: true });
       var hs = $('mem-home-search');
       if (hs) hs.addEventListener('input', function () {
         var q = String(hs.value || '').trim().toLowerCase();
