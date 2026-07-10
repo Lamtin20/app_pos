@@ -41,7 +41,7 @@
     setFaviconUrl(SUN_FAVICON_URL);
   })();
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Inter:wght@400;500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -58,7 +58,8 @@
       --radius: 14px;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:var(--bg); font-family:'Sora',sans-serif; color:var(--text); min-height:100vh; }
+    html { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
+    body { background:var(--bg); font-family:'Be Vietnam Pro','Inter',sans-serif; color:var(--text); min-height:100vh; }
 
     /* LOGIN */
     #login-screen {
@@ -74,7 +75,7 @@
     .pin-dot { width:16px; height:16px; border-radius:50%; border:2px solid var(--border2); transition:all 0.2s; }
     .pin-dot.filled { background:var(--gold); border-color:var(--gold); }
     .numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
-    .num-btn { padding:18px; background:var(--bg3); border:1px solid var(--border); border-radius:12px; color:var(--text); font-size:20px; font-weight:600; cursor:pointer; transition:all 0.15s; font-family:'Sora',sans-serif; }
+    .num-btn { padding:18px; background:var(--bg3); border:1px solid var(--border); border-radius:12px; color:var(--text); font-size:20px; font-weight:600; cursor:pointer; transition:all 0.15s; font-family:'Be Vietnam Pro','Inter',sans-serif; }
     .num-btn:hover { background:var(--border2); }
     .num-btn:active { transform:scale(0.95); }
     .num-btn.del { color:var(--red); }
@@ -114,18 +115,23 @@
     .admin-content { padding:24px; max-width:1400px; margin:0 auto; }
     
     /* KPI CARDS */
-    .kpi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:24px; }
-    @media(min-width:768px) { .kpi-grid { grid-template-columns:repeat(4,1fr); } }
-    .kpi-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:20px; }
+    @media(min-width:768px) { .kpi-grid { gap:16px; margin-bottom:24px; } }
+    .kpi-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:10px 8px; position:relative; overflow:hidden; min-width:0; }
+    @media(min-width:768px) { .kpi-card { border-radius:var(--radius); padding:20px; } }
     .kpi-card::before { content:''; position:absolute; top:0; right:0; width:80px; height:80px; border-radius:50%; opacity:0.06; transform:translate(30%,-30%); }
     .kpi-card.revenue::before { background:var(--gold); }
     .kpi-card.orders::before { background:var(--blue); }
     .kpi-card.profit::before { background:var(--green); }
     .kpi-card.avg::before { background:var(--purple); }
-    .kpi-icon { font-size:20px; margin-bottom:12px; }
-    .kpi-value { font-size:26px; font-weight:800; font-family:'JetBrains Mono',monospace; color:var(--text); margin-bottom:4px; }
-    .kpi-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; }
-    .kpi-change { font-size:12px; margin-top:8px; font-weight:600; }
+    .kpi-icon { font-size:13px; margin-bottom:4px; }
+    @media(min-width:768px) { .kpi-icon { font-size:20px; margin-bottom:12px; } }
+    .kpi-value { font-size:12px; font-weight:800; font-family:'Inter','Be Vietnam Pro',sans-serif; color:var(--text); margin-bottom:2px; line-height:1.25; word-break:break-word; }
+    @media(min-width:768px) { .kpi-value { font-size:26px; margin-bottom:4px; } }
+    .kpi-label { font-size:8px; color:var(--text3); text-transform:uppercase; letter-spacing:0; line-height:1.25; }
+    @media(min-width:768px) { .kpi-label { font-size:11px; letter-spacing:0.5px; } }
+    .kpi-change { font-size:9px; margin-top:4px; font-weight:600; line-height:1.25; }
+    @media(min-width:768px) { .kpi-change { font-size:12px; margin-top:8px; } }
     .kpi-change.up { color:var(--green); }
     .kpi-change.down { color:var(--red); }
     .kpi-change.neutral { color:var(--text3); }
@@ -145,7 +151,7 @@
     .mini-list-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
     .mini-list-item:last-child { border-bottom:none; }
     .mini-item-name { font-size:13px; color:var(--text); font-weight:500; }
-    .mini-item-val { font-size:13px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+    .mini-item-val { font-size:13px; font-weight:700; font-family:'Inter','Be Vietnam Pro',sans-serif; }
     
     /* PROGRESS BAR */
     .progress-bar { height:6px; background:var(--bg3); border-radius:3px; overflow:hidden; margin-top:6px; }
@@ -192,7 +198,9 @@
     .mixhat-img-row { display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px; }
     .mixhat-modal-footer { display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:12px;border-top:1px solid rgba(148,163,184,.12);justify-content:space-between; }
     .mixhat-modal-footer .mixhat-footer-left { display:flex;flex-wrap:wrap;gap:10px; }
-    @media(min-width:640px) { .form-grid.cols-2 { grid-template-columns:1fr 1fr; } .form-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; } .form-grid.cols-4 { grid-template-columns:1fr 1fr 1fr 1fr; } }
+    @media(min-width:900px) { .form-grid.cols-2 { grid-template-columns:1fr 1fr; } .form-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; } .form-grid.cols-4 { grid-template-columns:1fr 1fr 1fr 1fr; } .form-grid.cols-5 { grid-template-columns:repeat(5,1fr); } }
+    .form-grid .form-group { min-width:0; }
+    .form-control { max-width:100%; }
     .form-group label { display:block; font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
     .form-control { width:100%; padding:10px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:13px; font-family:'Sora',sans-serif; outline:none; transition:border-color 0.2s; }
     .form-control:focus { border-color:var(--gold); }
@@ -276,7 +284,10 @@
     .cost-margin-fill { height:100%; border-radius:5px; transition:width 0.5s; }
 
     @media(max-width:768px) {
-      .admin-content { padding:12px 14px 20px; width:100%; }
+      .admin-content { padding:12px 14px 20px; width:100%; max-width:100vw; overflow-x:hidden; box-sizing:border-box; }
+      .card { max-width:100%; overflow:hidden; box-sizing:border-box; }
+      .form-grid.cols-2, .form-grid.cols-3, .form-grid.cols-4, .form-grid.cols-5 { grid-template-columns:1fr !important; }
+      .form-grid [style*="grid-column"] { grid-column:1 / -1 !important; }
       .admin-header { padding:8px 12px; height:auto; min-height:52px; gap:8px; flex-wrap:wrap; }
       .admin-logo-text { font-size:14px; }
       .header-right { gap:6px; flex-wrap:wrap; margin-left:auto; }
@@ -287,11 +298,12 @@
       .tabs-inner { padding:0 10px; }
       .admin-tab { padding:12px 14px; font-size:12px; min-height:44px; }
       .admin-tab i { font-size:12px; }
-      .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
-      .kpi-card { padding:14px; border-radius:12px; }
-      .kpi-value { font-size:18px; }
-      .kpi-icon { font-size:16px; margin-bottom:8px; }
-      .kpi-label { font-size:10px; }
+      .kpi-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin-bottom:14px; }
+      .kpi-card { padding:8px 6px; border-radius:10px; }
+      .kpi-value { font-size:11px; }
+      .kpi-icon { font-size:12px; margin-bottom:3px; }
+      .kpi-label { font-size:7px; }
+      .kpi-change { font-size:8px; margin-top:3px; }
       .card { padding:14px; border-radius:12px; }
       .card-title { font-size:12px; margin-bottom:12px; line-height:1.4; }
       .two-col, .three-col { gap:14px; margin-bottom:16px; }
@@ -322,7 +334,6 @@
       .stock-alert-item { flex-wrap:wrap; gap:6px; }
     }
     @media(max-width:480px) {
-      .kpi-grid { grid-template-columns:1fr; }
       .admin-tab { font-size:0; padding:12px 14px; min-width:44px; justify-content:center; }
       .admin-tab i { font-size:14px; }
     }

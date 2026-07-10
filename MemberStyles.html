@@ -13,8 +13,9 @@
     --green: #15803D;
     --red: #B91C1C;
     --radius: 16px;
-    --font: 'Be Vietnam Pro', Arial, 'Helvetica Neue', Helvetica, sans-serif;
-    --display: 'Be Vietnam Pro', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --font: 'Be Vietnam Pro', 'Inter', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --display: 'Be Vietnam Pro', 'Inter', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --mono: 'Inter', 'Be Vietnam Pro', ui-monospace, monospace;
   }
   html {
     -webkit-font-smoothing: antialiased;
@@ -202,7 +203,7 @@
   @keyframes portalReveal { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
   .mem-topbar { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 14px rgba(60,40,25,0.06); }
   .mem-topbar-inner { max-width: 1100px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .mem-logo-txt { font-family: Georgia, 'Times New Roman', serif; font-weight: 800; font-size: 1.25rem; color: var(--primary-dk); letter-spacing: -0.02em; }
+  .mem-logo-txt { font-family: var(--display); font-weight: 800; font-size: 1.25rem; color: var(--primary-dk); letter-spacing: -0.02em; }
   .mem-topbar-actions { display: flex; gap: 8px; align-items: center; }
   .mem-topbar-actions a { color: var(--primary-dk); text-decoration: none; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); display: inline-flex; align-items: center; gap: 6px; }
   .mem-carousel-wrap { max-width: none; margin: 0 auto; padding: 12px 16px 0; }
@@ -257,7 +258,7 @@
   .mem-ai-input-row { display: flex; gap: 8px; margin-top: 10px; }
   .mem-ai-input-row input { flex: 1; }
   .mem-menu-hero { border-radius: 18px; padding: 20px 22px; margin-bottom: 14px; background: linear-gradient(105deg, rgba(124,45,18,.88), rgba(154,52,18,.75)), var(--surface2); color: #fff; border: 1px solid rgba(255,255,255,.12); position: relative; overflow: hidden; }
-  .mem-menu-hero h2 { font-family: Georgia, serif; font-size: 1.35rem; margin: 0 0 8px; }
+  .mem-menu-hero h2 { font-family: var(--display); font-size: 1.35rem; margin: 0 0 8px; }
   .mem-menu-hero p { margin: 0; font-size: 13px; opacity: 0.95; line-height: 1.5; max-width: 640px; }
   .mem-filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
   .mem-filter-pill { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface2); font-size: 12px; font-weight: 700; cursor: pointer; color: var(--text2); }
