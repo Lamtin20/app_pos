@@ -1300,8 +1300,10 @@
       }).join('') + '</div>';
     }
   
-    function syncNavBadge() {
+    function syncNavBadge(flyImageUrl) {
       var n = cartQty();
+      var prev = syncNavBadge._last || 0;
+      var img = flyImageUrl || (currentProduct && currentProduct.imageUrl) || '';
       ['mem-nav-cart-badge', 'mem-nav-cart-badge-dt'].forEach(function (id) {
         var badge = $(id);
         if (badge) {
@@ -1309,6 +1311,8 @@
           badge.style.display = n > 0 ? 'inline-flex' : 'none';
         }
       });
+      if (global.memSyncHeaderCart) global.memSyncHeaderCart(n, n > prev ? img : '');
+      syncNavBadge._last = n;
       syncOrderCta();
     }
     /** Thanh CTA nổi ở tab Đặt hàng: luôn thấy nút đi tiếp sau khi chọn món (kể cả đơn nhóm). */
