@@ -297,39 +297,35 @@
     body.mem-logged-in:not([data-sky-dark="1"]) .mem-logo-txt,
     body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-greet strong {
       color: #431407;
-      text-shadow: 0 1px 0 rgba(255,255,255,.85), 0 0 12px rgba(255,255,255,.55);
     }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-meta { color: rgba(67,20,7,.82); text-shadow: 0 1px 0 rgba(255,255,255,.7); }
-    body[data-sky-dark="1"] .mem-topbar-greet strong { color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.35), 0 0 1px rgba(0,0,0,.25); }
-    body[data-sky-dark="1"] .mem-topbar-meta { color: rgba(255,255,255,.92); text-shadow: 0 1px 6px rgba(0,0,0,.25); }
-    .mem-neon-name {
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-meta { color: rgba(67,20,7,.82); }
+    body[data-sky-dark="1"] .mem-topbar-greet strong { color: #fff; }
+    body[data-sky-dark="1"] .mem-topbar-meta { color: rgba(255,255,255,.92); }
+    .mem-write-name-wrap {
+      display: inline-block; vertical-align: bottom; max-width: 100%;
+    }
+    .mem-write-name {
       font-family: 'Caveat', 'Be Vietnam Pro', cursive;
       font-weight: 700;
-      font-size: 1.35em;
-      letter-spacing: 0.02em;
+      font-size: 1.45em;
+      letter-spacing: 0.01em;
       display: inline-block;
-      position: relative;
-      animation: memNeonPulse 2.4s ease-in-out infinite;
+      white-space: nowrap;
+      clip-path: inset(0 100% 0 0);
+      animation: memWriteName 1.05s cubic-bezier(.35, 0, .2, 1) forwards;
     }
-    body[data-sky-dark="1"] .mem-neon-name {
-      color: #fef08a;
-      text-shadow:
-        0 0 4px #fff,
-        0 0 8px #fde047,
-        0 0 16px #fbbf24,
-        0 0 24px rgba(251, 191, 36, .55);
+    body[data-sky-dark="1"] .mem-write-name { color: #fef9c3; }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-write-name { color: #c2410c; }
+    .mem-greet-oi {
+      opacity: 0;
+      animation: memGreetOi 0.45s ease 0.92s forwards;
     }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-neon-name {
-      color: #ea580c;
-      text-shadow:
-        0 0 4px #fff,
-        0 0 8px #fdba74,
-        0 0 14px #fb923c,
-        0 0 22px rgba(234, 88, 12, .45);
+    @keyframes memWriteName {
+      to { clip-path: inset(0 0 0 0); }
     }
-    @keyframes memNeonPulse {
-      0%, 100% { filter: brightness(1); transform: scale(1); }
-      50% { filter: brightness(1.15); transform: scale(1.02); }
+    @keyframes memGreetOi {
+      from { opacity: 0; transform: translateX(-3px); }
+      to { opacity: 1; transform: none; }
     }
     body[data-sky-dark="1"] .mem-top-icon-btn,
     body[data-sky-dark="1"] .mem-top-cart-btn {
@@ -340,7 +336,11 @@
     body[data-sky-dark="1"] #mem-nav-desktop .mem-nav-b { color: rgba(255,255,255,.88); }
     body[data-sky-dark="1"] #mem-nav-desktop .mem-nav-b.on { background: rgba(255,255,255,.22); color: #fff; border-color: rgba(255,255,255,.35); }
     body[data-sky-dark="1"] #mem-nav-desktop .mem-nav-b:not(.on):hover { background: rgba(255,255,255,.12); color: #fff; }
-    html { scroll-behavior: smooth; scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px)); scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: none; }
+    html { scroll-behavior: auto; scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px)); scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: none; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+    html::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    body { -webkit-overflow-scrolling: touch; touch-action: pan-y; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-y: none; }
+    body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    * { -webkit-tap-highlight-color: transparent; }
     .mem-topbar.mem-topbar-hidden { transform: translateY(-100%); pointer-events: none; }
     .mem-topbar-inner { max-width: 1100px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; }
     .mem-logo-txt { font-family: var(--display); font-weight: 800; font-size: 1.25rem; color: var(--primary-dk); letter-spacing: -0.02em; }
@@ -363,8 +363,13 @@
     .mem-slide-cap p { margin: 0; font-size: 13px; opacity: 0.96; line-height: 1.45; }
     .mem-carousel-dots {
       display: flex !important; justify-content: center; align-items: center; gap: 6px;
-      position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 4; padding: 0;
+      position: absolute !important; left: 0; right: 0; bottom: 10px !important; top: auto !important;
+      z-index: 4; padding: 0 !important; margin: 0 !important;
       pointer-events: none;
+    }
+    #mem-carousel-wrap .mem-carousel-dots { left: 14px; right: 14px; }
+    .mem-slide-img {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;
     }
     .mem-carousel-dots button { pointer-events: auto; }
     .mem-carousel-dots button {
@@ -1346,7 +1351,6 @@
       transition: left .55s cubic-bezier(.2,.8,.2,1), top .55s cubic-bezier(.2,.8,.2,1), transform .55s ease, opacity .55s ease;
     }
     .mem-bottom-nav .mem-nav-cart,
-    .mem-bottom-nav .mem-nav-group,
     .mem-bottom-nav [data-sec="packages"],
     .mem-nav-desktop .mem-nav-cart,
     .mem-nav-desktop .mem-nav-group,
@@ -1925,6 +1929,24 @@
       display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
       scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none;
     }
+    .mem-home-hot-belt-wrap {
+      overflow: hidden; margin: 0 -4px; padding: 2px 0 6px;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    }
+    .mem-home-hot-belt {
+      display: flex; gap: 10px; width: max-content;
+      animation: memHotBelt 48s linear infinite;
+      will-change: transform;
+    }
+    .mem-home-hot-belt-wrap:hover .mem-home-hot-belt { animation-play-state: paused; }
+    .mem-home-hot-belt .menu-card {
+      flex: 0 0 42%; max-width: 180px; scroll-snap-align: start;
+    }
+    @keyframes memHotBelt {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
     .mem-home-curated-scroll::-webkit-scrollbar { display: none; }
     .mem-home-curated-scroll .menu-card {
       flex: 0 0 42%; max-width: 180px; scroll-snap-align: start;
@@ -2087,6 +2109,17 @@
     }
     .mem-pk-head p { margin: 0; font-size: 12px; color: var(--text3); line-height: 1.45; }
     #sec-order .pk-wrap { max-width: 560px; margin: 0 auto; padding: 4px 12px 100px; }
+    .pk-search-bar {
+      display: none; align-items: center; gap: 8px; margin-bottom: 10px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+      padding: 10px 14px; box-shadow: 0 2px 10px rgba(60,40,25,.04);
+    }
+    .pk-search-bar.open { display: flex; }
+    .pk-search-bar i { color: var(--text3); font-size: 14px; flex-shrink: 0; }
+    .pk-search-bar input {
+      border: none !important; background: transparent !important; padding: 0 !important;
+      font-size: 14px !important; box-shadow: none !important; width: 100%; font-family: var(--font);
+    }
     #sec-order .pk-promo-bar { display: flex; gap: 8px; margin-bottom: 10px; }
     #sec-order .pk-promo-bar input {
       flex: 1; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 12px;
@@ -2800,15 +2833,21 @@
     .mem-group-more-btn { display: flex; width: 100%; margin-top: 8px; justify-content: center; }
 
     /* ===== Trang chủ: bố cục gọn gàng, menu 2 cột trên mobile ===== */
-    body.mem-logged-in #sec-home { padding: 6px 0 12px; }
-    #mem-home-dashboard { padding: 0 0 16px; max-width: none; width: 100%; }
-    .mem-carousel-wrap { width: 90%; margin: 0 auto; padding: 4px 0 0 !important; }
+    body.mem-logged-in #sec-home { padding: 0 0 12px; }
+    #mem-home-dashboard { padding: 0 0 16px; max-width: none; width: 100%; margin-top: -1px; }
+    body[data-mem-tab="home"] .mem-topbar { margin-bottom: -10px; z-index: 5; }
+    body[data-mem-tab="home"] .mem-topbar-sky-bg { margin-bottom: -2px; }
+    body[data-mem-tab="home"] .mem-carousel-wrap {
+      width: 90%; margin: -6px auto 0; padding: 0 12px 0 !important;
+      position: relative; z-index: 2;
+    }
+    .mem-carousel-wrap { width: 90%; margin: 0 auto; padding: 0 12px 0 !important; }
     .mem-carousel { border-radius: 18px; aspect-ratio: 16/10; min-height: 200px; max-height: none; }
     @media (max-width: 640px) {
       .mem-carousel { aspect-ratio: 4/3; min-height: 210px; }
     }
-    .mem-carousel-dots { padding: 8px 0 0; }
-    .mem-home-toolbar { margin: 10px auto 6px; width: 90%; }
+    .mem-carousel-dots { padding: 0 !important; }
+    .mem-home-toolbar { display: none !important; }
     .mem-fav-chip, #btn-top-favorites { display: none !important; } /* Yêu thích tạm ẩn */
     .mem-home-menu-block { padding: 0; border-radius: 0; margin: 0; width: 100%; background: transparent; border: none; box-shadow: none; }
     .mem-home-menu-block .mem-section-head { margin: 0 0 8px; }
@@ -3461,6 +3500,7 @@
             </div>
           </div>
         </div>
+        <button type="button" class="mem-top-icon-btn mem-hidden" id="btn-top-search" title="Tìm món" aria-label="Tìm món"><i class="fa-solid fa-magnifying-glass"></i></button>
         <button type="button" class="mem-top-icon-btn" id="btn-top-offers" title="Ưu đãi" aria-label="Ưu đãi"><i class="fa-solid fa-ticket"></i></button>
         <button type="button" class="mem-top-group-btn mem-hidden" id="btn-top-group" title="Đơn nhóm - đặt cùng bạn bè" aria-label="Đơn nhóm"><i class="fa-solid fa-user-group"></i><span>Đơn nhóm</span></button>
       </div>
@@ -3517,8 +3557,9 @@
     <div id="mem-home-schedule-block" class="mem-hidden mem-home-extra"><div id="mem-home-schedule-inner"></div></div>
 
     <div class="mem-carousel-wrap mem-hidden" id="mem-carousel-wrap" aria-hidden="true">
-      <div class="mem-carousel" id="mem-carousel"></div>
-      <div class="mem-carousel-dots" id="mem-carousel-dots"></div>
+      <div class="mem-carousel" id="mem-carousel">
+        <div class="mem-carousel-dots" id="mem-carousel-dots"></div>
+      </div>
     </div>
 
     <div class="mem-home-toolbar">
@@ -3717,6 +3758,10 @@
         <p id="mem-pk-greet">Chọn món để tùy chỉnh và thêm vào giỏ</p>
       </div>
       <div class="pk-wrap">
+        <div class="pk-search-bar" id="pk-search-bar">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" id="pk-menu-search" placeholder="Tìm món..." autocomplete="off">
+        </div>
 <div class="pk-cats" id="pk-cats"></div>
         <div class="pk-grid mem-home-menu-grid portal-menu-pro" id="pk-grid"><p style="color:var(--text3);font-size:13px;">Đang tải thực đơn…</p></div>
       </div>
@@ -4321,18 +4366,21 @@ var memCarouselIndex = 0;
 function stopMemCarousel() {
   if (memCarouselTimer) { clearInterval(memCarouselTimer); memCarouselTimer = null; }
 }
+function bannerSlideImage(b) {
+  return String((b && (b.image || b.imageUrl)) || '').trim();
+}
+var MEM_BANNER_FALLBACK_IMG = 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80';
 function buildMemCarouselSlides(banners) {
   var box = document.getElementById('mem-carousel');
-  var dots = document.getElementById('mem-carousel-dots');
   var carWrap = document.getElementById('mem-carousel-wrap');
-  if (!box || !dots) return;
+  if (!box) return;
   stopMemCarousel();
   var list = (Array.isArray(banners) ? banners : []).filter(function (b) {
-    return b && String(b.image || '').trim();
+    if (!b) return false;
+    return bannerSlideImage(b) || String(b.title || '').trim() || String(b.subtitle || '').trim();
   });
   if (!list.length) {
     box.innerHTML = '';
-    dots.innerHTML = '';
     if (carWrap) {
       carWrap.classList.add('mem-hidden');
       carWrap.setAttribute('aria-hidden', 'true');
@@ -4343,15 +4391,21 @@ function buildMemCarouselSlides(banners) {
     carWrap.classList.remove('mem-hidden');
     carWrap.setAttribute('aria-hidden', 'false');
   }
-  box.innerHTML = list.map(function (b, i) {
-    var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
+  var slidesHtml = list.map(function (b, i) {
+    var img = bannerSlideImage(b).replace(/\\/g, '/').replace(/'/g, '%27');
+    if (!img) img = MEM_BANNER_FALLBACK_IMG;
     var bd = esc(b.badge || '');
     var t = esc(b.title || '');
     var s = esc(b.subtitle || '');
-    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="background-image:url(\'' + img + '\');">' +
+    var fb = MEM_BANNER_FALLBACK_IMG.replace(/'/g, '%27');
+    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '">' +
+      '<img class="mem-slide-img" src="' + img + '" alt="" loading="' + (i === 0 ? 'eager' : 'lazy') + '" decoding="async" onerror="this.onerror=null;this.src=\'' + fb + '\';">' +
       '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
       (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
   }).join('');
+  box.innerHTML = slidesHtml + '<div class="mem-carousel-dots" id="mem-carousel-dots"></div>';
+  var dots = document.getElementById('mem-carousel-dots');
+  if (!dots) return;
   dots.innerHTML = list.map(function (_b, i) {
     return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
   }).join('');
@@ -4392,7 +4446,14 @@ function applyMemberPortalFromSettings(raw) {
     menuHeroTitle: 'Tinh hoa từ hạt',
     menuHeroSubtitle: 'Khám phá thực đơn sữa hạt nguyên chất, thiết kế cho từng mục tiêu sức khỏe.',
     footerCopy: '© 2024 SUN Nut Milk. Tinh hoa từ hạt, trọn vẹn yêu thương.',
-    banners: []
+    banners: [
+      {
+        image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80',
+        badge: '100% Tự nhiên',
+        title: 'Dinh dưỡng tinh khiết mỗi ngày',
+        subtitle: 'Sữa hạt tươi giao sáng mỗi ngày',
+      },
+    ]
   };
   var s = Object.assign({}, d, raw || {});
   memberPortalSettings = s;
@@ -6426,7 +6487,7 @@ function applyMemberPortalFromSettings(raw) {
         var closer = memNavLayers.pop();
         if (closer) closer();
       });
-      var MAIN_NAV = ['home', 'order', 'cart', 'offers', 'more'];
+      var MAIN_NAV = ['home', 'order', 'offers', 'group', 'more'];
       function setTab(active) {
         var a = active === 'menu' ? 'order' : active;
         document.querySelectorAll('.mem-nav-b[data-sec]').forEach(function (btn) {
@@ -8082,7 +8143,7 @@ function applyMemberPortalFromSettings(raw) {
         items.forEach(function (f) {
           var m = findMenuByNameOrId(f.name, f.id);
           if (!m || m.available === false) return;
-          html += '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false, sectionTitle) + '</div>';
+          html += '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
         });
         html += '</div></div>';
         box.innerHTML = html;
@@ -8241,11 +8302,11 @@ function applyMemberPortalFromSettings(raw) {
         html += '<div class="mem-home-spotlight-block" data-spot="hot" data-scroll-label="Món Hot">';
         html += '<div class="mem-section-head"><h2><span class="mem-home-hot-fire" aria-hidden="true">🔥</span> Món Hot';
         html += '<span class="mem-home-spotlight-tag">HOT</span></h2></div>';
-        html += '<div class="mem-home-curated-scroll">';
-        html += items.slice(0, 24).map(function (m) {
+        var beltItems = items.slice(0, 16);
+        var beltCards = beltItems.map(function (m) {
           return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
         }).join('');
-        html += '</div></div>';
+        html += '<div class="mem-home-hot-belt-wrap"><div class="mem-home-hot-belt">' + beltCards + beltCards + '</div></div></div>';
         box.innerHTML = html;
         wireHomeMenuCards(box);
       }
@@ -8457,6 +8518,26 @@ function applyMemberPortalFromSettings(raw) {
         if (h >= 18 && h < 22) return 'Chúc bạn buổi tối vui vẻ';
         return 'Chúc bạn ngủ ngon';
       }
+      function paintHomeWelcomeName(shortName) {
+        var titleEl = $('home-welcome');
+        if (!titleEl) return;
+        if (!shortName) {
+          titleEl.textContent = 'Xin chào!';
+          return;
+        }
+        titleEl.innerHTML = '<span class="mem-write-name-wrap"><span class="mem-write-name">' + esc(shortName) + '</span></span><span class="mem-greet-oi"> ơi!</span>';
+      }
+      function syncTopbarActionButtons(tab) {
+        var notifyBtn = $('btn-top-notify');
+        var searchBtn = $('btn-top-search');
+        var isOrder = tab === 'order';
+        if (notifyBtn) notifyBtn.classList.toggle('mem-hidden', isOrder);
+        if (searchBtn) searchBtn.classList.toggle('mem-hidden', !isOrder);
+        if (!isOrder) {
+          var pkBar = $('pk-search-bar');
+          if (pkBar) pkBar.classList.remove('open');
+        }
+      }
       function applyTopbarGreeting(name) {
         if (name) state.memDisplayName = name;
         var tab = document.body.getAttribute('data-mem-tab') || 'home';
@@ -8476,11 +8557,7 @@ function applyMemberPortalFromSettings(raw) {
         var title = '';
         var sub = '';
         if (s === 'home') {
-          if (shortName) {
-            titleEl.innerHTML = '<span class="mem-neon-name">' + esc(shortName) + '</span> ơi!';
-          } else {
-            titleEl.textContent = 'Xin chào!';
-          }
+          paintHomeWelcomeName(shortName);
           sub = timeGreeting() + '!';
           state.homeHeaderDefault = { title: shortName ? (shortName + ' ơi!') : 'Xin chào!', sub: sub };
         } else if (s === 'order') {
@@ -8507,6 +8584,7 @@ function applyMemberPortalFromSettings(raw) {
         }
         if (s !== 'home') titleEl.textContent = title;
         subEl.textContent = sub;
+        syncTopbarActionButtons(s);
         var avBtn = $('mem-avatar-btn');
         var userWrap = $('mem-topbar-user');
         if (avBtn) avBtn.classList.add('mem-hidden');
@@ -10061,6 +10139,27 @@ function applyMemberPortalFromSettings(raw) {
         e.stopPropagation();
         toggleNotifPop();
       };
+      var btnSearch = $('btn-top-search');
+      if (btnSearch) btnSearch.onclick = function (e) {
+        e.stopPropagation();
+        closeNotifPop();
+        var bar = $('pk-search-bar');
+        var inp = $('pk-menu-search');
+        if (bar) bar.classList.toggle('open');
+        if (inp && bar && bar.classList.contains('open')) {
+          setTimeout(function () { inp.focus(); }, 80);
+        }
+      };
+      var pkSearch = $('pk-menu-search');
+      if (pkSearch) pkSearch.addEventListener('input', function () {
+        var q = String(pkSearch.value || '').trim().toLowerCase();
+        var grid = $('pk-grid');
+        if (!grid) return;
+        grid.querySelectorAll('.pk-card, .menu-card').forEach(function (card) {
+          var nm = (card.querySelector('.nm') && card.querySelector('.nm').textContent) || '';
+          card.style.display = !q || nm.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+        });
+      });
       document.querySelectorAll('.mem-notif-tab').forEach(function (tabBtn) {
         tabBtn.onclick = function (e) {
           e.stopPropagation();
@@ -10480,9 +10579,9 @@ function applyMemberPortalFromSettings(raw) {
     <button type="button" class="mem-nav-b on" data-sec="home"><i class="fa-solid fa-house"></i><span>Trang chủ</span></button>
     <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i><span>Đặt hàng</span></button>
     <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled style="display:none !important;"><i class="fa-solid fa-cart-shopping"></i><span>Giỏ</span><em class="mem-nav-cart-badge" id="mem-nav-cart-badge" style="display:none">0</em></button>
-    <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled style="display:none !important;"><i class="fa-solid fa-user-group"></i><span>Nhóm</span></button>
     <button type="button" class="mem-nav-b" data-sec="packages" disabled style="display:none !important;"><i class="fa-solid fa-sun"></i><span>Gói Sun</span></button>
     <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i><span>Ưu đãi</span></button>
+    <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled><i class="fa-solid fa-user-group"></i><span>Đơn nhóm</span></button>
     <button type="button" class="mem-nav-b" data-sec="more" disabled><i class="fa-solid fa-bars"></i><span>Khác</span></button>
   </nav>
 

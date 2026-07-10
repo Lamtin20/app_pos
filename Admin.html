@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Admin | Quản Trị Sữa Hạt</title>
+  <title>Admin | SUN Nut Milk</title>
   <script src="/sun-api-client.js"></script>
   <script>
   (function () {
@@ -57,8 +57,10 @@
     .login-box { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:48px; max-width:400px; width:100%; box-shadow:0 24px 80px rgba(0,0,0,0.6); }
     .login-logo { text-align:center; margin-bottom:32px; }
     .login-logo .icon { font-size:52px; display:block; margin-bottom:12px; }
+    .admin-brand-logo { height:56px; width:auto; max-width:128px; object-fit:contain; display:block; margin:0 auto 12px; border-radius:14px; background:rgba(255,255,255,.06); padding:4px; }
+    .admin-brand-logo-sm { height:36px; width:36px; object-fit:contain; border-radius:10px; background:rgba(255,255,255,.06); padding:2px; flex-shrink:0; }
     .login-logo h1 { font-size:24px; font-weight:800; color:var(--text); margin-bottom:4px; }
-    .login-logo p { color:var(--text3); font-size:13px; }
+    .login-logo p { color:var(--text3); font-size:13px; margin:0; line-height:1.45; }
     .pin-display { display:flex; gap:12px; justify-content:center; margin-bottom:24px; }
     .pin-dot { width:16px; height:16px; border-radius:50%; border:2px solid var(--border2); transition:all 0.2s; }
     .pin-dot.filled { background:var(--gold); border-color:var(--gold); }
@@ -79,10 +81,11 @@
     .admin-content { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; scrollbar-width:none; -ms-overflow-style:none; }
     .admin-content::-webkit-scrollbar { display:none; width:0; height:0; }
     .admin-header { background:var(--bg2); border-bottom:1px solid var(--border); padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
-    .admin-logo { display:flex; align-items:center; gap:10px; }
-    .admin-logo-icon { font-size:24px; }
-    .admin-logo-text { font-size:16px; font-weight:700; color:var(--text); }
-    .admin-logo-text span { color:var(--gold); font-size:11px; font-weight:400; display:block; letter-spacing:1px; }
+    .admin-logo { display:flex; align-items:center; gap:10px; min-width:0; }
+    .admin-logo-icon { font-size:24px; flex-shrink:0; }
+    .admin-logo-text { font-size:16px; font-weight:700; color:var(--text); line-height:1.2; min-width:0; }
+    .admin-logo-text strong { display:block; font-size:15px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px; }
+    .admin-header-brand-badge { color:var(--gold); font-size:10px; font-weight:800; display:block; letter-spacing:.08em; margin-top:2px; }
     .header-right { display:flex; align-items:center; gap:12px; }
     .live-badge { background:#10b981; width:8px; height:8px; border-radius:50%; animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
@@ -333,9 +336,10 @@
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <span class="icon">🌰</span>
-      <h1>Admin Dashboard</h1>
-      <p>Quản Trị Sữa Hạt Tươi</p>
+      <img id="admin-login-logo-img" class="admin-brand-logo" alt="" style="display:none;">
+      <span class="icon" id="admin-login-logo-fallback">🌰</span>
+      <h1 id="admin-login-brand-name">SUN Nut Milk</h1>
+      <p id="admin-login-brand-tagline">Bảng quản trị hệ thống</p>
     </div>
     <div class="pin-display" id="pin-display">
       <div class="pin-dot" id="dot-0"></div>
@@ -366,9 +370,11 @@
 <div id="admin-screen">
   <div class="admin-header">
     <div class="admin-logo">
-      <div class="admin-logo-icon">🌰</div>
+      <img id="admin-header-logo-img" class="admin-brand-logo-sm" alt="" style="display:none;">
+      <div class="admin-logo-icon" id="admin-header-logo-fallback">🌰</div>
       <div class="admin-logo-text">
-        SUN ADMIN
+        <strong id="admin-header-brand-name">SUN Nut Milk</strong>
+        <span class="admin-header-brand-badge" id="admin-header-brand-badge">ADMIN</span>
       </div>
     </div>
     <div class="header-right">
@@ -1981,6 +1987,60 @@ function delPin() { pinInput = pinInput.slice(0,-1); updatePinDots(); }
 function updatePinDots() {
   for (let i = 0; i < ADMIN_PIN.length; i++) document.getElementById('dot-' + i).classList.toggle('filled', i < pinInput.length);
 }
+function applyBrandLogoSlot(imgId, fallbackId, url) {
+  var img = document.getElementById(imgId);
+  var fb = document.getElementById(fallbackId);
+  var u = String(url || '').trim();
+  if (!u) {
+    if (img) img.style.display = 'none';
+    if (fb) fb.style.display = '';
+    return;
+  }
+  if (img) {
+    img.src = u;
+    img.style.display = 'block';
+    img.onerror = function () {
+      img.style.display = 'none';
+      if (fb) fb.style.display = '';
+    };
+  }
+  if (fb) fb.style.display = 'none';
+}
+function applySiteBrandToAdmin(brand) {
+  if (!brand || typeof brand !== 'object') return;
+  window.SUN_SITE_BRAND = brand;
+  var name = String(brand.brandName || 'SUN Nut Milk').trim() || 'SUN Nut Milk';
+  var tag = String(brand.brandTagline || '').trim();
+  var logo = String(brand.logoUrl || '').trim();
+  var fav = String(brand.faviconUrl || logo || '').trim();
+  if (typeof window.setFaviconUrl === 'function' && fav) {
+    window.SUN_FAVICON_URL = fav;
+    window.setFaviconUrl(fav);
+  }
+  document.title = 'Admin | ' + name;
+  var loginName = document.getElementById('admin-login-brand-name');
+  if (loginName) loginName.textContent = name;
+  var loginTag = document.getElementById('admin-login-brand-tagline');
+  if (loginTag) loginTag.textContent = tag || 'Bảng quản trị hệ thống';
+  applyBrandLogoSlot('admin-login-logo-img', 'admin-login-logo-fallback', logo);
+  var headerName = document.getElementById('admin-header-brand-name');
+  if (headerName) headerName.textContent = name;
+  applyBrandLogoSlot('admin-header-logo-img', 'admin-header-logo-fallback', logo);
+  var preview = document.getElementById('brand-logo-preview');
+  if (preview && logo && !preview.getAttribute('src')) {
+    preview.src = logo;
+    preview.style.display = '';
+  }
+}
+function loadSiteBrandForAdmin() {
+  return fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) {
+      if (data && data.brand) applySiteBrandToAdmin(data.brand);
+    })
+    .catch(function () { });
+}
+loadSiteBrandForAdmin();
 function submitPin() {
   if (pinInput === ADMIN_PIN) {
     document.getElementById('login-screen').style.display = 'none';
@@ -2022,6 +2082,7 @@ function initStockTxDateDefault() {
 }
 
 function initAdmin() {
+  loadSiteBrandForAdmin();
   if (typeof window.setFaviconUrl === 'function') window.setFaviconUrl(window.SUN_FAVICON_URL);
   setInterval(() => {
     document.getElementById('current-time').textContent = new Date().toLocaleTimeString('vi-VN');
@@ -4009,6 +4070,10 @@ function bindBrandLogoLocal() {
   try {
     const raw = localStorage.getItem('SUN_BRAND_LOGO_DATAURL_V1') || '';
     if (raw && img) { img.src = raw; img.style.display = ''; }
+    else if (window.SUN_SITE_BRAND && window.SUN_SITE_BRAND.logoUrl && img) {
+      img.src = window.SUN_SITE_BRAND.logoUrl;
+      img.style.display = '';
+    }
   } catch (e) { }
   input.addEventListener('change', function () {
     const f = this.files && this.files[0];
@@ -4106,6 +4171,7 @@ async function _compositeLogo_(baseDataUrl, targetW, targetH) {
   // logo overlay
   let logoUrl = '';
   try { logoUrl = localStorage.getItem('SUN_BRAND_LOGO_DATAURL_V1') || ''; } catch (e) { logoUrl = ''; }
+  if (!logoUrl && window.SUN_SITE_BRAND && window.SUN_SITE_BRAND.logoUrl) logoUrl = window.SUN_SITE_BRAND.logoUrl;
   if (logoUrl) {
     const logo = new Image();
     logo.src = logoUrl;

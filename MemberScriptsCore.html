@@ -120,18 +120,21 @@ var memCarouselIndex = 0;
 function stopMemCarousel() {
   if (memCarouselTimer) { clearInterval(memCarouselTimer); memCarouselTimer = null; }
 }
+function bannerSlideImage(b) {
+  return String((b && (b.image || b.imageUrl)) || '').trim();
+}
+var MEM_BANNER_FALLBACK_IMG = 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80';
 function buildMemCarouselSlides(banners) {
   var box = document.getElementById('mem-carousel');
-  var dots = document.getElementById('mem-carousel-dots');
   var carWrap = document.getElementById('mem-carousel-wrap');
-  if (!box || !dots) return;
+  if (!box) return;
   stopMemCarousel();
   var list = (Array.isArray(banners) ? banners : []).filter(function (b) {
-    return b && String(b.image || '').trim();
+    if (!b) return false;
+    return bannerSlideImage(b) || String(b.title || '').trim() || String(b.subtitle || '').trim();
   });
   if (!list.length) {
     box.innerHTML = '';
-    dots.innerHTML = '';
     if (carWrap) {
       carWrap.classList.add('mem-hidden');
       carWrap.setAttribute('aria-hidden', 'true');
@@ -142,15 +145,21 @@ function buildMemCarouselSlides(banners) {
     carWrap.classList.remove('mem-hidden');
     carWrap.setAttribute('aria-hidden', 'false');
   }
-  box.innerHTML = list.map(function (b, i) {
-    var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
+  var slidesHtml = list.map(function (b, i) {
+    var img = bannerSlideImage(b).replace(/\\/g, '/').replace(/'/g, '%27');
+    if (!img) img = MEM_BANNER_FALLBACK_IMG;
     var bd = esc(b.badge || '');
     var t = esc(b.title || '');
     var s = esc(b.subtitle || '');
-    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="background-image:url(\'' + img + '\');">' +
+    var fb = MEM_BANNER_FALLBACK_IMG.replace(/'/g, '%27');
+    return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '">' +
+      '<img class="mem-slide-img" src="' + img + '" alt="" loading="' + (i === 0 ? 'eager' : 'lazy') + '" decoding="async" onerror="this.onerror=null;this.src=\'' + fb + '\';">' +
       '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
       (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
   }).join('');
+  box.innerHTML = slidesHtml + '<div class="mem-carousel-dots" id="mem-carousel-dots"></div>';
+  var dots = document.getElementById('mem-carousel-dots');
+  if (!dots) return;
   dots.innerHTML = list.map(function (_b, i) {
     return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
   }).join('');
@@ -191,7 +200,14 @@ function applyMemberPortalFromSettings(raw) {
     menuHeroTitle: 'Tinh hoa từ hạt',
     menuHeroSubtitle: 'Khám phá thực đơn sữa hạt nguyên chất, thiết kế cho từng mục tiêu sức khỏe.',
     footerCopy: '© 2024 SUN Nut Milk. Tinh hoa từ hạt, trọn vẹn yêu thương.',
-    banners: []
+    banners: [
+      {
+        image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80',
+        badge: '100% Tự nhiên',
+        title: 'Dinh dưỡng tinh khiết mỗi ngày',
+        subtitle: 'Sữa hạt tươi giao sáng mỗi ngày',
+      },
+    ]
   };
   var s = Object.assign({}, d, raw || {});
   memberPortalSettings = s;
