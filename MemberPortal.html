@@ -49,6 +49,8 @@
       --font: 'Be Vietnam Pro', 'Inter', Arial, 'Helvetica Neue', Helvetica, sans-serif;
       --display: 'Be Vietnam Pro', 'Inter', Arial, 'Helvetica Neue', Helvetica, sans-serif;
       --mono: 'Inter', 'Be Vietnam Pro', ui-monospace, monospace;
+      --mem-menu-row-gap: 12px;
+      --mem-bottom-nav-clearance: calc(72px + env(safe-area-inset-bottom, 0px) + var(--mem-menu-row-gap));
     }
     html {
       -webkit-font-smoothing: antialiased;
@@ -322,7 +324,7 @@
     body[data-sky-dark="1"] #mem-nav-desktop .mem-nav-b { color: rgba(255,255,255,.88); }
     body[data-sky-dark="1"] #mem-nav-desktop .mem-nav-b.on { background: rgba(255,255,255,.22); color: #fff; border-color: rgba(255,255,255,.35); }
     body[data-sky-dark="1"] #mem-nav-desktop .mem-nav-b:not(.on):hover { background: rgba(255,255,255,.12); color: #fff; }
-    html { scroll-behavior: auto; scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px)); scroll-padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: none; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+    html { scroll-behavior: auto; scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px)); scroll-padding-bottom: var(--mem-bottom-nav-clearance); overscroll-behavior-y: none; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
     html::-webkit-scrollbar { display: none; width: 0; height: 0; }
     body { -webkit-overflow-scrolling: touch; touch-action: pan-y; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-y: none; }
     body::-webkit-scrollbar { display: none; width: 0; height: 0; }
@@ -338,14 +340,14 @@
     }
     .mem-carousel {
       position: relative; border-radius: 16px; overflow: hidden;
-      border: none; aspect-ratio: 2.35 / 1; min-height: 0; max-height: 156px;
+      border: none; aspect-ratio: 2.55 / 1; min-height: 0; max-height: 118px;
       background: #1a1410; width: 100%;
       box-shadow: 0 8px 28px rgba(40, 25, 15, .12);
     }
-    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 2.3 / 1; max-height: 148px; } }
+    @media (max-width: 640px) { .mem-carousel { aspect-ratio: 2.65 / 1; max-height: 108px; } }
     @media (min-width: 900px) {
       .mem-carousel-wrap { max-width: 560px; }
-      .mem-carousel { max-height: 168px; border-radius: 18px; }
+      .mem-carousel { max-height: 132px; border-radius: 18px; }
     }
     .mem-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; background-size: cover; background-position: center; }
     .mem-slide.on { opacity: 1; z-index: 1; }
@@ -672,7 +674,7 @@
     .mem-confirm { width: 100%; margin-top: 12px; }
 
     /* -- App V2: bottom nav + offers + more -- */
-    body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
+    body { padding-bottom: var(--mem-bottom-nav-clearance); }
     @media (min-width: 900px) { body { padding-bottom: 100px; } }
     .mem-topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
     .mem-topbar-actions.mem-hidden { display: none !important; }
@@ -714,9 +716,9 @@
     .mem-offers-shell { width: 100%; max-width: none; margin: 0; }
     @media (min-width: 900px) { .mem-offers-shell { max-width: none; } }
     .mem-offers-page .section-title { display: none; }
-    body[data-mem-tab="offers"] .mem-topbar { display: none !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important; border: none !important; box-shadow: none !important; }
-    body[data-mem-tab="offers"] { padding-top: 0; background: var(--offers-page-bg, #fde68a); }
-    body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0; background: transparent; }
+    body[data-mem-tab="offers"] .mem-topbar { display: none !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important; border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
+    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--offers-page-bg, #fffbeb) !important; }
+    body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0 !important; margin-top: 0 !important; background: transparent; }
     body[data-mem-tab="offers"] #sec-offers { margin: 0; padding: 0; max-width: none; }
     body[data-mem-tab="offers"] #sec-offers.section { padding: 0; max-width: none; }
     @media (min-width: 900px) {
@@ -749,9 +751,9 @@
       body[data-mem-tab="offers"] .mem-offers-card { margin-left: 14px; margin-right: 14px; }
     }
     .mem-offers-hero {
-      margin: 0; padding: calc(14px + env(safe-area-inset-top, 0px)) 0 16px; position: relative; overflow: hidden;
+      margin: 0; padding: env(safe-area-inset-top, 0px) 0 14px; position: relative; overflow: hidden;
       background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 38%, #fde68a 72%, #fcd34d 100%);
-      color: #92400e; border-radius: 0 0 26px 26px;
+      color: #92400e; border-radius: 0 0 20px 20px;
     }
     .mem-offers-hero-top, .mem-offers-card, .mem-offers-expiry { padding-left: 16px; padding-right: 16px; }
     .mem-offers-hero.tier-member {
@@ -793,6 +795,7 @@
     .mem-offers-hero-top {
       position: relative; z-index: 1;
       display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+      padding: 10px 0 0;
     }
     .mem-offers-eyebrow { font-size: 11px; font-weight: 700; opacity: .82; letter-spacing: .04em; margin: 0 0 4px; }
     .mem-offers-tier-badge {
@@ -811,13 +814,17 @@
     }
     .mem-voucher-pill:active { transform: scale(.98); }
     .mem-offers-card {
-      position: relative; z-index: 1; margin: 16px 12px 0;
-      background: #fff; border-radius: 22px 22px 24px 24px; padding: 18px 16px 16px;
-      box-shadow: 0 16px 40px rgba(30, 15, 5, .14);
-      border: 1px solid rgba(255,255,255,.65);
+      position: relative; z-index: 1; margin: 12px 14px 0;
+      background: #fff; border-radius: 18px; padding: 18px 16px 16px;
+      box-shadow: 0 6px 22px rgba(30, 15, 5, .07);
+      border: 1px solid rgba(255, 255, 255, .92); overflow: hidden;
+      isolation: isolate;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      transform: translateZ(0);
     }
     #btn-top-cart, #btn-top-group { display: none !important; }
-    .mem-barcode-wrap { text-align: center; padding-bottom: 4px; }
+    .mem-barcode-wrap { text-align: center; padding-bottom: 4px; overflow: hidden; border-radius: 10px; }
     .mem-barcode-wrap .code-text {
       font-family: var(--mono); font-size: 14px; font-weight: 800; letter-spacing: 0.14em;
       color: #1a1410; margin-top: 10px;
@@ -853,7 +860,7 @@
     .mem-tier-maxed .mem-tier-to { color: #16a34a; }
     .mem-tier-maxed .mem-tier-marker { border-color: #16a34a; color: #16a34a; }
     .mem-offers-body {
-      background: #f5f5f4; padding: 16px 12px 28px; position: relative; z-index: 2;
+      background: #f5f5f4; padding: 16px 12px var(--mem-menu-row-gap); position: relative; z-index: 2;
       border-radius: 0; margin-top: 0;
     }
     .mem-offers-quick {
@@ -1775,17 +1782,24 @@
       #mem-nav-desktop { display: none !important; }
       body.mem-logged-in .mem-bottom-nav { display: flex !important; }
       body.mem-logged-in {
-        padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: var(--mem-bottom-nav-clearance) !important;
       }
       body.mem-logged-in #sec-home,
       body.mem-logged-in #sec-order,
       body.mem-logged-in #sec-more,
-      body.mem-logged-in #sec-offers {
-        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      body.mem-logged-in #sec-offers,
+      body.mem-logged-in #sec-group {
+        padding-bottom: 0;
       }
       body[data-mem-tab="offers"] .mem-offers-body {
-        padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: var(--mem-menu-row-gap) !important;
       }
+      body.mem-view-group #sec-group,
+      body[data-mem-tab="group"] #sec-group {
+        padding-top: 12px;
+      }
+      .mem-group-page { padding-top: 10px; }
+      .mem-group-page-head { margin-top: 4px; }
     }
     @media (min-width: 900px) {
       .mem-portal-main { padding: 0 24px 32px; }
@@ -2000,8 +2014,8 @@
     }
     .mem-bottom-fade {
       display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 115;
-      height: calc(78px + env(safe-area-inset-bottom, 0px)); pointer-events: none;
-      background: linear-gradient(to top, var(--bg) 55%, rgba(243,237,230,.72) 72%, transparent 100%);
+      height: calc(64px + env(safe-area-inset-bottom, 0px)); pointer-events: none;
+      background: linear-gradient(to top, var(--bg) 35%, rgba(243,237,230,.45) 60%, transparent 100%);
     }
     body.mem-logged-in .mem-bottom-fade { display: block; }
     body.mem-gate-mode .mem-bottom-fade { display: none !important; }
@@ -2833,19 +2847,19 @@
     .mem-group-more-btn { display: flex; width: 100%; margin-top: 8px; justify-content: center; }
 
     /* ===== Trang chủ: bố cục gọn gàng, menu 2 cột trên mobile ===== */
-    body.mem-logged-in #sec-home { padding: 0 0 calc(16px + env(safe-area-inset-bottom, 0px)); }
+    body.mem-logged-in #sec-home { padding: 0; }
     #mem-home-dashboard { padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px)); max-width: none; width: 100%; margin-top: -1px; }
     body[data-mem-tab="home"] .mem-topbar { margin-bottom: -10px; z-index: 5; }
     body[data-mem-tab="home"] .mem-topbar-sky-bg { margin-bottom: -2px; }
     body[data-mem-tab="home"] .mem-carousel-wrap {
       width: calc(100% - 24px); max-width: 480px;
-      margin: -4px auto 0; padding: 0 !important;
+      margin: 6px auto 0; padding: 0 !important;
       position: relative; z-index: 2;
     }
     .mem-carousel-wrap { width: calc(100% - 24px); max-width: 480px; margin: 0 auto; padding: 0 !important; }
-    .mem-carousel { border-radius: 16px; aspect-ratio: 2.35 / 1; min-height: 0; max-height: 156px; }
+    .mem-carousel { border-radius: 16px; aspect-ratio: 2.55 / 1; min-height: 0; max-height: 118px; }
     @media (max-width: 640px) {
-      .mem-carousel { aspect-ratio: 2.3 / 1; max-height: 148px; }
+      .mem-carousel { aspect-ratio: 2.65 / 1; max-height: 108px; }
     }
     .mem-carousel-dots { padding: 0 !important; }
     .mem-home-toolbar { display: none !important; }
@@ -2872,7 +2886,7 @@
       .mem-carousel-wrap { width: 100%; max-width: 560px; padding-left: 0 !important; padding-right: 0 !important; }
       .mem-home-toolbar { width: 100%; max-width: 990px; margin: 0 auto; }
       .mem-home-menu-sections, .mem-home-curated { max-width: 990px; margin: 0 auto; }
-      .mem-carousel { min-height: 0; max-height: 168px; aspect-ratio: 2.35 / 1; }
+      .mem-carousel { min-height: 0; max-height: 132px; aspect-ratio: 2.55 / 1; }
     }
 
     /* ===== Chờ nhận nước (thành viên nhóm sau khi trưởng nhóm gửi đơn) ===== */
@@ -5106,7 +5120,7 @@
         }
       }
       function offersPageBgForTier(cls) {
-        var map = { 'tier-member': '#fde68a', 'tier-silver': '#94a3b8', 'tier-gold': '#d97706', 'tier-diamond': '#171717' };
+        var map = { 'tier-member': '#fffbeb', 'tier-silver': '#475569', 'tier-gold': '#78350f', 'tier-diamond': '#0a0a0a' };
         return map[cls] || map['tier-member'];
       }
       function renderOffers() {
@@ -5123,6 +5137,9 @@
           hero.id = 'mem-offers-hero';
         }
         document.body.style.setProperty('--offers-page-bg', offersPageBgForTier(tierCls));
+        if (document.body.getAttribute('data-mem-tab') === 'offers') {
+          document.body.style.backgroundColor = offersPageBgForTier(tierCls);
+        }
         paintOfferSparkles();
         if ($('mem-offers-tier')) $('mem-offers-tier').textContent = tierName;
         if ($('mem-offers-cups')) $('mem-offers-cups').textContent = String(cups);
