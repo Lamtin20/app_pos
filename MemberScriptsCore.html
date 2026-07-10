@@ -75,6 +75,20 @@ function portalMemberBootstrapHttp() {
     return res.json();
   });
 }
+function fetchMemberNotificationsHttp(phone, accountMeta) {
+  var url = '/api/member/notifications?phone=' + encodeURIComponent(String(phone || ''));
+  if (accountMeta && typeof accountMeta === 'object') {
+    url += '&accountMeta=' + encodeURIComponent(JSON.stringify(accountMeta));
+  }
+  return fetch(url, {
+    method: 'GET',
+    credentials: 'same-origin',
+    cache: 'no-store',
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
+}
 function showToast(msg) {
   var el = document.getElementById('toast');
   if (!el) return;

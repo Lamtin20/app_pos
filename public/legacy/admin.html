@@ -403,6 +403,7 @@
       <div class="admin-tab" onclick="switchAdminTab('cost',this)"><i class="fa-solid fa-calculator"></i> Giá Cost</div>
       <div class="admin-tab" onclick="switchAdminTab('customers',this)"><i class="fa-solid fa-users"></i> Khách hàng</div>
       <div class="admin-tab" onclick="switchAdminTab('promotions',this)"><i class="fa-solid fa-tag"></i> Khuyến mãi</div>
+      <div class="admin-tab" onclick="switchAdminTab('promo-campaigns',this)"><i class="fa-solid fa-bullhorn"></i> TB &amp; Popup KM</div>
       <div class="admin-tab" onclick="switchAdminTab('cashflow',this)"><i class="fa-solid fa-money-bill-trend-up"></i> Dòng tiền</div>
       <div class="admin-tab" onclick="switchAdminTab('capital',this)"><i class="fa-solid fa-handshake"></i> Vốn lưu động</div>
       <div class="admin-tab" onclick="switchAdminTab('fixedassets',this)"><i class="fa-solid fa-chair"></i> Tài sản cố định</div>
@@ -1130,6 +1131,71 @@
         <table class="data-table">
           <thead><tr><th>Mã KM</th><th>Tên</th><th>Loại</th><th>Giá trị</th><th>Min đơn</th><th>Quy tắc</th><th>Hạn</th><th>Bật</th><th>Sửa</th></tr></thead>
           <tbody id="promo-tbody"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3);">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROMO CAMPAIGNS (notifications + popup) -->
+    <div id="tab-promo-campaigns" class="tab-view">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title"><div class="dot" style="background:var(--gold);"></div>Khai báo chương trình khuyến mãi (Thông báo + Popup)</div>
+        <p style="font-size:12px;color:var(--text3);margin:0 0 14px;line-height:1.55;">Gửi thông báo đến chuông hội viên và/hoặc hiện popup khi khách mở cổng. Chọn đối tượng «Tất cả» hoặc rule theo hạng, điểm, chi tiêu, khách mới… Nút hành động có thể dẫn thẳng tới đặt hàng, món hoặc áp mã KM.</p>
+        <input type="hidden" id="pcamp-id" value="">
+        <div class="form-grid cols-4" style="gap:12px;">
+          <div class="form-group" style="grid-column:span 2;"><label>Tiêu đề chương trình (*)</label><input type="text" class="form-control" id="pcamp-title" placeholder="Mua 2 tặng 1 — tuần này"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Nội dung thông báo</label><input type="text" class="form-control" id="pcamp-body" placeholder="Giảm ngay khi đặt từ 2 ly cùng loại"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Ảnh popup (URL)</label><input type="text" class="form-control" id="pcamp-image" placeholder="https://..."></div>
+          <div class="form-group"><label>Ưu tiên (cao hơn = trước)</label><input type="number" class="form-control" id="pcamp-priority" value="0"></div>
+          <div class="form-group"><label>Bắt đầu</label><input type="date" class="form-control" id="pcamp-start"></div>
+          <div class="form-group"><label>Kết thúc</label><input type="date" class="form-control" id="pcamp-end"></div>
+          <div class="form-group"><label>Đối tượng</label>
+            <select class="form-control" id="pcamp-audience">
+              <option value="all">Tất cả mọi người</option>
+              <option value="rule">Theo rule / điều kiện</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column:span 2;"><label>Rule (khi chọn «Theo điều kiện»)</label>
+            <select class="form-control" id="pcamp-rule-type">
+              <option value="all">Không lọc thêm</option>
+              <option value="tier">Theo hạng (JSON tiers)</option>
+              <option value="min_points">Tối thiểu Sun/điểm</option>
+              <option value="min_spend">Tối thiểu chi tiêu (₫)</option>
+              <option value="min_visits">Tối thiểu lượt ghé</option>
+              <option value="new_member">Khách mới (chưa có đơn HT)</option>
+              <option value="returning">Khách quay lại (≥1 đơn HT)</option>
+              <option value="promo_eligible">Đủ điều kiện mã KM</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column:span 2;"><label>Cấu hình rule (JSON)</label>
+            <textarea class="form-control" id="pcamp-rule-json" rows="2" placeholder='{"tiers":["Vàng","Kim cương"],"minPoints":10,"minSpend":500000,"promoCode":"BUY2GET1"}'></textarea>
+          </div>
+          <div class="form-group"><label>Hành động khi bấm</label>
+            <select class="form-control" id="pcamp-action-type">
+              <option value="order">Mở trang đặt hàng</option>
+              <option value="cart">Mở giỏ + áp mã (nếu có)</option>
+              <option value="promo_apply">Đặt hàng + áp mã KM</option>
+              <option value="product">Mở chi tiết món (ID menu)</option>
+              <option value="category">Lọc danh mục trên đặt hàng</option>
+              <option value="offers">Tab Ưu đãi</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Mã KM (nếu áp dụng)</label><input type="text" class="form-control" id="pcamp-promo-code" placeholder="BUY2GET1" style="text-transform:uppercase;"></div>
+          <div class="form-group"><label>ID món (product)</label><input type="text" class="form-control" id="pcamp-menu-id" placeholder="M001"></div>
+          <div class="form-group"><label>Danh mục (category)</label><input type="text" class="form-control" id="pcamp-category" placeholder="Cà phê"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Chữ nút popup</label><input type="text" class="form-control" id="pcamp-btn-text" value="Đặt ngay"></div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:22px;"><label style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" id="pcamp-show-popup" checked> Popup khi vào cổng</label></div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:22px;"><label style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" id="pcamp-push-notif" checked> Gửi vào chuông thông báo</label></div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:22px;"><label style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" id="pcamp-active" checked> Đang chạy</label></div>
+          <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-purple" style="background:var(--gold);color:#1a1410;min-width:160px;justify-content:center;" onclick="savePromoCampaignForm()" id="pcamp-save-btn"><i class="fa-solid fa-bullhorn"></i> Lưu chương trình</button>
+            <button type="button" class="btn btn-ghost" onclick="clearPromoCampaignForm()">Làm mới form</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Tiêu đề</th><th>Đối tượng</th><th>Popup</th><th>TB</th><th>Hành động</th><th>Hạn</th><th>Bật</th><th>Sửa / Xóa</th></tr></thead>
+          <tbody id="pcamp-tbody"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3);">Đang tải...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2033,6 +2099,7 @@ function switchAdminTab(name, el) {
     if (name === 'cost') loadCostHistory();
     if (name === 'customers') loadCustomers(true);
     if (name === 'promotions') loadPromotions();
+    if (name === 'promo-campaigns') loadPromoCampaigns();
     if (name === 'cashflow') loadCashFlow();
     if (name === 'shift') loadShiftData();
     if (name === 'suppliers') loadSuppliers();
@@ -4914,6 +4981,137 @@ async function loadPromoImpact() {
     }
   } catch (e) {
     if (box) box.innerHTML = 'Lỗi tải báo cáo: ' + escapeHtml(e.message || String(e));
+  }
+}
+
+async function loadPromoCampaigns() {
+  var tbody = document.getElementById('pcamp-tbody');
+  if (!tbody) return;
+  try {
+    var list = await api.call('getPromoCampaignsAdmin');
+    window.__adminPromoCampaigns = list || [];
+    if (!list || !list.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3);">Chưa có chương trình</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(function (c, idx) {
+      var aud = c.audience === 'rule' ? ('Rule: ' + (c.ruleType || 'all')) : 'Tất cả';
+      var exp = c.endDate ? new Date(c.endDate).toLocaleDateString('vi-VN') : 'Vô hạn';
+      var on = c.active !== false;
+      return '<tr>' +
+        '<td style="font-weight:600;">' + escapeHtml(c.title || '') + '</td>' +
+        '<td style="font-size:11px;">' + escapeHtml(aud) + '</td>' +
+        '<td>' + (c.showPopup !== false ? '✓' : '—') + '</td>' +
+        '<td>' + (c.pushNotification !== false ? '✓' : '—') + '</td>' +
+        '<td style="font-size:11px;">' + escapeHtml(c.actionType || 'order') + '</td>' +
+        '<td style="font-size:11px;color:var(--text3);">' + exp + '</td>' +
+        '<td><span class="badge ' + (on ? 'green' : 'red') + '">' + (on ? 'Bật' : 'Tắt') + '</span></td>' +
+        '<td><button type="button" class="btn btn-ghost btn-sm" onclick="fillPromoCampaignEdit(' + idx + ')"><i class="fa-solid fa-pen"></i></button> ' +
+        '<button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deletePromoCampaignRowByIdx(' + idx + ')"><i class="fa-solid fa-trash"></i></button></td>' +
+      '</tr>';
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--red);">Lỗi: ' + escapeHtml(e.message || String(e)) + '</td></tr>';
+  }
+}
+
+function fillPromoCampaignEdit(idx) {
+  var list = window.__adminPromoCampaigns;
+  if (!list || !list[idx]) return;
+  var c = list[idx];
+  document.getElementById('pcamp-id').value = c.id || '';
+  document.getElementById('pcamp-title').value = c.title || '';
+  document.getElementById('pcamp-body').value = c.body || '';
+  document.getElementById('pcamp-image').value = c.imageUrl || '';
+  document.getElementById('pcamp-priority').value = c.priority != null ? c.priority : 0;
+  document.getElementById('pcamp-start').value = promoDateToInput(c.startDate);
+  document.getElementById('pcamp-end').value = promoDateToInput(c.endDate);
+  document.getElementById('pcamp-audience').value = c.audience || 'all';
+  document.getElementById('pcamp-rule-type').value = c.ruleType || 'all';
+  try {
+    document.getElementById('pcamp-rule-json').value = c.ruleConfig && Object.keys(c.ruleConfig).length
+      ? JSON.stringify(c.ruleConfig, null, 0) : '{}';
+  } catch (e2) {
+    document.getElementById('pcamp-rule-json').value = '{}';
+  }
+  document.getElementById('pcamp-action-type').value = c.actionType || 'order';
+  document.getElementById('pcamp-promo-code').value = c.actionPromoCode || '';
+  document.getElementById('pcamp-menu-id').value = c.actionMenuId || '';
+  document.getElementById('pcamp-category').value = c.actionCategory || '';
+  document.getElementById('pcamp-btn-text').value = c.actionButtonText || 'Đặt ngay';
+  document.getElementById('pcamp-show-popup').checked = c.showPopup !== false;
+  document.getElementById('pcamp-push-notif').checked = c.pushNotification !== false;
+  document.getElementById('pcamp-active').checked = c.active !== false;
+  showToast('📋 Đã nạp chương trình — chỉnh sửa rồi bấm Lưu', 'success');
+}
+
+function clearPromoCampaignForm() {
+  document.getElementById('pcamp-id').value = '';
+  ['pcamp-title', 'pcamp-body', 'pcamp-image', 'pcamp-promo-code', 'pcamp-menu-id', 'pcamp-category'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('pcamp-priority').value = '0';
+  document.getElementById('pcamp-start').value = '';
+  document.getElementById('pcamp-end').value = '';
+  document.getElementById('pcamp-audience').value = 'all';
+  document.getElementById('pcamp-rule-type').value = 'all';
+  document.getElementById('pcamp-rule-json').value = '{}';
+  document.getElementById('pcamp-action-type').value = 'order';
+  document.getElementById('pcamp-btn-text').value = 'Đặt ngay';
+  document.getElementById('pcamp-show-popup').checked = true;
+  document.getElementById('pcamp-push-notif').checked = true;
+  document.getElementById('pcamp-active').checked = true;
+}
+
+async function savePromoCampaignForm() {
+  var btn = document.getElementById('pcamp-save-btn');
+  var title = document.getElementById('pcamp-title').value.trim();
+  if (!title) { showToast('Nhập tiêu đề chương trình', 'error'); return; }
+  var payload = {
+    id: document.getElementById('pcamp-id').value.trim(),
+    title: title,
+    body: document.getElementById('pcamp-body').value.trim(),
+    imageUrl: document.getElementById('pcamp-image').value.trim(),
+    priority: parseInt(document.getElementById('pcamp-priority').value, 10) || 0,
+    startDate: document.getElementById('pcamp-start').value || '',
+    endDate: document.getElementById('pcamp-end').value || '',
+    audience: document.getElementById('pcamp-audience').value,
+    ruleType: document.getElementById('pcamp-rule-type').value,
+    ruleConfigJson: document.getElementById('pcamp-rule-json').value.trim() || '{}',
+    actionType: document.getElementById('pcamp-action-type').value,
+    actionPromoCode: document.getElementById('pcamp-promo-code').value.trim(),
+    actionMenuId: document.getElementById('pcamp-menu-id').value.trim(),
+    actionCategory: document.getElementById('pcamp-category').value.trim(),
+    actionButtonText: document.getElementById('pcamp-btn-text').value.trim() || 'Đặt ngay',
+    showPopup: document.getElementById('pcamp-show-popup').checked,
+    pushNotification: document.getElementById('pcamp-push-notif').checked,
+    active: document.getElementById('pcamp-active').checked,
+  };
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu…'; }
+  try {
+    await api.call('savePromoCampaign', payload);
+    showToast('✅ Đã lưu chương trình KM', 'success');
+    clearPromoCampaignForm();
+    loadPromoCampaigns();
+  } catch (e) {
+    showToast('Lỗi: ' + (e.message || e), 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-bullhorn"></i> Lưu chương trình'; }
+  }
+}
+
+async function deletePromoCampaignRowByIdx(idx) {
+  var list = window.__adminPromoCampaigns;
+  if (!list || !list[idx]) return;
+  var id = list[idx].id;
+  if (!id || !confirm('Xóa chương trình này?')) return;
+  try {
+    await api.call('deletePromoCampaign', id);
+    showToast('Đã xóa', 'success');
+    loadPromoCampaigns();
+  } catch (e) {
+    showToast('Lỗi: ' + (e.message || e), 'error');
   }
 }
 

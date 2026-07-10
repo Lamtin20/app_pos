@@ -254,7 +254,7 @@
     @keyframes portalReveal { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
     .mem-topbar {
       position: sticky; top: 0; z-index: 50;
-      width: 100%; overflow: hidden;
+      width: 100%; overflow: visible;
       border: none; background: transparent;
       box-shadow: none;
       transition: transform .28s ease;
@@ -263,6 +263,7 @@
     body.mem-logged-in:not([data-mem-tab="offers"]) .mem-topbar { min-height: 76px; }
     .mem-topbar-sky-bg {
       position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      overflow: hidden; border-radius: 0 0 22px 22px;
     }
     .mem-topbar-sky-scene {
       width: 100%; height: 100%; border-radius: 0;
@@ -1899,16 +1900,63 @@
       padding: 0; font-family: var(--font); transition: background .15s, transform .15s;
     }
     .mem-top-icon-btn:hover { background: rgba(234, 88, 12, .1); transform: scale(1.03); }
-    .mem-top-notif-wrap { position: relative; flex-shrink: 0; }
+    .mem-top-notif-wrap { position: relative; flex-shrink: 0; z-index: 5; }
+    .mem-top-icon-btn { position: relative; }
+    .mem-notif-badge {
+      position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px; background: #ef4444; color: #fff; font-size: 9px; font-weight: 900;
+      font-style: normal; line-height: 16px; text-align: center; border: 2px solid rgba(255,255,255,.9);
+      box-shadow: 0 2px 6px rgba(239,68,68,.45);
+    }
+    .mem-notif-badge.mem-hidden { display: none !important; }
     .mem-notif-pop {
-      position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
-      min-width: 220px; max-width: min(280px, calc(100vw - 32px));
-      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-      box-shadow: 0 12px 32px rgba(40, 25, 15, .14); padding: 12px 14px;
+      position: fixed; z-index: 400;
+      min-width: 280px; max-width: min(340px, calc(100vw - 24px));
+      max-height: min(70vh, 420px); overflow: hidden; display: flex; flex-direction: column;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(40, 25, 15, .18);
     }
     .mem-notif-pop.mem-hidden { display: none !important; }
-    .mem-notif-pop-head { font-size: 13px; font-weight: 900; color: var(--primary-dk); margin-bottom: 8px; }
-    .mem-notif-empty { font-size: 12px; color: var(--text3); margin: 0; line-height: 1.45; }
+    .mem-notif-pop-head {
+      font-size: 13px; font-weight: 900; color: var(--primary-dk); padding: 12px 14px 8px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .mem-notif-list { overflow-y: auto; padding: 6px 0; flex: 1; }
+    .mem-notif-item {
+      display: block; width: 100%; text-align: left; border: none; background: transparent;
+      padding: 10px 14px; cursor: pointer; font-family: var(--font); border-bottom: 1px solid rgba(0,0,0,.04);
+    }
+    .mem-notif-item:hover { background: var(--surface2); }
+    .mem-notif-item.unread { background: rgba(234, 88, 12, .06); }
+    .mem-notif-item-kind {
+      font-size: 9px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--primary); margin-bottom: 3px;
+    }
+    .mem-notif-item-title { font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.35; margin-bottom: 3px; }
+    .mem-notif-item-body { font-size: 11px; color: var(--text3); line-height: 1.45; }
+    .mem-notif-item-time { font-size: 10px; color: var(--text3); margin-top: 4px; }
+    .mem-notif-empty { font-size: 12px; color: var(--text3); margin: 0; padding: 14px; line-height: 1.45; text-align: center; }
+    .mem-promo-popup {
+      position: fixed; inset: 0; z-index: 500; background: rgba(15, 10, 8, .55);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+    .mem-promo-popup.mem-hidden { display: none !important; }
+    .mem-promo-popup-card {
+      width: min(420px, 100%); background: var(--surface); border-radius: 20px; overflow: hidden;
+      border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(0,0,0,.25); position: relative;
+      animation: fadeRise 0.35s ease both;
+    }
+    .mem-promo-popup-close {
+      position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px;
+      border-radius: 50%; border: none; background: rgba(0,0,0,.45); color: #fff; cursor: pointer;
+      font-size: 16px;
+    }
+    .mem-promo-popup-img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; background: var(--surface2); }
+    .mem-promo-popup-body { padding: 16px 18px 18px; }
+    .mem-promo-popup-body h3 { margin: 0 0 8px; font-family: var(--display); font-size: 1.15rem; color: var(--primary-dk); }
+    .mem-promo-popup-body p { margin: 0 0 14px; font-size: 13px; color: var(--text2); line-height: 1.5; }
+    .mem-promo-popup-cta { width: 100%; }
     .mem-top-group-btn {
       display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
       padding: 9px 14px; border-radius: 999px; border: 1.5px solid rgba(234, 88, 12, .4);
@@ -3333,10 +3381,15 @@
           <em class="mem-top-cart-badge" id="mem-top-cart-badge">0</em>
         </button>
         <div class="mem-top-notif-wrap">
-          <button type="button" class="mem-top-icon-btn" id="btn-top-notify" title="Thông báo" aria-label="Thông báo"><i class="fa-solid fa-bell"></i></button>
+          <button type="button" class="mem-top-icon-btn" id="btn-top-notify" title="Thông báo" aria-label="Thông báo" aria-expanded="false" aria-controls="mem-notif-pop">
+            <i class="fa-solid fa-bell"></i>
+            <em class="mem-notif-badge mem-hidden" id="mem-notif-badge" aria-hidden="true">0</em>
+          </button>
           <div class="mem-notif-pop mem-hidden" id="mem-notif-pop" role="dialog" aria-label="Thông báo">
             <div class="mem-notif-pop-head">Thông báo</div>
-            <p class="mem-notif-empty">Chưa có thông báo mới</p>
+            <div id="mem-notif-list" class="mem-notif-list">
+              <p class="mem-notif-empty">Chưa có thông báo mới</p>
+            </div>
           </div>
         </div>
         <button type="button" class="mem-top-icon-btn" id="btn-top-offers" title="Ưu đãi" aria-label="Ưu đãi"><i class="fa-solid fa-ticket"></i></button>
@@ -3952,6 +4005,18 @@
     </div>
   </div>
 
+  <div class="mem-promo-popup mem-hidden" id="mem-promo-popup" role="dialog" aria-modal="true" aria-label="Chương trình khuyến mãi">
+    <div class="mem-promo-popup-card">
+      <button type="button" class="mem-promo-popup-close" id="mem-promo-popup-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+      <img class="mem-promo-popup-img mem-hidden" id="mem-promo-popup-img" alt="">
+      <div class="mem-promo-popup-body">
+        <h3 id="mem-promo-popup-title">Khuyến mãi</h3>
+        <p id="mem-promo-popup-body"></p>
+        <button type="button" class="btn mem-promo-popup-cta" id="mem-promo-popup-cta">Đặt ngay</button>
+      </div>
+    </div>
+  </div>
+
   <div class="mem-tier-overlay mem-hidden" id="mem-tier-overlay" aria-hidden="true">
     <div class="mem-tier-page">
       <div class="mem-tier-page-head">
@@ -4134,6 +4199,20 @@ function portalMemberLookupHttp(phone) {
 }
 function portalMemberBootstrapHttp() {
   return fetch('/api/member/bootstrap', {
+    method: 'GET',
+    credentials: 'same-origin',
+    cache: 'no-store',
+  }).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
+}
+function fetchMemberNotificationsHttp(phone, accountMeta) {
+  var url = '/api/member/notifications?phone=' + encodeURIComponent(String(phone || ''));
+  if (accountMeta && typeof accountMeta === 'object') {
+    url += '&accountMeta=' + encodeURIComponent(JSON.stringify(accountMeta));
+  }
+  return fetch(url, {
     method: 'GET',
     credentials: 'same-origin',
     cache: 'no-store',
@@ -6248,7 +6327,11 @@ function applyMemberPortalFromSettings(raw) {
         customDrinks: [],
         pkgQuote: null,
         orderHistoryTab: 'completed',
-        memberOrdersFiltered: []
+        memberOrdersFiltered: [],
+        notifications: [],
+        popupCampaign: null,
+        profileSnapshot: null,
+        accountMeta: null
       };
 
       // ---------- UI helpers ----------
@@ -6720,6 +6803,7 @@ function applyMemberPortalFromSettings(raw) {
         applySupportLinks();
         renderHomePackages(r);
         loadMemberOrderInsights();
+        refreshMemberNotifications();
       }
       function parsePkgPerks(p, variant) {
         var desc = String(p.description || '').trim();
@@ -7171,12 +7255,288 @@ function applyMemberPortalFromSettings(raw) {
       }
       function closeNotifPop() {
         var pop = $('mem-notif-pop');
+        var btn = $('btn-top-notify');
         if (pop) pop.classList.add('mem-hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+      function positionNotifPop() {
+        var btn = $('btn-top-notify');
+        var pop = $('mem-notif-pop');
+        if (!btn || !pop) return;
+        var r = btn.getBoundingClientRect();
+        pop.style.top = Math.round(r.bottom + 8) + 'px';
+        pop.style.right = Math.max(12, Math.round(window.innerWidth - r.right)) + 'px';
+        pop.style.left = 'auto';
+      }
+      function getReadNotifIds() {
+        try {
+          var raw = localStorage.getItem('mem_read_notifs');
+          var arr = raw ? JSON.parse(raw) : [];
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) { return []; }
+      }
+      function markNotifRead(id) {
+        if (!id) return;
+        var ids = getReadNotifIds();
+        if (ids.indexOf(id) >= 0) return;
+        ids.unshift(id);
+        if (ids.length > 120) ids.length = 120;
+        try { localStorage.setItem('mem_read_notifs', JSON.stringify(ids)); } catch (e) { }
+        paintNotifBadge();
+        renderNotifList();
+      }
+      function markAllNotifsRead() {
+        var ids = (state.notifications || []).map(function (n) { return n.id; }).filter(Boolean);
+        try { localStorage.setItem('mem_read_notifs', JSON.stringify(ids.slice(0, 120))); } catch (e) { }
+        paintNotifBadge();
+        renderNotifList();
+      }
+      function notifKindLabel(kind) {
+        if (kind === 'order') return 'Đơn hàng';
+        if (kind === 'promo') return 'Khuyến mãi';
+        if (kind === 'account') return 'Tài khoản';
+        return 'Thông báo';
+      }
+      function fmtNotifTime(t) {
+        if (!t) return '';
+        try {
+          var d = new Date(t);
+          if (isNaN(d.getTime())) return '';
+          return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        } catch (e) { return ''; }
+      }
+      function buildAccountMetaFromSnapshot(prev, next) {
+        var meta = {};
+        if (prev && next) {
+          if (prev.tier && next.tier && prev.tier !== next.tier) {
+            meta.tierChanged = true;
+            meta.prevTier = prev.tier;
+            meta.newTier = next.tier;
+          }
+          var pp = parseInt(prev.points, 10) || 0;
+          var np = parseInt(next.points, 10) || 0;
+          if (np > pp) meta.pointsDelta = np - pp;
+        }
+        if (state.accountMeta && state.accountMeta.profileUpdated) meta.profileUpdated = true;
+        return Object.keys(meta).length ? meta : null;
+      }
+      function storeProfileSnapshot(snap) {
+        if (!snap) return;
+        state.profileSnapshot = snap;
+        try { localStorage.setItem('mem_profile_snap_' + state.phone, JSON.stringify(snap)); } catch (e) { }
+      }
+      function loadStoredProfileSnapshot() {
+        try {
+          var raw = localStorage.getItem('mem_profile_snap_' + state.phone);
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+      function refreshMemberNotifications(opts) {
+        opts = opts || {};
+        if (!state.phone || !isPhone10(state.phone)) return Promise.resolve();
+        var prevSnap = state.profileSnapshot || loadStoredProfileSnapshot();
+        var accountMeta = opts.accountMeta || buildAccountMetaFromSnapshot(prevSnap, {
+          tier: (state.profile && state.profile.tier) || (state.portal && state.portal.offers && state.portal.offers.tier) || '',
+          points: (state.profile && state.profile.points) || (state.portal && state.portal.offers && state.portal.offers.points) || 0,
+          name: (state.profile && state.profile.name) || ''
+        });
+        state.accountMeta = null;
+        var fetchFn = window.fetchMemberNotificationsHttp;
+        var p = fetchFn
+          ? fetchFn(state.phone, accountMeta)
+          : fetch('/api/member/notifications?phone=' + encodeURIComponent(state.phone) +
+              (accountMeta ? ('&accountMeta=' + encodeURIComponent(JSON.stringify(accountMeta))) : ''), {
+            credentials: 'same-origin', cache: 'no-store'
+          }).then(function (res) { return res.json(); });
+        return p.then(function (r) {
+          if (!r || r.ok === false) return;
+          state.notifications = r.notifications || [];
+          state.popupCampaign = r.popupCampaign || null;
+          if (r.profileSnapshot) storeProfileSnapshot(r.profileSnapshot);
+          paintNotifBadge();
+          renderNotifList();
+          if (opts.showPopup !== false) maybeShowPromoPopup();
+        }).catch(function () { });
+      }
+      function paintNotifBadge() {
+        var badge = $('mem-notif-badge');
+        if (!badge) return;
+        var read = getReadNotifIds();
+        var unread = (state.notifications || []).filter(function (n) { return n.id && read.indexOf(n.id) < 0; }).length;
+        if (unread > 0) {
+          badge.textContent = unread > 9 ? '9+' : String(unread);
+          badge.classList.remove('mem-hidden');
+        } else {
+          badge.classList.add('mem-hidden');
+        }
+      }
+      function renderNotifList() {
+        var box = $('mem-notif-list');
+        if (!box) return;
+        var list = state.notifications || [];
+        if (!list.length) {
+          box.innerHTML = '<p class="mem-notif-empty">Chưa có thông báo mới</p>';
+          return;
+        }
+        var read = getReadNotifIds();
+        box.innerHTML = list.map(function (n, idx) {
+          var unread = n.id && read.indexOf(n.id) < 0;
+          return '<button type="button" class="mem-notif-item' + (unread ? ' unread' : '') + '" data-notif-idx="' + idx + '">' +
+            '<div class="mem-notif-item-kind">' + esc(notifKindLabel(n.kind)) + '</div>' +
+            '<div class="mem-notif-item-title">' + esc(n.title || '') + '</div>' +
+            '<div class="mem-notif-item-body">' + esc(n.body || '') + '</div>' +
+            (n.time ? '<div class="mem-notif-item-time">' + esc(fmtNotifTime(n.time)) + '</div>' : '') +
+            '</button>';
+        }).join('');
+        box.querySelectorAll('.mem-notif-item').forEach(function (btn) {
+          btn.onclick = function () {
+            var ix = parseInt(btn.getAttribute('data-notif-idx'), 10) || 0;
+            var n = list[ix];
+            if (n && n.id) markNotifRead(n.id);
+            closeNotifPop();
+            handleNotifAction(n);
+          };
+        });
+      }
+      function getDismissedCampaignIds() {
+        try {
+          var raw = localStorage.getItem('mem_dismissed_campaigns');
+          var arr = raw ? JSON.parse(raw) : [];
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) { return []; }
+      }
+      function dismissCampaignId(id) {
+        if (!id) return;
+        var ids = getDismissedCampaignIds();
+        if (ids.indexOf(id) >= 0) return;
+        ids.push(id);
+        if (ids.length > 40) ids = ids.slice(-40);
+        try { localStorage.setItem('mem_dismissed_campaigns', JSON.stringify(ids)); } catch (e) { }
+      }
+      function applyCampaignAction(camp) {
+        if (!camp) return;
+        var type = String(camp.actionType || 'order').trim();
+        var code = String(camp.actionPromoCode || '').trim();
+        if (code && window.MemOrder && MemOrder.setPendingPromo) MemOrder.setPendingPromo(code);
+        if (type === 'offers') { goOffers(); return; }
+        if (type === 'cart') { goCart(); return; }
+        if (type === 'promo_apply' || type === 'order') {
+          if (type === 'promo_apply') goCart();
+          else goOrder();
+          if (camp.actionCategory) {
+            setTimeout(function () {
+              var catsEl = $('pk-cats');
+              if (!catsEl) return;
+              catsEl.querySelectorAll('button').forEach(function (b) {
+                if (b.getAttribute('data-c') === camp.actionCategory) b.click();
+              });
+            }, 160);
+          }
+          return;
+        }
+        if (type === 'product' && camp.actionMenuId) {
+          var m = findMenuByNameOrId('', camp.actionMenuId);
+          goOrder();
+          setTimeout(function () {
+            if (m && window.MemOrder && MemOrder.openProduct) MemOrder.openProduct(m);
+          }, 160);
+          return;
+        }
+        if (type === 'category' && camp.actionCategory) {
+          goOrder();
+          setTimeout(function () {
+            var catsEl = $('pk-cats');
+            if (!catsEl) return;
+            catsEl.querySelectorAll('button').forEach(function (b) {
+              if (b.getAttribute('data-c') === camp.actionCategory) b.click();
+            });
+          }, 160);
+          return;
+        }
+        goOrder();
+      }
+      function handleNotifAction(n) {
+        if (!n) return;
+        if (n.kind === 'order') {
+          if (n.actionType === 'order_history') {
+            openMoreSub('orders'); switchSection('more'); setTab('more');
+            return;
+          }
+          openMoreSub('orders'); switchSection('more'); setTab('more');
+          return;
+        }
+        if (n.kind === 'account') {
+          if (n.actionType === 'profile') { openMoreSub('profile'); switchSection('more'); setTab('more'); return; }
+          if (n.actionType === 'offers') { goOffers(); return; }
+        }
+        if (n.kind === 'promo' && n.campaignId) {
+          applyCampaignAction({
+            actionType: n.actionType,
+            actionPromoCode: n.actionPromoCode,
+            actionMenuId: n.actionMenuId,
+            actionCategory: n.actionCategory
+          });
+          return;
+        }
+        goOffers();
+      }
+      function showPromoPopup(camp) {
+        var pop = $('mem-promo-popup');
+        if (!pop || !camp) return;
+        var img = $('mem-promo-popup-img');
+        var title = $('mem-promo-popup-title');
+        var body = $('mem-promo-popup-body');
+        var cta = $('mem-promo-popup-cta');
+        if (title) title.textContent = camp.title || 'Khuyến mãi';
+        if (body) body.textContent = camp.body || camp.title || '';
+        if (cta) cta.textContent = camp.actionButtonText || 'Đặt ngay';
+        if (img) {
+          if (camp.imageUrl) {
+            img.src = camp.imageUrl;
+            img.alt = camp.title || '';
+            img.classList.remove('mem-hidden');
+          } else {
+            img.classList.add('mem-hidden');
+            img.removeAttribute('src');
+          }
+        }
+        pop.classList.remove('mem-hidden');
+        pop.dataset.campaignId = camp.id || '';
+        document.body.style.overflow = 'hidden';
+        memNavOpen(closePromoPopup);
+      }
+      function closePromoPopup() {
+        var pop = $('mem-promo-popup');
+        if (pop) {
+          if (pop.dataset.campaignId) dismissCampaignId(pop.dataset.campaignId);
+          pop.classList.add('mem-hidden');
+          pop.dataset.campaignId = '';
+        }
+        if (!(document.querySelector('#mem-tier-overlay:not(.mem-hidden), #mem-voucher-modal:not(.mem-hidden), #mem-order-detail-modal:not(.mem-hidden), #mem-register-modal:not(.mem-hidden)'))) {
+          document.body.style.overflow = '';
+        }
+      }
+      function maybeShowPromoPopup() {
+        var camp = state.popupCampaign;
+        if (!camp || !camp.id) return;
+        if (getDismissedCampaignIds().indexOf(camp.id) >= 0) return;
+        if (camp.showPopup === false) return;
+        showPromoPopup(camp);
       }
       function toggleNotifPop() {
         var pop = $('mem-notif-pop');
+        var btn = $('btn-top-notify');
         if (!pop) return;
-        pop.classList.toggle('mem-hidden');
+        var willOpen = pop.classList.contains('mem-hidden');
+        if (willOpen) {
+          positionNotifPop();
+          pop.classList.remove('mem-hidden');
+          if (btn) btn.setAttribute('aria-expanded', 'true');
+          if (!state.notifications || !state.notifications.length) refreshMemberNotifications({ showPopup: false });
+          else markAllNotifsRead();
+        } else {
+          closeNotifPop();
+        }
       }
       function goOffers() {
         if (!state.phone && !state.guest) { showToast('Đăng nhập SĐT trước'); return; }
@@ -7299,6 +7659,8 @@ function applyMemberPortalFromSettings(raw) {
             applyTopbarGreeting(($('prof-name') && $('prof-name').value) || state.phone);
             applyTopbarAvatar((r.profile && r.profile.avatarUrl) || pendingAvatarUrl || '');
             pendingAvatarUrl = '';
+            state.accountMeta = { profileUpdated: true };
+            refreshMemberNotifications({ showPopup: false });
             showToast('Đã lưu hồ sơ');
           }).catch(function (e) { showToast(e.message || 'Lỗi lưu'); });
         };
@@ -7587,6 +7949,7 @@ function applyMemberPortalFromSettings(raw) {
           state.memberOrders = (r && r.orders) || [];
           state.memberInsights = computeMemberInsights(state.memberOrders);
           renderHomePersonalSections();
+          refreshMemberNotifications({ showPopup: false });
         }).catch(function () { /* ignore */ });
       }
       function reorderFromHistory(order) {
@@ -9593,9 +9956,23 @@ function applyMemberPortalFromSettings(raw) {
         e.stopPropagation();
         toggleNotifPop();
       };
+      window.addEventListener('resize', function () {
+        var pop = $('mem-notif-pop');
+        if (pop && !pop.classList.contains('mem-hidden')) positionNotifPop();
+      }, { passive: true });
       document.addEventListener('click', function (e) {
-        if (!e.target.closest('.mem-top-notif-wrap')) closeNotifPop();
+        if (!e.target.closest('.mem-top-notif-wrap') && !e.target.closest('#mem-notif-pop')) closeNotifPop();
       });
+      var promoPopClose = $('mem-promo-popup-close');
+      var promoPopCta = $('mem-promo-popup-cta');
+      var promoPop = $('mem-promo-popup');
+      if (promoPopClose) promoPopClose.onclick = function () { memNavBack(); };
+      if (promoPop) promoPop.onclick = function (ev) { if (ev.target === promoPop) memNavBack(); };
+      if (promoPopCta) promoPopCta.onclick = function () {
+        var camp = state.popupCampaign;
+        if ($('mem-promo-popup') && !$('mem-promo-popup').classList.contains('mem-hidden')) memNavBack();
+        if (camp) setTimeout(function () { applyCampaignAction(camp); }, 0);
+      };
       var gph = $('gate-phone');
       if (gph) gph.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') { ev.preventDefault(); runGate(); }
