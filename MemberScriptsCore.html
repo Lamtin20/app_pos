@@ -116,6 +116,8 @@ function fmt(n) { return Math.round(n || 0).toLocaleString('vi-VN') + '₫'; }
 var memberPortalSettings = null;
 var memCarouselTimer = null;
 var memCarouselIndex = 0;
+var memCarouselList = [];
+var memCarouselResizeBound = false;
 
 function stopMemCarousel() {
   if (memCarouselTimer) { clearInterval(memCarouselTimer); memCarouselTimer = null; }
@@ -124,6 +126,88 @@ function bannerSlideImage(b) {
   return String((b && (b.image || b.imageUrl)) || '').trim();
 }
 var MEM_BANNER_FALLBACK_IMG = 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80';
+function memCarouselIsDual() {
+  return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(min-width: 900px)').matches && memCarouselList.length >= 2;
+}
+function memCarouselVisibleCount() {
+  return memCarouselIsDual() ? 2 : 1;
+}
+function memCarouselMaxIndex() {
+  return Math.max(0, memCarouselList.length - memCarouselVisibleCount());
+}
+function memCarouselDotCount() {
+  if (!memCarouselList.length) return 0;
+  return memCarouselIsDual() ? Math.ceil(memCarouselList.length / 2) : memCarouselList.length;
+}
+function memCarouselDotToIndex(dotIx) {
+  return memCarouselIsDual() ? Math.min(dotIx * 2, memCarouselMaxIndex()) : dotIx;
+}
+function memCarouselIndexToDot(ix) {
+  return memCarouselIsDual() ? Math.floor(ix / 2) : ix;
+}
+function rebuildMemCarouselDots() {
+  var dots = document.getElementById('mem-carousel-dots');
+  if (!dots) return;
+  var count = memCarouselDotCount();
+  if (count < 2) {
+    dots.innerHTML = '';
+    dots.style.display = 'none';
+    return;
+  }
+  dots.style.display = 'flex';
+  var activeDot = memCarouselIndexToDot(memCarouselIndex);
+  dots.innerHTML = '';
+  for (var i = 0; i < count; i++) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Slide ' + (i + 1));
+    btn.setAttribute('data-i', String(i));
+    btn.className = i === activeDot ? 'on' : '';
+    btn.onclick = (function (dotIx) {
+      return function () {
+        memCarouselIndex = memCarouselDotToIndex(dotIx);
+        applyMemCarouselView();
+        startMemCarouselTimer();
+      };
+    })(i);
+    dots.appendChild(btn);
+  }
+}
+function applyMemCarouselView() {
+  var box = document.getElementById('mem-carousel');
+  if (!box || !memCarouselList.length) return;
+  var dual = memCarouselIsDual();
+  box.classList.toggle('mem-carousel-dual', dual);
+  memCarouselIndex = Math.max(0, Math.min(memCarouselIndex, memCarouselMaxIndex()));
+  var track = box.querySelector('.mem-carousel-track');
+  var slides = box.querySelectorAll('.mem-slide');
+  slides.forEach(function (sl, j) {
+    sl.classList.toggle('on', !dual && j === memCarouselIndex);
+  });
+  if (dual && track && slides[0]) {
+    var gap = 12;
+    var w = slides[0].offsetWidth + gap;
+    track.style.transform = 'translateX(-' + (memCarouselIndex * w) + 'px)';
+  } else if (track) {
+    track.style.transform = '';
+  }
+  var dots = document.getElementById('mem-carousel-dots');
+  if (dots) {
+    var activeDot = memCarouselIndexToDot(memCarouselIndex);
+    dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === activeDot); });
+  }
+}
+function startMemCarouselTimer() {
+  stopMemCarousel();
+  if (memCarouselList.length < 2) return;
+  memCarouselTimer = setInterval(function () {
+    var step = memCarouselIsDual() ? 2 : 1;
+    var next = memCarouselIndex + step;
+    if (next > memCarouselMaxIndex()) next = 0;
+    memCarouselIndex = next;
+    applyMemCarouselView();
+  }, 5200);
+}
 function buildMemCarouselSlides(banners) {
   var box = document.getElementById('mem-carousel');
   var carWrap = document.getElementById('mem-carousel-wrap');
@@ -133,6 +217,7 @@ function buildMemCarouselSlides(banners) {
     if (!b) return false;
     return bannerSlideImage(b) || String(b.title || '').trim() || String(b.subtitle || '').trim();
   });
+  memCarouselList = list;
   if (!list.length) {
     box.innerHTML = '';
     if (carWrap) {
@@ -157,28 +242,19 @@ function buildMemCarouselSlides(banners) {
       '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
       (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
   }).join('');
-  box.innerHTML = slidesHtml + '<div class="mem-carousel-dots" id="mem-carousel-dots"></div>';
-  var dots = document.getElementById('mem-carousel-dots');
-  if (!dots) return;
-  dots.innerHTML = list.map(function (_b, i) {
-    return '<button type="button" aria-label="Slide ' + (i + 1) + '" class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"></button>';
-  }).join('');
+  box.innerHTML = '<div class="mem-carousel-track">' + slidesHtml + '</div><div class="mem-carousel-dots" id="mem-carousel-dots"></div>';
   memCarouselIndex = 0;
-  if (dots) dots.style.display = list.length > 1 ? 'flex' : 'none';
-  if (list.length < 2) return;
-  memCarouselTimer = setInterval(function () {
-    memCarouselIndex = (memCarouselIndex + 1) % list.length;
-    box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === memCarouselIndex); });
-    dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === memCarouselIndex); });
-  }, 5200);
-  dots.querySelectorAll('button').forEach(function (btn) {
-    btn.onclick = function () {
-      var ix = parseInt(btn.getAttribute('data-i'), 10) || 0;
-      memCarouselIndex = ix;
-      box.querySelectorAll('.mem-slide').forEach(function (sl, j) { sl.classList.toggle('on', j === ix); });
-      dots.querySelectorAll('button').forEach(function (d, j) { d.classList.toggle('on', j === ix); });
-    };
-  });
+  rebuildMemCarouselDots();
+  applyMemCarouselView();
+  startMemCarouselTimer();
+  if (!memCarouselResizeBound) {
+    memCarouselResizeBound = true;
+    window.addEventListener('resize', function () {
+      applyMemCarouselView();
+      rebuildMemCarouselDots();
+      startMemCarouselTimer();
+    });
+  }
 }
 function applyMemberPortalFromSettings(raw) {
   var d = {

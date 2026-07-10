@@ -344,10 +344,37 @@
       background: #1a1410; width: 100%;
       box-shadow: 0 8px 28px rgba(40, 25, 15, .12);
     }
+    .mem-carousel-track {
+      position: relative; width: 100%; height: 100%;
+    }
     @media (max-width: 640px) { .mem-carousel { aspect-ratio: 2.65 / 1; max-height: 108px; } }
     @media (min-width: 900px) {
-      .mem-carousel-wrap { max-width: 560px; }
+      .mem-carousel-wrap { max-width: 720px; width: calc(100% - 48px); }
       .mem-carousel { max-height: 132px; border-radius: 18px; }
+      .mem-carousel.mem-carousel-dual {
+        aspect-ratio: auto; height: 132px; max-height: 132px;
+        background: transparent; box-shadow: none; overflow: visible;
+      }
+      .mem-carousel.mem-carousel-dual .mem-carousel-track {
+        display: flex; gap: 12px; height: 100%;
+        transition: transform 0.55s cubic-bezier(.4, 0, .2, 1);
+        will-change: transform;
+      }
+      .mem-carousel.mem-carousel-dual .mem-slide {
+        position: relative; flex: 0 0 calc(50% - 6px); opacity: 1 !important;
+        border-radius: 16px; overflow: hidden; height: 100%; min-width: 0;
+        box-shadow: 0 8px 28px rgba(40, 25, 15, .12);
+        background: #1a1410;
+      }
+      .mem-carousel.mem-carousel-dual .mem-carousel-dots {
+        bottom: -18px !important;
+      }
+      .mem-carousel.mem-carousel-dual .mem-carousel-dots button {
+        background: rgba(120, 82, 48, .28);
+      }
+      .mem-carousel.mem-carousel-dual .mem-carousel-dots button.on {
+        background: var(--primary);
+      }
     }
     .mem-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; background-size: cover; background-position: center; }
     .mem-slide.on { opacity: 1; z-index: 1; }
@@ -791,6 +818,70 @@
       background: radial-gradient(circle at 88% 12%, rgba(251,191,36,.35) 0%, transparent 42%),
         url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 50c8-12 16-18 28-20 6-1 12 2 16 8M10 30c12-4 24-2 34 6' fill='none' stroke='%23fbbf24' stroke-width='1.5' opacity='.4'/%3E%3C/svg%3E");
       background-size: auto, 120px 120px;
+    }
+    @media (max-width: 899px) {
+      .mem-offers-hero::after,
+      .mem-offers-hero-pattern,
+      .mem-offers-sparkles { display: none !important; }
+      .mem-offers-hero.tier-member {
+        background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 55%, #fde68a 100%);
+        color: #92400e;
+      }
+      .mem-offers-hero.tier-silver {
+        background: linear-gradient(180deg, #475569 0%, #64748b 55%, #94a3b8 100%);
+        color: #f8fafc;
+      }
+      .mem-offers-hero.tier-gold {
+        background: linear-gradient(180deg, #78350f 0%, #b45309 50%, #fbbf24 100%);
+        color: #fffbeb;
+      }
+      .mem-offers-hero.tier-diamond {
+        background: linear-gradient(180deg, #0a0a0a 0%, #262626 55%, #404040 100%);
+        color: #fef3c7;
+      }
+      .mem-offers-hero { border-radius: 0 0 22px 22px; padding-bottom: 16px; }
+      .mem-offers-hero-top { padding: 12px 0 0; align-items: center; }
+      .mem-offers-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .72; margin: 0 0 8px; }
+      .mem-offers-tier-name,
+      .mem-offers-cups-line { display: none !important; }
+      .mem-offers-stat-row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .mem-offers-stat {
+        min-width: 78px; padding: 8px 12px; border-radius: 12px;
+        background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.22);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      }
+      .mem-offers-stat-label {
+        display: block; font-size: 9px; font-weight: 800; letter-spacing: .08em;
+        text-transform: uppercase; opacity: .78; margin-bottom: 2px;
+      }
+      .mem-offers-stat-val {
+        display: block; font-family: var(--display); font-size: 1.05rem; font-weight: 900; line-height: 1.15;
+      }
+      .mem-voucher-pill {
+        border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.14);
+        color: inherit; font-size: 10px; padding: 7px 11px;
+      }
+      .mem-offers-card { margin: 10px 12px 0; border-radius: 16px; padding: 16px 14px 14px; }
+      .mem-offers-expiry {
+        font-size: 10px; opacity: .78; padding: 0 12px 12px; margin-top: 8px;
+        color: inherit;
+      }
+      .mem-offers-body { padding: 14px 12px 0; background: #f5f5f4; }
+      body[data-mem-tab="offers"] #sec-offers {
+        padding-bottom: var(--mem-bottom-nav-clearance) !important;
+      }
+      body.mem-logged-in[data-mem-tab="offers"] {
+        padding-bottom: 0 !important;
+      }
+      body[data-mem-tab="offers"] .mem-promo-list {
+        padding-bottom: var(--mem-menu-row-gap);
+      }
+      body[data-mem-tab="offers"] .mem-promo-empty {
+        margin-bottom: 4px;
+      }
+    }
+    @media (min-width: 900px) {
+      .mem-offers-stat-row { display: none !important; }
     }
     .mem-offers-hero-top {
       position: relative; z-index: 1;
@@ -1792,7 +1883,7 @@
         padding-bottom: 0;
       }
       body[data-mem-tab="offers"] .mem-offers-body {
-        padding-bottom: var(--mem-menu-row-gap) !important;
+        padding-bottom: 0 !important;
       }
       body.mem-view-group #sec-group,
       body[data-mem-tab="group"] #sec-group {
@@ -1927,9 +2018,14 @@
       body.mem-view-cart #sec-cart > .mem-page-head,
       body.mem-view-group #sec-group .mem-group-page-head { display: none; }
     }
-    .mem-home-menu-sections { display: flex; flex-direction: column; gap: 22px; padding: 0 12px 8px; width: 100%; box-sizing: border-box; }
+    .mem-home-menu-sections { display: flex; flex-direction: column; gap: 16px; padding: 0 12px 8px; width: 100%; box-sizing: border-box; }
     .mem-home-cat-block { margin: 0; }
-    .mem-home-cat-block .mem-section-head { margin-bottom: 10px; padding: 0 2px; }
+    .mem-home-cat-shell {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 14px 12px 16px;
+      box-shadow: 0 4px 20px rgba(60, 40, 25, .06);
+    }
+    .mem-home-cat-block .mem-section-head { margin-bottom: 12px; padding: 0 2px; }
     .mem-home-cat-block .mem-section-head h2 { font-size: 1.05rem; }
     .mem-home-cat-banner {
       width: 100%; border-radius: 14px; overflow: hidden; margin-bottom: 12px;
@@ -2861,9 +2957,17 @@
     @media (max-width: 640px) {
       .mem-carousel { aspect-ratio: 2.65 / 1; max-height: 108px; }
     }
+    @media (min-width: 900px) {
+      body.mem-logged-in #sec-home { padding: 8px 0 16px; }
+      #mem-home-dashboard { max-width: 1100px; padding: 0 0 28px; margin: 0 auto; }
+      .mem-carousel-wrap { width: calc(100% - 48px); max-width: 720px; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 22px; }
+      .mem-home-toolbar { width: 100%; max-width: 990px; margin: 0 auto; }
+      .mem-home-menu-sections, .mem-home-curated { max-width: 990px; margin: 0 auto; }
+      .mem-carousel { min-height: 0; max-height: 132px; aspect-ratio: 2.55 / 1; }
+    }
     .mem-carousel-dots { padding: 0 !important; }
     .mem-home-toolbar { display: none !important; }
-    .mem-fav-chip, #btn-top-favorites { display: none !important; } /* Yêu thích tạm ẩn */
+    .mem-fav-chip, #btn-top-favorites { display: none !important; }
     .mem-home-menu-block { padding: 0; border-radius: 0; margin: 0; width: 100%; background: transparent; border: none; box-shadow: none; }
     .mem-home-menu-block .mem-section-head { margin: 0 0 8px; }
     .mem-home-toolbar { width: 100%; padding: 0 12px; box-sizing: border-box; }
@@ -2880,14 +2984,6 @@
     .mem-home-menu-grid .menu-card { border-radius: 16px; }
     .mem-home-menu-grid .menu-card .bd { padding: 9px 10px 10px; }
     .mem-home-menu-grid .menu-card .bd .nm { font-size: 12.5px; min-height: 2.3em; }
-    @media (min-width: 900px) {
-      body.mem-logged-in #sec-home { padding: 8px 0 16px; }
-      #mem-home-dashboard { max-width: 1100px; padding: 0 0 28px; margin: 0 auto; }
-      .mem-carousel-wrap { width: 100%; max-width: 560px; padding-left: 0 !important; padding-right: 0 !important; }
-      .mem-home-toolbar { width: 100%; max-width: 990px; margin: 0 auto; }
-      .mem-home-menu-sections, .mem-home-curated { max-width: 990px; margin: 0 auto; }
-      .mem-carousel { min-height: 0; max-height: 132px; aspect-ratio: 2.55 / 1; }
-    }
 
     /* ===== Chờ nhận nước (thành viên nhóm sau khi trưởng nhóm gửi đơn) ===== */
     body.mem-await-mode .mem-cart-checkout-card,
@@ -4068,6 +4164,16 @@
           <span class="mem-offers-tier-badge" id="mem-offers-tier-badge"><i class="fa-solid fa-crown"></i> Hội viên SUN</span>
           <h1 class="mem-offers-tier-name" id="mem-offers-tier">Thành viên</h1>
           <p class="mem-offers-cups-line"><strong id="mem-offers-cups">0</strong> SUN</p>
+          <div class="mem-offers-stat-row" aria-label="Hạng và Sun">
+            <div class="mem-offers-stat">
+              <span class="mem-offers-stat-label">Hạng</span>
+              <strong class="mem-offers-stat-val" id="mem-offers-tier-stat">Thành viên</strong>
+            </div>
+            <div class="mem-offers-stat">
+              <span class="mem-offers-stat-label">Sun</span>
+              <strong class="mem-offers-stat-val" id="mem-offers-cups-stat">0</strong>
+            </div>
+          </div>
         </div>
         <button type="button" class="mem-voucher-pill" id="mem-voucher-pill" title="Voucher của tôi">
           <i class="fa-solid fa-ticket"></i> Voucher của tôi
@@ -4676,8 +4782,10 @@
         var activeSec = $('sec-' + (s === 'home' ? 'home' : s));
         if (activeSec) activeSec.classList.add('mem-page-active');
         if (s === 'more' || s === 'offers') {
+          document.body.style.overflow = '';
           try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (eSc) { window.scrollTo(0, 0); }
         }
+        if (s === 'offers') renderOffers();
         syncMemSaveFab();
         var fab = $('mem-ai-fab');
         if (fab) fab.classList.toggle('mem-hidden', !(s === 'more' && state.portal && !state.portal.hasPortalAccess));
@@ -5110,7 +5218,8 @@
         var el = $('mem-offers-sparkles');
         if (!el) return;
         el.innerHTML = '';
-        for (var i = 0; i < 14; i++) {
+        if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) return;
+        for (var i = 0; i < 8; i++) {
           var s = document.createElement('span');
           s.className = 'mem-offers-sparkle';
           s.style.left = (6 + Math.random() * 88) + '%';
@@ -5143,6 +5252,8 @@
         paintOfferSparkles();
         if ($('mem-offers-tier')) $('mem-offers-tier').textContent = tierName;
         if ($('mem-offers-cups')) $('mem-offers-cups').textContent = String(cups);
+        if ($('mem-offers-tier-stat')) $('mem-offers-tier-stat').textContent = tierName;
+        if ($('mem-offers-cups-stat')) $('mem-offers-cups-stat').textContent = String(cups);
         var tierBadge = $('mem-offers-tier-badge');
         if (tierBadge) tierBadge.innerHTML = '<i class="fa-solid fa-crown"></i> ' + esc(tierName);
         if ($('mem-offers-code')) $('mem-offers-code').textContent = (prof && prof.memberCode) || (o && o.memberCode) || '-';
@@ -6178,6 +6289,7 @@
           if (!catItems.length) return;
           var banner = getCategoryBanner(cat);
           html += '<div class="mem-home-cat-block" data-cat="' + escAttr(cat) + '" data-scroll-label="' + escAttr(cat) + '">';
+          html += '<div class="mem-home-cat-shell">';
           html += '<div class="mem-section-head"><h2><i class="fa-solid fa-mug-hot"></i> ' + esc(cat) + '</h2>';
           html += '<button type="button" class="mem-link-btn mem-home-cat-more" data-cat="' + escAttr(cat) + '">Xem thêm</button></div>';
           if (banner && banner.imageUrl) {
@@ -6190,7 +6302,7 @@
           html += catItems.slice(0, 4).map(function (m) {
             return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
           }).join('');
-          html += '</div></div>';
+          html += '</div></div></div>';
         });
         container.innerHTML = html || '<p style="color:var(--text3);font-size:13px;padding:0 12px;">Chưa có món trong thực đơn.</p>';
         renderHomeCuratedSections();
