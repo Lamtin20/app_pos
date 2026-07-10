@@ -253,17 +253,54 @@
     #portal-panel.show { display: block; animation: portalReveal 0.55s cubic-bezier(0.34, 1.2, 0.64, 1) both; }
     @keyframes portalReveal { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
     .mem-topbar {
-      background: var(--surface); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 50;
-      box-shadow: 0 2px 14px rgba(60,40,25,0.06);
-      width: 100%; transition: transform .28s ease, background .35s ease, box-shadow .35s ease;
+      width: 100%; overflow: hidden;
+      border: none; background: transparent;
+      box-shadow: none;
+      transition: transform .28s ease;
+      border-radius: 0 0 22px 22px;
     }
-    body[data-mem-tab="home"] .mem-topbar {
-      background: linear-gradient(180deg, #fffbf7 0%, rgba(255,252,248,.92) 100%);
-      border-bottom-color: rgba(120, 82, 48, 0.08);
-      box-shadow: 0 4px 20px rgba(234, 88, 12, 0.06);
-      border-radius: 0 0 18px 18px;
+    body.mem-logged-in:not([data-mem-tab="offers"]) .mem-topbar { min-height: 76px; }
+    .mem-topbar-sky-bg {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
     }
+    .mem-topbar-sky-scene {
+      width: 100%; height: 100%; border-radius: 0;
+      min-height: 76px;
+    }
+    .mem-topbar-inner {
+      position: relative; z-index: 2;
+    }
+    body.mem-gate-mode .mem-topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 14px rgba(60,40,25,0.06); border-radius: 0;
+      min-height: auto;
+    }
+    body.mem-gate-mode .mem-topbar-sky-bg { display: none; }
+    body[data-mem-tab="home"] .mem-topbar { border-radius: 0 0 22px 22px; }
+    body.mem-logged-in:not([data-mem-tab="offers"]) .mem-topbar-inner {
+      padding: 14px 16px 16px;
+    }
+    body[data-sky-period="evening"] .mem-topbar-greet strong,
+    body[data-sky-period="night"] .mem-topbar-greet strong,
+    body[data-sky-period="late"] .mem-topbar-greet strong { color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.25); }
+    body[data-sky-period="evening"] .mem-topbar-meta,
+    body[data-sky-period="night"] .mem-topbar-meta,
+    body[data-sky-period="late"] .mem-topbar-meta { color: rgba(255,255,255,.88); }
+    body[data-sky-period="evening"] .mem-top-icon-btn,
+    body[data-sky-period="night"] .mem-top-icon-btn,
+    body[data-sky-period="late"] .mem-top-icon-btn {
+      background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.28); color: #fff;
+      backdrop-filter: blur(8px);
+    }
+    body[data-sky-period="evening"] .mem-top-cart-btn,
+    body[data-sky-period="night"] .mem-top-cart-btn,
+    body[data-sky-period="late"] .mem-top-cart-btn {
+      background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.28); color: #fff;
+    }
+    body[data-sky-period="evening"] .mem-logo-txt,
+    body[data-sky-period="night"] .mem-logo-txt,
+    body[data-sky-period="late"] .mem-logo-txt { color: #fff; }
     html { scroll-behavior: smooth; scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px)); scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: none; }
     .mem-topbar.mem-topbar-hidden { transform: translateY(-100%); pointer-events: none; }
     .mem-topbar-inner { max-width: 1100px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; }
@@ -822,13 +859,42 @@
     .mem-voucher-desc { font-size: 11px; color: var(--text3); margin: 0 0 6px; line-height: 1.4; }
     .mem-voucher-meta { font-size: 10px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 5px; }
     .mem-voucher-meta i { font-size: 10px; opacity: .85; }
-    #sec-more { padding: 0 12px 20px; max-width: 480px; margin: 0 auto; }
-    #sec-more.section { padding-top: 4px; padding-bottom: 20px; }
-    body[data-mem-tab="more"] #sec-more { padding-top: 2px; }
+    #sec-more { padding: 8px 14px 24px; max-width: 560px; margin: 0 auto; }
+    #sec-more.section { padding-top: 8px; padding-bottom: 24px; }
+    body[data-mem-tab="more"] #sec-more { padding-top: 6px; }
+    body[data-mem-tab="more"] { background: #f5f3f0; }
+    .mem-more-section-title {
+      font-size: 15px; font-weight: 900; color: var(--text); margin: 0 0 12px; padding: 0 2px;
+    }
+    .mem-more-util-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 22px;
+    }
+    .mem-more-tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      padding: 18px 10px; min-height: 96px; border-radius: 16px; border: none;
+      background: #fff; box-shadow: 0 2px 12px rgba(40,25,15,.06);
+      cursor: pointer; font-family: var(--font); text-align: center;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .mem-more-tile:active { transform: scale(.98); }
+    .mem-more-tile-ico {
+      width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .mem-more-tile-ico.ico-orange { background: #fff7ed; color: #ea580c; }
+    .mem-more-tile-ico.ico-purple { background: #f5f3ff; color: #7c3aed; }
+    .mem-more-tile-ico.ico-blue { background: #eff6ff; color: #2563eb; }
+    .mem-more-tile-ico.ico-green { background: #ecfdf5; color: #059669; }
+    .mem-more-tile span { font-size: 12px; font-weight: 800; color: var(--text); line-height: 1.35; }
+    .mem-more-list-card {
+      background: #fff; border-radius: 16px; padding: 4px 0;
+      box-shadow: 0 2px 12px rgba(40,25,15,.06); margin-bottom: 22px; overflow: hidden;
+    }
     #sec-more-sub { padding-top: 0; }
     #sec-more-sub .mem-sub-back { margin-top: 0; margin-bottom: 10px; }
     #sec-more-sub .mem-orders-page-head { margin-top: 0; margin-bottom: 12px; }
     body[data-mem-tab="more"] .mem-topbar-meta { display: none !important; }
+    body[data-mem-tab="more"] #sec-more { margin-top: 0; }
     .mem-more-card {
       background: #fff; border-radius: 22px; padding: 6px;
       box-shadow: 0 8px 28px rgba(40, 25, 15, .07); border: 1px solid rgba(120, 82, 48, .08);
@@ -934,15 +1000,18 @@
     .mem-wind-layer {
       position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden;
     }
-    .mem-wind-leaf {
-      position: absolute; font-size: 14px; opacity: 0;
-      animation: memWindLeaf 2.4s ease-out forwards;
-      filter: drop-shadow(0 1px 2px rgba(34, 100, 40, .25));
+    .mem-tea-leaf {
+      position: absolute; width: 11px; height: 6px; border-radius: 0 70% 0 70%;
+      background: linear-gradient(135deg, #86efac 0%, #22c55e 55%, #15803d 100%);
+      opacity: 0; box-shadow: 0 1px 3px rgba(21, 128, 61, .25);
+      animation: memTeaGust var(--dur, 3.6s) ease-in-out forwards;
+      transform-origin: center center;
     }
-    @keyframes memWindLeaf {
-      0% { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(.6); }
-      15% { opacity: .85; }
-      100% { opacity: 0; transform: translate(var(--dx, 80px), var(--dy, -60px)) rotate(180deg) scale(1); }
+    @keyframes memTeaGust {
+      0% { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(.45); }
+      8% { opacity: .92; }
+      35% { transform: translate(calc(var(--dx, -180px) * .35), calc(var(--dy, 80px) * .4)) rotate(180deg) scale(.85); }
+      100% { opacity: 0; transform: translate(var(--dx, -180px), var(--dy, 80px)) rotate(540deg) scale(1); }
     }
     .mem-subpanel { display: none; }
     .mem-subpanel.open { display: block; }
@@ -972,14 +1041,7 @@
       border-radius: 10px; border: 1px solid var(--border); background: var(--surface2);
       font-size: 12px; font-weight: 800; color: var(--primary-dk); cursor: pointer;
     }
-    .mem-topbar-brand-icon {
-      width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
-      background: linear-gradient(145deg, #fff7ed, #ffedd5);
-      display: none; align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(234,88,12,.22), inset 0 0 0 1px rgba(255,255,255,.6);
-      position: relative; overflow: hidden;
-    }
-    .mem-topbar-brand-icon:not(.mem-hidden) { display: inline-flex !important; }
+    .mem-topbar-brand-icon { display: none !important; }
     .mem-sky-scene { width: 100%; height: 100%; position: relative; overflow: hidden; border-radius: inherit; background: linear-gradient(180deg, #7dd3fc 0%, #bae6fd 55%, #fef3c7 100%); }
     .mem-sky-sun, .mem-sky-moon {
       position: absolute; border-radius: 50%;
@@ -994,13 +1056,28 @@
       position: absolute; background: rgba(255,255,255,.96);
       border-radius: 999px; box-shadow: 0 2px 8px rgba(148,163,184,.35);
     }
-    .mem-sky-scene[data-period="dawn"] { background: linear-gradient(180deg, #fdba74 0%, #fed7aa 50%, #fef3c7 100%); }
-    .mem-sky-scene[data-period="morning"] { background: linear-gradient(180deg, #38bdf8 0%, #7dd3fc 50%, #fef9c3 100%); }
-    .mem-sky-scene[data-period="noon"] { background: linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 45%, #fef08a 100%); }
-    .mem-sky-scene[data-period="afternoon"] { background: linear-gradient(180deg, #60a5fa 0%, #93c5fd 50%, #fde68a 100%); }
-    .mem-sky-scene[data-period="evening"] { background: linear-gradient(180deg, #6366f1 0%, #a5b4fc 45%, #fecdd3 100%); }
-    .mem-sky-scene[data-period="night"] { background: linear-gradient(180deg, #1e3a8a 0%, #312e81 55%, #4c1d95 100%); }
-    .mem-sky-scene[data-period="late"] { background: linear-gradient(180deg, #0f172a 0%, #1e293b 55%, #334155 100%); }
+    .mem-sky-scene[data-period="dawn"] { background: linear-gradient(180deg, #fdba74 0%, #fed7aa 45%, #fef3c7 100%); }
+    .mem-sky-scene[data-period="morning"] { background: linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 50%, #fef9c3 100%); }
+    .mem-sky-scene[data-period="noon"] { background: linear-gradient(180deg, #0284c7 0%, #38bdf8 45%, #fef08a 100%); }
+    .mem-sky-scene[data-period="afternoon"] { background: linear-gradient(180deg, #3b82f6 0%, #93c5fd 50%, #fde68a 100%); }
+    .mem-sky-scene[data-period="evening"] { background: linear-gradient(180deg, #4338ca 0%, #818cf8 40%, #fda4af 100%); }
+    .mem-sky-scene[data-period="night"] { background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }
+    .mem-sky-scene[data-period="late"] { background: linear-gradient(180deg, #020617 0%, #0f172a 45%, #1e293b 100%); }
+    .mem-topbar-sky-scene .mem-sky-sun { width: 36px; height: 36px; top: 14px; left: 18px; }
+    .mem-topbar-sky-scene .mem-sky-moon { width: 32px; height: 32px; top: 16px; left: 20px; }
+    .mem-topbar-sky-scene .mem-sky-cloud { opacity: .92; }
+    .mem-topbar-sky-scene[data-period="morning"] .mem-sky-cloud:nth-child(2) { width: 52px; height: 18px; top: 22px; left: 55%; animation: memCloudDrift 7s ease-in-out infinite; }
+    .mem-topbar-sky-scene[data-period="morning"] .mem-sky-cloud:nth-child(3) { width: 38px; height: 14px; top: 38px; left: 72%; animation: memCloudDrift 9s ease-in-out infinite reverse; }
+    .mem-topbar-sky-scene[data-period="morning"] .mem-sky-cloud:nth-child(4) { width: 44px; height: 16px; top: 12px; left: 38%; animation: memCloudDrift 8s ease-in-out infinite; }
+    .mem-topbar-sky-scene[data-period="noon"] .mem-sky-sun { width: 42px; height: 42px; top: 10px; left: 24px; box-shadow: 0 0 28px rgba(251,191,36,.95), 0 0 48px rgba(251,191,36,.5); }
+    .mem-topbar-sky-scene[data-period="evening"] .mem-sky-moon { top: 14px; left: auto; right: 22%; }
+    .mem-topbar-sky-scene[data-period="night"] .mem-sky-moon,
+    .mem-topbar-sky-scene[data-period="late"] .mem-sky-moon { top: 12px; left: 16px; }
+    .mem-sky-star {
+      position: absolute; width: 3px; height: 3px; border-radius: 50%;
+      background: #fef9c3; box-shadow: 0 0 6px #fef08a, 0 0 12px rgba(254,249,195,.5);
+      animation: memStarTwinkle 2s ease-in-out infinite;
+    }
     .mem-sky-scene[data-period="dawn"] .mem-sky-sun { width: 20px; height: 20px; left: 10px; bottom: 8px; animation: memSunRise 4s ease-in-out infinite alternate; }
     .mem-sky-scene[data-period="dawn"] .mem-sky-cloud:nth-child(2) { width: 28px; height: 10px; top: 16px; left: 12px; opacity: .9; animation: memCloudDrift 6s ease-in-out infinite; }
     .mem-sky-scene[data-period="morning"] .mem-sky-sun { width: 24px; height: 24px; top: 8px; left: 10px; animation: memSunPulse 3s ease-in-out infinite; }
@@ -1021,6 +1098,57 @@
     .mem-sky-scene[data-period="late"] .mem-sky-star { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fef9c3; box-shadow: 0 0 8px #fef08a; animation: memStarTwinkle 1.8s ease-in-out infinite; }
     .mem-sky-scene[data-period="late"] .mem-sky-star:nth-child(4) { top: 12px; right: 12px; animation-delay: .3s; }
     .mem-sky-scene[data-period="late"] .mem-sky-star:nth-child(5) { top: 22px; right: 20px; animation-delay: .8s; }
+    .mem-orders-tabs {
+      display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none;
+    }
+    .mem-orders-tabs::-webkit-scrollbar { display: none; }
+    .mem-orders-tab {
+      flex-shrink: 0; border: none; background: transparent; padding: 8px 14px; border-radius: 999px;
+      font-size: 13px; font-weight: 800; color: var(--text3); cursor: pointer; font-family: var(--font);
+    }
+    .mem-orders-tab.on { background: #fff7ed; color: var(--primary-dk); }
+    .mem-orders-feed { display: flex; flex-direction: column; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(40,25,15,.06); }
+    .mem-orders-row {
+      display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center;
+      padding: 14px 14px; border: none; background: transparent; width: 100%; text-align: left;
+      cursor: pointer; font-family: var(--font); border-bottom: 1px solid rgba(120,82,48,.08);
+    }
+    .mem-orders-row:last-child { border-bottom: none; }
+    .mem-orders-row:active { background: rgba(234,88,12,.04); }
+    .mem-orders-row-ico {
+      width: 44px; height: 44px; border-radius: 50%; background: #fff7ed;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .mem-orders-row-main { min-width: 0; }
+    .mem-orders-row-title { font-size: 13px; font-weight: 800; color: var(--text); margin: 0 0 4px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .mem-orders-row-time { font-size: 11px; color: var(--text3); font-weight: 600; margin: 0; }
+    .mem-orders-row-side { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .mem-orders-row-price { font-size: 13px; font-weight: 900; color: var(--text); white-space: nowrap; }
+    .mem-orders-row-reorder {
+      border: 1.5px solid var(--primary); background: transparent; color: var(--primary);
+      font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; cursor: pointer; font-family: var(--font);
+    }
+    .mem-order-detail-modal {
+      position: fixed; inset: 0; z-index: 220; background: rgba(20,12,8,.45);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .mem-order-detail-modal.mem-hidden { display: none !important; }
+    .mem-order-detail-sheet {
+      width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
+      background: #fff; border-radius: 20px 20px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+    }
+    .mem-order-detail-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .mem-order-detail-head h3 { margin: 0; font-size: 16px; font-weight: 900; }
+    .mem-order-detail-close {
+      width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--surface2); cursor: pointer;
+    }
+    .mem-order-detail-meta { font-size: 12px; color: var(--text3); margin-bottom: 14px; line-height: 1.5; }
+    .mem-order-detail-items { margin: 0 0 14px; padding: 0; list-style: none; }
+    .mem-order-detail-items li {
+      display: flex; justify-content: space-between; gap: 10px; padding: 10px 0;
+      border-bottom: 1px dashed rgba(120,82,48,.12); font-size: 13px;
+    }
+    .mem-order-detail-total { font-size: 16px; font-weight: 900; color: var(--primary-dk); margin-bottom: 14px; }
     @keyframes memSunRise { from { transform: translateY(6px); opacity: .7; } to { transform: translateY(0); opacity: 1; } }
     @keyframes memSunPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
     @keyframes memCloudDrift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
@@ -1118,7 +1246,7 @@
       padding: 8px 14px; border-radius: 999px; cursor: pointer; font-family: var(--font);
     }
     .mem-orders-page-head { margin-bottom: 16px; }
-    .mem-orders-page-head h2 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
+    .mem-orders-page-head h2 { margin: 0 0 4px; font-size: 16px; font-weight: 900; text-align: center; }
     .mem-orders-page-head p { margin: 0; font-size: 12px; color: var(--text3); }
     .mem-orders-empty {
       text-align: center; padding: 32px 16px; color: var(--text3); font-size: 13px;
@@ -1516,7 +1644,7 @@
 
     .mem-topbar-inner { max-width: 1200px; margin: 0 auto; width: 100%; }
     @media (min-width: 900px) {
-      .mem-topbar { border-bottom: 1px solid var(--border); background: rgba(255,252,248,.97); }
+      .mem-topbar { border-bottom: none; background: transparent; }
       .mem-topbar-inner {
         display: flex; align-items: center; gap: 14px;
         padding: 10px 24px; flex-wrap: nowrap;
@@ -3037,18 +3165,18 @@
 <body class="mem-gate-mode">
   <div class="mem-boot-bar" id="mem-boot-bar" aria-hidden="true"></div>
   <header class="mem-topbar" id="mem-topbar">
+    <div class="mem-topbar-sky-bg" aria-hidden="true">
+      <div class="mem-sky-scene mem-topbar-sky-scene" id="mem-sky-scene" data-period="morning">
+        <span class="mem-sky-sun"></span>
+        <span class="mem-sky-cloud"></span>
+        <span class="mem-sky-cloud"></span>
+        <span class="mem-sky-cloud"></span>
+      </div>
+    </div>
     <div class="mem-topbar-inner">
       <span class="mem-logo-txt mem-brand-gate" id="mem-disp-brand-title">SUN Nut Milk</span>
       <div class="mem-topbar-user mem-hidden" id="mem-topbar-user">
-        <span class="mem-topbar-brand-icon mem-hidden" id="mem-topbar-brand-icon" aria-hidden="true">
-          <div class="mem-sky-scene" id="mem-sky-scene" data-period="morning">
-            <span class="mem-sky-sun"></span>
-            <span class="mem-sky-cloud"></span>
-            <span class="mem-sky-cloud"></span>
-            <span class="mem-sky-cloud"></span>
-          </div>
-        </span>
-        <button type="button" class="mem-avatar" id="mem-avatar-btn" aria-label="Thông tin cá nhân"><i class="fa-solid fa-user"></i></button>
+        <button type="button" class="mem-avatar mem-hidden" id="mem-avatar-btn" aria-label="Thông tin cá nhân"><i class="fa-solid fa-user"></i></button>
         <div class="mem-topbar-greet">
           <strong id="home-welcome">Xin chào</strong>
           <span id="home-member-code" class="mem-topbar-meta"></span>
@@ -3152,6 +3280,69 @@
     </div>
     </div>
 
+  </section>
+
+  <!-- MORE -->
+  <section class="section mem-hidden" id="sec-more">
+    <div id="sec-more-hub">
+      <h3 class="mem-more-section-title">Tiện ích</h3>
+      <div class="mem-more-util-grid">
+        <button type="button" class="mem-more-tile" data-more="orders">
+          <span class="mem-more-tile-ico ico-orange"><i class="fa-solid fa-clock-rotate-left"></i></span>
+          <span>Lịch sử đơn hàng</span>
+        </button>
+        <button type="button" class="mem-more-tile" data-more="terms">
+          <span class="mem-more-tile-ico ico-purple"><i class="fa-solid fa-file-lines"></i></span>
+          <span>Điều khoản</span>
+        </button>
+        <button type="button" class="mem-more-tile" data-more="packages">
+          <span class="mem-more-tile-ico ico-blue"><i class="fa-solid fa-sun"></i></span>
+          <span>Gói Sun</span>
+        </button>
+        <button type="button" class="mem-more-tile" data-more="profile">
+          <span class="mem-more-tile-ico ico-green"><i class="fa-solid fa-user"></i></span>
+          <span>Thông tin cá nhân</span>
+        </button>
+      </div>
+      <h3 class="mem-more-section-title">Hỗ trợ</h3>
+      <div class="mem-more-list-card">
+        <div class="mem-more-list">
+          <button type="button" class="mem-more-item" id="btn-more-contact-toggle">
+            <span class="mem-more-ico"><i class="fa-solid fa-headset"></i></span>
+            <span>Liên hệ &amp; góp ý</span>
+            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
+          </button>
+        </div>
+        <div class="mem-more-contact-card" id="mem-more-contact-card">
+          <a id="mem-support-phone" href="tel:0900000000"><i class="fa-solid fa-phone"></i><span id="mem-support-label">Gọi hotline</span></a>
+          <a id="mem-support-zalo" href="https://zalo.me/" target="_blank" rel="noopener"><i class="fa-brands fa-comment-dots"></i><span>Nhắn tin Zalo</span></a>
+        </div>
+      </div>
+      <h3 class="mem-more-section-title">Tài khoản</h3>
+      <div class="mem-more-list-card">
+        <div class="mem-more-list">
+          <button type="button" class="mem-more-item" data-more="addresses">
+            <span class="mem-more-ico"><i class="fa-solid fa-bookmark"></i></span>
+            <span>Địa chỉ đã lưu</span>
+            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
+          </button>
+          <div class="mem-more-divider"></div>
+          <button type="button" class="mem-more-item" id="btn-more-logout">
+            <span class="mem-more-ico"><i class="fa-solid fa-right-from-bracket"></i></span>
+            <span>Đăng xuất</span>
+            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="sec-more-sub" class="mem-hidden">
+      <button type="button" class="mem-sub-back" id="btn-more-back"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+      <div id="more-panel-orders" class="mem-subpanel"></div>
+      <div id="more-panel-profile" class="mem-subpanel mem-profile-form"></div>
+      <div id="more-panel-addresses" class="mem-subpanel"></div>
+      <div id="more-panel-terms" class="mem-subpanel"></div>
+      <div id="more-panel-packages" class="mem-subpanel"></div>
+    </div>
   </section>
 
   <!-- REGISTER (packages + payment) -->
@@ -3609,52 +3800,14 @@
     <div class="menu-grid portal-menu-pro mem-fav-grid" id="mem-favorites-grid"></div>
   </section>
 
-  <!-- MORE -->
-  <section class="section mem-hidden" id="sec-more">
-    <div id="sec-more-hub">
-      <div class="mem-more-card">
-        <div class="mem-more-list">
-          <button type="button" class="mem-more-item" data-more="orders">
-            <span class="mem-more-ico"><i class="fa-solid fa-clock-rotate-left"></i></span>
-            <span>Lịch sử đơn hàng</span>
-            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
-          </button>
-          <div class="mem-more-divider"></div>
-          <button type="button" class="mem-more-item" data-more="profile">
-            <span class="mem-more-ico"><i class="fa-solid fa-user"></i></span>
-            <span>Thông tin cá nhân</span>
-            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
-          </button>
-          <div class="mem-more-divider"></div>
-          <button type="button" class="mem-more-item" id="btn-more-contact-toggle">
-            <span class="mem-more-ico"><i class="fa-solid fa-headset"></i></span>
-            <span>Liên hệ &amp; góp ý</span>
-            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
-          </button>
-        </div>
-        <div class="mem-more-contact-card" id="mem-more-contact-card">
-          <a id="mem-support-phone" href="tel:0900000000"><i class="fa-solid fa-phone"></i><span id="mem-support-label">Gọi hotline</span></a>
-          <a id="mem-support-zalo" href="https://zalo.me/" target="_blank" rel="noopener"><i class="fa-brands fa-comment-dots"></i><span>Nhắn tin Zalo</span></a>
-        </div>
-      </div>
-      <div class="mem-more-logout-wrap">
-        <button type="button" class="btn btn-sec" id="btn-more-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-      </div>
-    </div>
-    <div id="sec-more-sub" class="mem-hidden">
-      <button type="button" class="mem-sub-back" id="btn-more-back"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
-      <div id="more-panel-orders" class="mem-subpanel"></div>
-      <div id="more-panel-profile" class="mem-subpanel mem-profile-form"></div>
-      <div id="more-panel-addresses" class="mem-subpanel"></div>
-      <div id="more-panel-terms" class="mem-subpanel"></div>
-      <div id="more-panel-packages" class="mem-subpanel"></div>
-    </div>
-  </section>
-
   <audio id="mem-cash-audio" preload="auto" playsinline>
     <source src="https://tiengdong.com/wp-content/uploads/Tieng-dong-xu-roi-www-tiengdong%5Fcom.mp3" type="audio/mpeg" />
   </audio>
   
+  <div class="mem-order-detail-modal mem-hidden" id="mem-order-detail-modal" role="dialog" aria-modal="true" aria-label="Chi tiết đơn hàng">
+    <div class="mem-order-detail-sheet" id="mem-order-detail-body"></div>
+  </div>
+
   <div class="mem-voucher-modal mem-hidden" id="mem-voucher-modal">
     <div class="mem-voucher-sheet">
       <button type="button" class="mem-voucher-close" id="mem-voucher-close"><i class="fa-solid fa-xmark"></i></button>
@@ -5945,7 +6098,9 @@ function applyMemberPortalFromSettings(raw) {
         lastAiSchedule: null,
         memAiWizard: { step: 'idle', goal: '', durationDays: 0 },
         customDrinks: [],
-        pkgQuote: null
+        pkgQuote: null,
+        orderHistoryTab: 'completed',
+        memberOrdersFiltered: []
       };
 
       // ---------- UI helpers ----------
@@ -7042,27 +7197,118 @@ function applyMemberPortalFromSettings(raw) {
       function renderOrderHistory() {
         var box = $('more-panel-orders');
         if (!box) return;
-        box.innerHTML = '<div class="mem-orders-page-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đơn hàng</h2><p>Theo dõi đơn đã đặt, trạng thái và đặt lại nhanh.</p></div><p style="color:var(--text3);font-size:13px;">Đang tải…</p>';
-        api('getMemberOrderHistory', state.phone, 20).then(function (r) {
+        box.innerHTML = '<div class="mem-orders-page-head"><h2>Lịch sử đơn hàng</h2></div><p style="color:var(--text3);font-size:13px;">Đang tải…</p>';
+        api('getMemberOrderHistory', state.phone, 50).then(function (r) {
           state.memberOrders = (r && r.orders) || [];
           state.memberInsights = computeMemberInsights(state.memberOrders);
-          var orders = state.memberOrders;
-          if (!orders.length) {
-            box.innerHTML = '<div class="mem-orders-page-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đơn hàng</h2><p>Theo dõi đơn đã đặt, trạng thái và đặt lại nhanh.</p></div>' +
-              '<div class="mem-orders-empty"><i class="fa-solid fa-receipt"></i>Chưa có đơn hàng nào.<br>Đặt món đầu tiên để xem lịch sử tại đây.</div>';
-            return;
-          }
-          box.innerHTML = '<div class="mem-orders-page-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đơn hàng</h2><p>' + orders.length + ' đơn gần nhất</p></div>' +
-            '<div class="mem-orders-list">' + orders.map(function (o, idx) { return buildOrderHistoryCardHtml(o, idx); }).join('') + '</div>';
-          box.querySelectorAll('[data-reorder-idx]').forEach(function (btn) {
-            btn.onclick = function () {
-              var i = parseInt(btn.getAttribute('data-reorder-idx'), 10);
-              reorderFromHistory(orders[i]);
-            };
-          });
+          paintOrderHistoryPanel();
         }).catch(function () {
           box.innerHTML = '<div class="mem-orders-page-head"><h2>Lịch sử đơn hàng</h2></div><p class="err">Không tải được lịch sử. Thử lại sau.</p>';
         });
+      }
+      function orderTabFilter(tab, order) {
+        var k = orderStatusKind(order.status);
+        if (tab === 'active') return k === 'pending' || k === 'default';
+        if (tab === 'completed') return k === 'done';
+        if (tab === 'cancelled') return k === 'cancel';
+        return true;
+      }
+      function fmtOrderTimeShort(t) {
+        if (!t) return '';
+        try {
+          var d = new Date(t);
+          if (isNaN(d.getTime())) return String(t);
+          var hh = String(d.getHours()).padStart(2, '0');
+          var mm = String(d.getMinutes()).padStart(2, '0');
+          var dd = String(d.getDate()).padStart(2, '0');
+          var mo = String(d.getMonth() + 1).padStart(2, '0');
+          return hh + ':' + mm + ' - ' + dd + '/' + mo + '/' + d.getFullYear();
+        } catch (e) { return fmtOrderTime(t); }
+      }
+      function buildOrderSummary(o) {
+        var items = Array.isArray(o.items) ? o.items : [];
+        if (!items.length) return 'Đơn hàng';
+        var first = String(items[0].name || 'Món').trim();
+        if (items.length === 1) return first;
+        var extra = items.length - 1;
+        return first + ', ' + extra + ' sản phẩm khác';
+      }
+      function paintOrderHistoryPanel() {
+        var box = $('more-panel-orders');
+        if (!box) return;
+        var tab = state.orderHistoryTab || 'completed';
+        var orders = (state.memberOrders || []).filter(function (o) { return orderTabFilter(tab, o); });
+        state.memberOrdersFiltered = orders;
+        var tabLabels = { active: 'Đang thực hiện', completed: 'Đã hoàn tất', cancelled: 'Đã hủy' };
+        var tabsHtml = ['active', 'completed', 'cancelled'].map(function (t) {
+          return '<button type="button" class="mem-orders-tab' + (tab === t ? ' on' : '') + '" data-orders-tab="' + t + '">' + tabLabels[t] + '</button>';
+        }).join('');
+        var listHtml = orders.length
+          ? orders.map(function (o, idx) { return buildOrderHistoryRowHtml(o, idx); }).join('')
+          : '<div class="mem-orders-empty"><i class="fa-solid fa-receipt"></i>Chưa có đơn trong mục này.</div>';
+        box.innerHTML = '<div class="mem-orders-page-head"><h2>Lịch sử đơn hàng</h2></div>' +
+          '<div class="mem-orders-tabs">' + tabsHtml + '</div>' +
+          '<div class="mem-orders-feed">' + listHtml + '</div>';
+        box.querySelectorAll('[data-orders-tab]').forEach(function (btn) {
+          btn.onclick = function () {
+            state.orderHistoryTab = btn.getAttribute('data-orders-tab') || 'completed';
+            paintOrderHistoryPanel();
+          };
+        });
+        box.querySelectorAll('.mem-orders-row').forEach(function (row) {
+          row.onclick = function (ev) {
+            if (ev.target.closest('.mem-orders-row-reorder')) return;
+            openOrderDetail(parseInt(row.getAttribute('data-order-idx'), 10));
+          };
+        });
+        box.querySelectorAll('.mem-orders-row-reorder').forEach(function (btn) {
+          btn.onclick = function (ev) {
+            ev.stopPropagation();
+            var i = parseInt(btn.getAttribute('data-reorder-idx'), 10);
+            reorderFromHistory((state.memberOrdersFiltered || [])[i]);
+          };
+        });
+      }
+      function openOrderDetail(idx) {
+        var orders = state.memberOrdersFiltered || state.memberOrders || [];
+        var o = orders[idx];
+        if (!o) return;
+        var modal = $('mem-order-detail-modal');
+        var body = $('mem-order-detail-body');
+        if (!modal || !body) return;
+        var amt = o.finalAmount != null ? o.finalAmount : (o.total != null ? o.total : o.totalAmount);
+        var items = Array.isArray(o.items) ? o.items : [];
+        var itemsHtml = items.length ? items.map(function (it) {
+          var q = parseInt(it.quantity, 10) || 1;
+          var p = it.totalPrice != null ? fmt(it.totalPrice) : (it.price != null ? fmt((parseFloat(it.price) || 0) * q) : '');
+          return '<li><span>' + esc(it.name || 'Món') + ' ×' + q + '</span><span>' + p + '</span></li>';
+        }).join('') : '<li><span>Không có chi tiết món</span><span></span></li>';
+        var disc = parseFloat(o.discount) || 0;
+        body.innerHTML =
+          '<div class="mem-order-detail-head"><h3>#' + esc(o.orderId || o.id || '—') + '</h3>' +
+          '<button type="button" class="mem-order-detail-close" id="mem-order-detail-close"><i class="fa-solid fa-xmark"></i></button></div>' +
+          '<div class="mem-order-detail-meta">' +
+          '<div><strong>Trạng thái:</strong> ' + esc(o.status || '—') + '</div>' +
+          '<div><strong>Thời gian:</strong> ' + esc(fmtOrderTime(o.time)) + '</div>' +
+          '<div><strong>Thanh toán:</strong> ' + esc(o.paymentMethod || '—') + (o.promoCode ? ' · ' + esc(o.promoCode) : '') + '</div>' +
+          (o.note ? '<div><strong>Ghi chú:</strong> ' + esc(o.note) + '</div>' : '') +
+          '</div>' +
+          '<ul class="mem-order-detail-items">' + itemsHtml + '</ul>' +
+          (disc > 0 ? '<div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Giảm giá: −' + fmt(disc) + '</div>' : '') +
+          '<div class="mem-order-detail-total">Tổng: ' + fmt(amt) + '</div>' +
+          '<button type="button" class="btn" style="width:100%;" id="mem-order-detail-reorder"><i class="fa-solid fa-rotate-right"></i> Đặt lại đơn này</button>';
+        modal.classList.remove('mem-hidden');
+        document.body.style.overflow = 'hidden';
+        var closeBtn = $('mem-order-detail-close');
+        if (closeBtn) closeBtn.onclick = closeOrderDetail;
+        modal.onclick = function (ev) { if (ev.target === modal) closeOrderDetail(); };
+        var reBtn = $('mem-order-detail-reorder');
+        if (reBtn) reBtn.onclick = function () { closeOrderDetail(); reorderFromHistory(o); };
+      }
+      function closeOrderDetail() {
+        var modal = $('mem-order-detail-modal');
+        if (modal) modal.classList.add('mem-hidden');
+        document.body.style.overflow = '';
       }
       function fmtOrderTime(t) {
         if (!t) return '';
@@ -7078,6 +7324,17 @@ function applyMemberPortalFromSettings(raw) {
         if (s.indexOf('hoàn') >= 0 || s.indexOf('xong') >= 0 || s.indexOf('giao') >= 0 || s.indexOf('complete') >= 0) return 'done';
         if (s.indexOf('chờ') >= 0 || s.indexOf('pending') >= 0 || s.indexOf('mới') >= 0) return 'pending';
         return 'default';
+      }
+      function buildOrderHistoryRowHtml(o, idx) {
+        var amt = o.finalAmount != null ? o.finalAmount : (o.total != null ? o.total : o.totalAmount);
+        return '<button type="button" class="mem-orders-row" data-order-idx="' + idx + '">' +
+          '<span class="mem-orders-row-ico">☕</span>' +
+          '<span class="mem-orders-row-main">' +
+          '<p class="mem-orders-row-title">' + esc(buildOrderSummary(o)) + '</p>' +
+          '<p class="mem-orders-row-time">' + esc(fmtOrderTimeShort(o.time)) + '</p></span>' +
+          '<span class="mem-orders-row-side">' +
+          '<span class="mem-orders-row-price">' + fmt(amt) + '</span>' +
+          '<span class="mem-orders-row-reorder" data-reorder-idx="' + idx + '" role="button">Đặt lại</span></span></button>';
       }
       function buildOrderHistoryCardHtml(o, idx) {
         var oid = esc(o.orderId || o.id || '—');
@@ -7200,15 +7457,16 @@ function applyMemberPortalFromSettings(raw) {
       function renderTermsPanel() {
         var box = $('more-panel-terms');
         var html = (memberPortalSettings && memberPortalSettings.termsHtml) || (state.portal && state.portal.offers && state.portal.offers.termsHtml) || 'Điều khoản đang cập nhật.';
-        if (box) box.innerHTML = '<div class="card" style="font-size:13px;line-height:1.6;white-space:pre-wrap;">' + esc(html) + '</div>';
+        if (box) box.innerHTML = '<div class="mem-orders-page-head"><h2>Điều khoản</h2></div><div class="card" style="font-size:13px;line-height:1.6;white-space:pre-wrap;border-radius:16px;">' + esc(html) + '</div>';
       }
       function renderPackagesPanel() {
         var box = $('more-panel-packages');
         if (!box) return;
+        var head = '<div class="mem-orders-page-head"><h2>Gói Sun</h2></div>';
         if (state.portal && state.portal.hasPortalAccess) {
-          box.innerHTML = '<p>Gói đang chạy - mở lịch uống.</p><button type="button" class="btn" onclick="SUN_MEM.goSchedule()">Xem lịch uống</button>';
+          box.innerHTML = head + '<p>Gói đang chạy - mở lịch uống.</p><button type="button" class="btn" onclick="SUN_MEM.goSchedule()">Xem lịch uống</button>';
         } else {
-          box.innerHTML = '<p>Chưa có gói - xem gói và đăng ký.</p><button type="button" class="btn" onclick="SUN_MEM.goRegister()">Xem gói thành viên</button>';
+          box.innerHTML = head + '<p>Chưa có gói - xem gói và đăng ký.</p><button type="button" class="btn" onclick="SUN_MEM.goRegister()">Xem gói thành viên</button>';
         }
       }
       function setGateMsg(html, isErr) {
@@ -7459,13 +7717,22 @@ function applyMemberPortalFromSettings(raw) {
         var scene = $('mem-sky-scene');
         if (!scene) return;
         scene.setAttribute('data-period', period);
-        if (period === 'evening' || period === 'night') {
-          scene.innerHTML = '<span class="mem-sky-moon"></span><span class="mem-sky-cloud"></span><span class="mem-sky-cloud"></span>';
-        } else if (period === 'late') {
-          scene.innerHTML = '<span class="mem-sky-moon"></span><span class="mem-sky-cloud"></span><span class="mem-sky-star"></span><span class="mem-sky-star"></span>';
+        document.body.setAttribute('data-sky-period', period);
+        var html = '';
+        if (period === 'evening' || period === 'night' || period === 'late') {
+          html += '<span class="mem-sky-moon"></span>';
+          html += '<span class="mem-sky-cloud"></span><span class="mem-sky-cloud"></span>';
+          if (period === 'night' || period === 'late') {
+            var starCount = period === 'late' ? 22 : 14;
+            for (var si = 0; si < starCount; si++) {
+              html += '<span class="mem-sky-star" style="left:' + (4 + Math.random() * 92) + '%;top:' + (6 + Math.random() * 58) + '%;animation-delay:' + (Math.random() * 2.2) + 's;width:' + (2 + Math.random() * 2) + 'px;height:' + (2 + Math.random() * 2) + 'px"></span>';
+            }
+          }
         } else {
-          scene.innerHTML = '<span class="mem-sky-sun"></span><span class="mem-sky-cloud"></span><span class="mem-sky-cloud"></span><span class="mem-sky-cloud"></span>';
+          html += '<span class="mem-sky-sun"></span>';
+          html += '<span class="mem-sky-cloud"></span><span class="mem-sky-cloud"></span><span class="mem-sky-cloud"></span>';
         }
+        scene.innerHTML = html;
       }
       window.memCartFlyAnim = function (imageUrl) {
         var cartBtn = $('btn-top-cart');
@@ -7546,7 +7813,7 @@ function applyMemberPortalFromSettings(raw) {
           sub = '';
         } else if (s === 'more') {
           title = 'Khác';
-          sub = 'Tiện ích & tài khoản';
+          sub = '';
         } else if (s === 'favorites') {
           title = 'Yêu thích';
           sub = '';
@@ -7556,14 +7823,9 @@ function applyMemberPortalFromSettings(raw) {
         }
         titleEl.textContent = title;
         subEl.textContent = sub;
-        var brandIco = $('mem-topbar-brand-icon');
         var avBtn = $('mem-avatar-btn');
         var userWrap = $('mem-topbar-user');
-        if (brandIco && avBtn) {
-          var onHome = s === 'home';
-          brandIco.classList.toggle('mem-hidden', !onHome);
-          avBtn.classList.add('mem-hidden');
-        }
+        if (avBtn) avBtn.classList.add('mem-hidden');
         if (userWrap) userWrap.classList.toggle('mem-hidden', s === 'offers');
       }
       function applyTopbarAvatar(url) {
@@ -8947,7 +9209,7 @@ function applyMemberPortalFromSettings(raw) {
         ev.preventDefault();
         handleNavClick(btn);
       }, false);
-      document.querySelectorAll('.mem-more-item[data-more]').forEach(function (el) {
+      document.querySelectorAll('.mem-more-item[data-more], .mem-more-tile[data-more]').forEach(function (el) {
         el.addEventListener('click', function () { openMoreSub(el.getAttribute('data-more')); });
       });
       var back = $('btn-more-back');
@@ -9166,39 +9428,37 @@ function applyMemberPortalFromSettings(raw) {
         layer.className = 'mem-wind-layer';
         layer.id = 'mem-wind-layer';
         document.body.appendChild(layer);
-        var leaves = ['🍃', '🌿', '🍂'];
-        var lastY = 0;
-        var lastSpawn = 0;
-        function spawnLeaf(x, y, dir) {
-          if (!layer) return;
-          var leaf = document.createElement('span');
-          leaf.className = 'mem-wind-leaf';
-          leaf.textContent = leaves[Math.floor(Math.random() * leaves.length)];
-          leaf.style.left = x + 'px';
-          leaf.style.top = y + 'px';
-          leaf.style.setProperty('--dx', (dir > 0 ? 90 : -90) + (Math.random() * 40 - 20) + 'px');
-          leaf.style.setProperty('--dy', (-40 - Math.random() * 50) + 'px');
-          layer.appendChild(leaf);
-          setTimeout(function () { if (leaf.parentNode) leaf.parentNode.removeChild(leaf); }, 2600);
+        function spawnLeaf(delayMs) {
+          setTimeout(function () {
+            if (!layer) return;
+            var leaf = document.createElement('span');
+            leaf.className = 'mem-tea-leaf';
+            var startX = window.innerWidth - 10 - Math.random() * 70;
+            var startY = -8 - Math.random() * 30;
+            leaf.style.left = startX + 'px';
+            leaf.style.top = startY + 'px';
+            leaf.style.setProperty('--dx', (-140 - Math.random() * 220) + 'px');
+            leaf.style.setProperty('--dy', (60 + Math.random() * 180) + 'px');
+            leaf.style.setProperty('--dur', (3.2 + Math.random() * 1.8) + 's');
+            layer.appendChild(leaf);
+            setTimeout(function () { if (leaf.parentNode) leaf.parentNode.removeChild(leaf); }, 5200);
+          }, delayMs || 0);
         }
-        window.addEventListener('touchmove', function (e) {
-          if (!e.touches || !e.touches.length) return;
-          var t = e.touches[0];
-          var now = Date.now();
-          var dy = t.clientY - lastY;
-          if (Math.abs(dy) > 10 && now - lastSpawn > 140) {
-            spawnLeaf(t.clientX, t.clientY, dy > 0 ? 1 : -1);
-            lastSpawn = now;
-          }
-          lastY = t.clientY;
-        }, { passive: true });
-        window.addEventListener('wheel', function (e) {
-          var now = Date.now();
-          if (Math.abs(e.deltaY) < 8 || now - lastSpawn < 180) return;
-          spawnLeaf(window.innerWidth * (0.2 + Math.random() * 0.6), window.innerHeight * 0.35, e.deltaY > 0 ? 1 : -1);
-          lastSpawn = now;
-        }, { passive: true });
+        function gust() {
+          var count = 3 + Math.floor(Math.random() * 4);
+          for (var i = 0; i < count; i++) spawnLeaf(i * 90 + Math.random() * 60);
+        }
+        function scheduleGust() {
+          gust();
+          setTimeout(scheduleGust, 14000 + Math.random() * 16000);
+        }
+        setTimeout(scheduleGust, 6000 + Math.random() * 8000);
       })();
+      if (!window.memSkyRefreshTimer) {
+        window.memSkyRefreshTimer = setInterval(function () {
+          renderSkyScene(getSkyPeriod());
+        }, 60000);
+      }
       (function initTopbarScrollHide() {
         var tb = $('mem-topbar');
         if (!tb) return;
