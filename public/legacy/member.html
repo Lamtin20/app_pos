@@ -279,10 +279,28 @@
     body.mem-gate-mode .mem-topbar-sky-bg { display: none; }
     body[data-mem-tab="home"] .mem-topbar { border-radius: 0 0 22px 22px; }
     body.mem-logged-in:not([data-mem-tab="offers"]) .mem-topbar-inner {
-      padding: 14px 16px 16px;
+      padding: 12px 14px 14px;
+      margin: 0 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.22);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.28);
+      box-shadow: 0 4px 18px rgba(15,23,42,.08);
     }
-    body[data-sky-dark="1"] .mem-topbar-greet strong { color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.25); }
-    body[data-sky-dark="1"] .mem-topbar-meta { color: rgba(255,255,255,.88); }
+    body[data-sky-dark="1"] .mem-topbar-inner {
+      background: rgba(15,23,42,.28);
+      border-color: rgba(255,255,255,.16);
+      box-shadow: 0 6px 22px rgba(0,0,0,.18);
+    }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-logo-txt,
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-greet strong {
+      color: #431407;
+      text-shadow: 0 1px 0 rgba(255,255,255,.85), 0 0 12px rgba(255,255,255,.55);
+    }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-meta { color: rgba(67,20,7,.72); }
+    body[data-sky-dark="1"] .mem-topbar-greet strong { color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.35), 0 0 1px rgba(0,0,0,.25); }
+    body[data-sky-dark="1"] .mem-topbar-meta { color: rgba(255,255,255,.92); text-shadow: 0 1px 6px rgba(0,0,0,.25); }
     body[data-sky-dark="1"] .mem-top-icon-btn,
     body[data-sky-dark="1"] .mem-top-cart-btn {
       background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.28); color: #fff;
@@ -307,7 +325,7 @@
     .mem-slide-cap .bdg { display: inline-block; font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(234,180,60,.95); color: #1a1410; margin-bottom: 8px; }
     .mem-slide-cap h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 6px; font-family: var(--display); line-height: 1.25; }
     .mem-slide-cap p { margin: 0; font-size: 13px; opacity: 0.96; line-height: 1.45; }
-    .mem-carousel-dots { display: flex; justify-content: center; gap: 6px; padding: 10px 0 4px; }
+    .mem-carousel-dots { display: none !important; }
     .mem-carousel-dots button { width: 8px; height: 8px; border-radius: 50%; border: none; background: var(--border); cursor: pointer; padding: 0; }
     .mem-carousel-dots button.on { background: var(--primary); }
     .mem-shell { max-width: 1100px; margin: 0 auto; padding: 8px 16px 8px; }
@@ -1298,8 +1316,11 @@
       box-shadow: 0 8px 24px rgba(234,88,12,.07);
     }
     .mem-home-spotlight-block[data-spot="hot"] { background: linear-gradient(135deg, rgba(254,226,226,.5), rgba(255,252,248,.96)); border-color: rgba(239,68,68,.18); }
-    .mem-home-spotlight-block[data-spot="mon-moi"] { background: linear-gradient(135deg, rgba(219,234,254,.55), rgba(255,252,248,.96)); border-color: rgba(59,130,246,.16); }
-    .mem-home-spotlight-block[data-spot="nen-thu"] { background: linear-gradient(135deg, rgba(254,249,195,.55), rgba(255,252,248,.96)); border-color: rgba(234,179,8,.18); }
+    .mem-home-hot-fire {
+      display: inline-block; margin-right: 2px;
+      animation: memFireFlicker 0.85s ease-in-out infinite;
+      filter: drop-shadow(0 0 4px rgba(251,146,60,.65));
+    }
     .mem-home-fav-block {
       background: linear-gradient(135deg, rgba(254,226,226,.45), rgba(255,252,248,.98));
       border-color: rgba(244,63,94,.16);
@@ -2908,9 +2929,9 @@
       position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 9999;
       background: linear-gradient(90deg, var(--primary-lt), var(--primary), #fbbf24);
       transform: scaleX(0); transform-origin: left center; transition: transform 0.35s ease;
-      pointer-events: none;
+      pointer-events: none; opacity: 0;
     }
-    .mem-boot-bar.on { transform: scaleX(1); }
+    .mem-boot-bar.on { transform: scaleX(1); opacity: 1; }
 
     /* Thực đơn - card vuông 1:1, ảnh đầy đủ */
     .portal-menu-pro.menu-grid { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 14px; }
@@ -3373,7 +3394,7 @@
     <div id="mem-home-packages-block" class="mem-hidden mem-home-extra"><div id="mem-home-packages-inner"></div></div>
     <div id="mem-home-schedule-block" class="mem-hidden mem-home-extra"><div id="mem-home-schedule-inner"></div></div>
 
-    <div class="mem-carousel-wrap" id="mem-carousel-wrap">
+    <div class="mem-carousel-wrap mem-hidden" id="mem-carousel-wrap" aria-hidden="true">
       <div class="mem-carousel" id="mem-carousel"></div>
       <div class="mem-carousel-dots" id="mem-carousel-dots"></div>
     </div>
@@ -4155,11 +4176,25 @@ function stopMemCarousel() {
 function buildMemCarouselSlides(banners) {
   var box = document.getElementById('mem-carousel');
   var dots = document.getElementById('mem-carousel-dots');
+  var carWrap = document.getElementById('mem-carousel-wrap');
   if (!box || !dots) return;
   stopMemCarousel();
-  var list = (Array.isArray(banners) && banners.length) ? banners : [{ image: '', badge: '', title: '', subtitle: '' }];
-  list = list.filter(function (b) { return b && String(b.image || '').trim(); });
-  if (!list.length) list = [{ image: 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80', badge: 'SUN', title: 'Sữa hạt tươi', subtitle: '' }];
+  var list = (Array.isArray(banners) ? banners : []).filter(function (b) {
+    return b && String(b.image || '').trim();
+  });
+  if (!list.length) {
+    box.innerHTML = '';
+    dots.innerHTML = '';
+    if (carWrap) {
+      carWrap.classList.add('mem-hidden');
+      carWrap.setAttribute('aria-hidden', 'true');
+    }
+    return;
+  }
+  if (carWrap) {
+    carWrap.classList.remove('mem-hidden');
+    carWrap.setAttribute('aria-hidden', 'false');
+  }
   box.innerHTML = list.map(function (b, i) {
     var img = String(b.image || '').replace(/\\/g, '/').replace(/'/g, '%27');
     var bd = esc(b.badge || '');
@@ -4234,10 +4269,8 @@ function applyMemberPortalFromSettings(raw) {
   if (hi && s.heroImageUrl) hi.src = s.heroImageUrl;
   var gateHero = document.getElementById('mem-gate-hero-img');
   if (gateHero && s.heroImageUrl) gateHero.src = s.heroImageUrl;
-  var carouselBanners = Array.isArray(s.banners) && s.banners.length ? s.banners : d.banners;
+  var carouselBanners = Array.isArray(s.banners) ? s.banners : d.banners;
   buildMemCarouselSlides(carouselBanners);
-  var carWrap = document.getElementById('mem-carousel-wrap');
-  if (carWrap) carWrap.style.display = (carouselBanners && carouselBanners.length) ? '' : 'none';
   var heroReg = document.getElementById('mem-disp-hero-register-img');
   if (heroReg && s.heroRegisterImageUrl) {
     heroReg.src = s.heroRegisterImageUrl;
@@ -6221,6 +6254,25 @@ function applyMemberPortalFromSettings(raw) {
       // ---------- UI helpers ----------
       function $(id) { return document.getElementById(id); }
       function show(id, on) { var el = $(id); if (!el) return; el.classList.toggle('mem-hidden', !on); }
+      var memNavLayers = [];
+      function memNavReset() { memNavLayers.length = 0; }
+      function memNavOpen(closer) {
+        if (typeof closer !== 'function') return;
+        memNavLayers.push(closer);
+        try { history.pushState({ memNav: memNavLayers.length }, '', location.href); } catch (eNav) { }
+      }
+      function memNavBack() {
+        if (memNavLayers.length) {
+          try { history.back(); } catch (eNav2) { }
+          return true;
+        }
+        return false;
+      }
+      window.addEventListener('popstate', function () {
+        if (!memNavLayers.length) return;
+        var closer = memNavLayers.pop();
+        if (closer) closer();
+      });
       var MAIN_NAV = ['home', 'order', 'cart', 'offers', 'more'];
       function setTab(active) {
         var a = active === 'menu' ? 'order' : active;
@@ -6574,6 +6626,7 @@ function applyMemberPortalFromSettings(raw) {
         goCart();
       }
       function switchSection(sec) {
+        memNavReset();
         var s = sec === 'menu' ? 'order' : sec;
         if (s === 'packages') {
           showToast('Gói Sun tạm ẩn');
@@ -6974,18 +7027,23 @@ function applyMemberPortalFromSettings(raw) {
           btn.onclick = function () {
             tierPageSelectedId = btn.getAttribute('data-tier-id') || '';
             renderTierPageTabs();
+            paintTierPageCardAppearance(tierPageSelectedId);
             renderTierPageBenefits(tierPageSelectedId);
           };
         });
+      }
+      function paintTierPageCardAppearance(tierId) {
+        var tier = getMemberTiers().find(function (t) { return t.id === tierId; }) || getMemberTiers()[0];
+        if (!tier) return;
+        var card = $('mem-tier-page-card');
+        if (card) card.className = 'mem-tier-page-card ' + tierHeroClass(tier.name);
+        if ($('mem-tier-page-name')) $('mem-tier-page-name').textContent = tier.name;
+        if ($('mem-tier-page-rank-label')) $('mem-tier-page-rank-label').textContent = String(tier.name).toUpperCase();
       }
       function paintTierPageCard() {
         var sun = getMemberSunBalance();
         var tp = computeTierProgressClient(sun);
         var tierName = tp.currentTier || 'Thành viên';
-        var card = $('mem-tier-page-card');
-        if (card) card.className = 'mem-tier-page-card ' + tierHeroClass(tierName);
-        if ($('mem-tier-page-name')) $('mem-tier-page-name').textContent = tierName;
-        if ($('mem-tier-page-rank-label')) $('mem-tier-page-rank-label').textContent = String(tierName).toUpperCase();
         if ($('mem-tier-page-sun')) $('mem-tier-page-sun').textContent = String(sun);
         if ($('mem-tier-page-fill')) $('mem-tier-page-fill').style.width = (tp.progressPct != null ? tp.progressPct : 0) + '%';
         var tierDef = getMemberTiers().find(function (t) { return t.name === tierName; });
@@ -6994,6 +7052,18 @@ function applyMemberPortalFromSettings(raw) {
           note = (tierDef.sunPerCup || 1) + ' ly hoàn tất = ' + (tierDef.sunPerCup || 1) + ' Sun · Đổi ' + tierDef.redeemSun + ' Sun = ' + (tierDef.redeemDesc || '1 ly Cà phê / Cà phê sữa / Bạc sỉu');
         }
         if ($('mem-tier-page-note')) $('mem-tier-page-note').textContent = note;
+        paintTierPageCardAppearance(tierPageSelectedId || tierIdFromName(tierName));
+      }
+      function closeTierPage() {
+        var ov = $('mem-tier-overlay');
+        if (ov) {
+          ov.classList.add('mem-hidden');
+          ov.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
+      }
+      function closeTierPageNav() {
+        closeTierPage();
       }
       function openTierPage(preselectId, title) {
         tierPageSelectedId = preselectId || tierIdFromName(getMemberCurrentTierName());
@@ -7007,6 +7077,7 @@ function applyMemberPortalFromSettings(raw) {
           ov.classList.remove('mem-hidden');
           ov.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
+          memNavOpen(closeTierPageNav);
         }
       }
       function openBenefitsPage() {
@@ -7028,14 +7099,6 @@ function applyMemberPortalFromSettings(raw) {
       function offersPageBgForTier(cls) {
         var map = { 'tier-member': '#fde68a', 'tier-silver': '#94a3b8', 'tier-gold': '#d97706', 'tier-diamond': '#171717' };
         return map[cls] || map['tier-member'];
-      }
-      function closeTierPage() {
-        var ov = $('mem-tier-overlay');
-        if (ov) {
-          ov.classList.add('mem-hidden');
-          ov.setAttribute('aria-hidden', 'true');
-          document.body.style.overflow = '';
-        }
       }
       function renderOffers() {
         var o = state.portal && state.portal.offers ? state.portal.offers : null;
@@ -7099,6 +7162,7 @@ function applyMemberPortalFromSettings(raw) {
         var b = fmtPromoBadge(p);
         d.innerHTML = '<div class="mem-voucher-preview"><div class="mem-voucher-stub type-' + b.type + '"><div class="mem-voucher-badge">' + esc(b.main) + '<small>' + esc(b.sub) + '</small></div></div><h3 style="margin:12px 0 6px;">' + esc(p.description || p.name) + '</h3><p style="font-size:12px;color:var(--text3);">' + esc(p.conditions || '') + '</p><p style="font-size:12px;color:var(--primary);font-weight:700;margin-top:8px;">' + esc(fmtPromoExpiry(p.endDate)) + '</p></div>';
         m.classList.remove('mem-hidden');
+        memNavOpen(closeVoucherDetail);
       }
       function closeVoucherDetail() {
         var m = $('mem-voucher-modal');
@@ -7128,6 +7192,10 @@ function applyMemberPortalFromSettings(raw) {
         goCart();
       }
 
+      function closeMoreSubNav() {
+        show('sec-more-hub', true);
+        show('sec-more-sub', false);
+      }
       function openMoreSub(key) {
         show('sec-more-hub', false);
         show('sec-more-sub', true);
@@ -7140,6 +7208,7 @@ function applyMemberPortalFromSettings(raw) {
         if (key === 'orders') renderOrderHistory();
         if (key === 'terms') renderTermsPanel();
         if (key === 'packages') renderPackagesPanel();
+        memNavOpen(closeMoreSubNav);
       }
       function buildProfileFormHtml() {
         var p = state.profile || (state.portal && state.portal.profile) || {};
@@ -7414,16 +7483,20 @@ function applyMemberPortalFromSettings(raw) {
           '<button type="button" class="btn" style="width:100%;" id="mem-order-detail-reorder"><i class="fa-solid fa-rotate-right"></i> Đặt lại đơn này</button>';
         modal.classList.remove('mem-hidden');
         document.body.style.overflow = 'hidden';
+        memNavOpen(closeOrderDetail);
         var closeBtn = $('mem-order-detail-close');
-        if (closeBtn) closeBtn.onclick = closeOrderDetail;
-        modal.onclick = function (ev) { if (ev.target === modal) closeOrderDetail(); };
+        if (closeBtn) closeBtn.onclick = function () { memNavBack(); };
+        modal.onclick = function (ev) { if (ev.target === modal) memNavBack(); };
         var reBtn = $('mem-order-detail-reorder');
-        if (reBtn) reBtn.onclick = function () { closeOrderDetail(); reorderFromHistory(o); };
+        if (reBtn) reBtn.onclick = function () { memNavBack(); reorderFromHistory(o); };
       }
       function closeOrderDetail() {
         var modal = $('mem-order-detail-modal');
         if (modal) modal.classList.add('mem-hidden');
-        document.body.style.overflow = '';
+        var tierOpen = $('mem-tier-overlay') && !$('mem-tier-overlay').classList.contains('mem-hidden');
+        var voucherOpen = $('mem-voucher-modal') && !$('mem-voucher-modal').classList.contains('mem-hidden');
+        var regOpen = $('mem-register-modal') && !$('mem-register-modal').classList.contains('mem-hidden');
+        if (!tierOpen && !voucherOpen && !regOpen) document.body.style.overflow = '';
       }
       function fmtOrderTime(t) {
         if (!t) return '';
@@ -7688,26 +7761,27 @@ function applyMemberPortalFromSettings(raw) {
         var box = $('mem-home-curated');
         if (!box) return;
         if (!state.menu.length) { box.innerHTML = ''; return; }
-        var sections = [
-          { title: 'Món hot', icon: 'fa-fire', labelId: 'hot', spot: 'hot', tag: 'HOT' },
-          { title: 'Món mới', icon: 'fa-sparkles', labelId: 'mon-moi', spot: 'mon-moi', tag: 'MỚI' },
-          { title: 'Món nên thử', icon: 'fa-star', labelId: 'nen-thu', spot: 'nen-thu', tag: 'NÊN THỬ' }
-        ];
-        var html = '';
-        sections.forEach(function (sec) {
-          var items = state.menu.filter(function (m) {
-            return m.available !== false && resolveMenuLabelId(m) === sec.labelId;
-          }).slice(0, 10);
-          if (!items.length) return;
-          html += '<div class="mem-home-spotlight-block" data-spot="' + sec.spot + '" data-scroll-label="' + escAttr(sec.title) + '">';
-          html += '<div class="mem-section-head"><h2><i class="fa-solid ' + sec.icon + '"></i> ' + esc(sec.title);
-          html += '<span class="mem-home-spotlight-tag">' + sec.tag + '</span></h2></div>';
-          html += '<div class="mem-home-curated-scroll">';
-          html += items.map(function (m) {
-            return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
-          }).join('');
-          html += '</div></div>';
+        var labelIds = ['hot', 'mon-moi', 'nen-thu'];
+        var seen = {};
+        var items = [];
+        labelIds.forEach(function (labelId) {
+          state.menu.forEach(function (m) {
+            if (m.available === false || resolveMenuLabelId(m) !== labelId) return;
+            if (seen[m.id]) return;
+            seen[m.id] = true;
+            items.push(m);
+          });
         });
+        if (!items.length) { box.innerHTML = ''; return; }
+        var html = '';
+        html += '<div class="mem-home-spotlight-block" data-spot="hot" data-scroll-label="Món Hot">';
+        html += '<div class="mem-section-head"><h2><span class="mem-home-hot-fire" aria-hidden="true">🔥</span> Món Hot';
+        html += '<span class="mem-home-spotlight-tag">HOT</span></h2></div>';
+        html += '<div class="mem-home-curated-scroll">';
+        html += items.slice(0, 24).map(function (m) {
+          return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
+        }).join('');
+        html += '</div></div>';
         box.innerHTML = html;
         wireHomeMenuCards(box);
       }
@@ -9358,7 +9432,7 @@ function applyMemberPortalFromSettings(raw) {
         el.addEventListener('click', function () { openMoreSub(el.getAttribute('data-more')); });
       });
       var back = $('btn-more-back');
-      if (back) back.onclick = function () { show('sec-more-hub', true); show('sec-more-sub', false); };
+      if (back) back.onclick = function () { memNavBack(); };
       var bml = $('btn-more-logout');
       if (bml) bml.onclick = doLogout;
       function goMenu() { goOrder(); }
@@ -9463,7 +9537,7 @@ function applyMemberPortalFromSettings(raw) {
         }
       }
       var vc = $('mem-voucher-close');
-      if (vc) vc.onclick = closeVoucherDetail;
+      if (vc) vc.onclick = function () { memNavBack(); };
       var va = $('mem-voucher-apply');
       if (va) va.onclick = goPickupWithPromo;
       var av = $('mem-avatar-btn');
@@ -9567,7 +9641,7 @@ function applyMemberPortalFromSettings(raw) {
         closeGroupFeedback(true);
       };
       var tierBack = $('mem-tier-back');
-      if (tierBack) tierBack.onclick = function () { closeTierPage(); };
+      if (tierBack) tierBack.onclick = function () { memNavBack(); };
       (function initTeaLeafWind() {
         var layer = document.createElement('div');
         layer.className = 'mem-wind-layer';
@@ -9608,11 +9682,32 @@ function applyMemberPortalFromSettings(raw) {
         if (!tb) return;
         var lastY = 0;
         window.addEventListener('scroll', function () {
-          if ((document.body.getAttribute('data-mem-tab') || '') === 'offers') return;
+          if (document.body.classList.contains('mem-gate-mode')) return;
           var y = window.scrollY || document.documentElement.scrollTop || 0;
-          if (y > 80 && y > lastY + 6) tb.classList.add('mem-topbar-hidden');
-          else if (y < lastY - 6 || y < 48) tb.classList.remove('mem-topbar-hidden');
+          if (y > 64 && y > lastY + 4) tb.classList.add('mem-topbar-hidden');
+          else if (y < lastY - 4 || y < 32) tb.classList.remove('mem-topbar-hidden');
           lastY = y;
+        }, { passive: true });
+      })();
+      (function initMemSwipeBack() {
+        var edgeX = 0;
+        var edgeY = 0;
+        var tracking = false;
+        document.addEventListener('touchstart', function (e) {
+          if (!e.touches || !e.touches.length) return;
+          var t = e.touches[0];
+          if (t.clientX > 28) return;
+          tracking = true;
+          edgeX = t.clientX;
+          edgeY = t.clientY;
+        }, { passive: true });
+        document.addEventListener('touchend', function (e) {
+          if (!tracking || !e.changedTouches || !e.changedTouches.length) return;
+          tracking = false;
+          var t = e.changedTouches[0];
+          var dx = t.clientX - edgeX;
+          var dy = Math.abs(t.clientY - edgeY);
+          if (dx > 64 && dy < 72) memNavBack();
         }, { passive: true });
       })();
       window.addEventListener('resize', function () {
