@@ -186,6 +186,8 @@ function applyMemberPortalFromSettings(raw) {
   setTxt('mem-disp-menu-hero-sub', s.menuHeroSubtitle);
   var hi = document.getElementById('mem-disp-hero-img');
   if (hi && s.heroImageUrl) hi.src = s.heroImageUrl;
+  var gateHero = document.getElementById('mem-gate-hero-img');
+  if (gateHero && s.heroImageUrl) gateHero.src = s.heroImageUrl;
   var carouselBanners = Array.isArray(s.banners) && s.banners.length ? s.banners : d.banners;
   buildMemCarouselSlides(carouselBanners);
   var carWrap = document.getElementById('mem-carousel-wrap');
