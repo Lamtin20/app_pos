@@ -1578,6 +1578,13 @@
           </p>
           <div id="mem-cms-cat-banners-list" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
+        <div style="margin:0 0 16px;padding:14px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;"><i class="fa-solid fa-crown" style="color:var(--gold);margin-right:6px;"></i>Hạng thành viên &amp; quy tắc Sun</div>
+          <p style="font-size:11px;color:var(--text3);margin:0 0 12px;line-height:1.5;">
+            Khai báo ngưỡng Sun, tích lũy mỗi ly và đặc quyền từng hạng. Mỗi quyền lợi một dòng: <code>fa-icon|Tên quyền lợi</code> (vd: <code>fa-cake-candles|Tặng 01 phần bánh sinh nhật</code>).
+          </p>
+          <div id="mem-cms-tiers-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
         <div style="margin:0 0 12px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);">
           <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">Hướng dẫn kích thước ảnh (UX/UI)</div>
           <ul style="margin:0;padding-left:18px;font-size:11px;color:var(--text3);line-height:1.55;">
@@ -3121,6 +3128,69 @@ function collectMemCatBannersFromForm() {
   return out;
 }
 
+function buildMemTierRow(tier) {
+  var t = tier || {};
+  var benefits = Array.isArray(t.benefits) ? t.benefits : [];
+  var benText = benefits.map(function (b) {
+    return String(b.icon || 'fa-gift').trim() + '|' + String(b.text || '').trim();
+  }).join('\n');
+  var row = document.createElement('div');
+  row.className = 'mem-tier-row';
+  row.style.cssText = 'padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);';
+  row.dataset.tierId = t.id || '';
+  row.innerHTML =
+    '<div style="font-size:12px;font-weight:900;color:var(--primary);margin-bottom:8px;">' + (t.id || 'tier').toUpperCase() + '</div>' +
+    '<div class="form-grid cols-2" style="gap:8px;margin-bottom:8px;">' +
+    '<div class="form-group"><label>Tên hạng</label><input type="text" class="form-control mem-tier-name" value="' + (t.name || '').replace(/"/g, '&quot;') + '"></div>' +
+    '<div class="form-group"><label>Sun tối thiểu</label><input type="number" class="form-control mem-tier-min" min="0" value="' + (t.minSun != null ? t.minSun : 0) + '"></div>' +
+    '<div class="form-group"><label>Sun / ly hoàn tất</label><input type="number" class="form-control mem-tier-cup" min="0" step="0.1" value="' + (t.sunPerCup != null ? t.sunPerCup : 1) + '"></div>' +
+    '<div class="form-group"><label>Đổi quà (Sun)</label><input type="number" class="form-control mem-tier-redeem" min="1" value="' + (t.redeemSun != null ? t.redeemSun : 10) + '"></div>' +
+    '<div class="form-group"><label>Hệ số nhân Sun</label><input type="number" class="form-control mem-tier-mult" min="1" step="0.1" value="' + (t.multiplier != null ? t.multiplier : 1) + '"></div>' +
+    '<div class="form-group"><label>Mô tả đổi quà</label><input type="text" class="form-control mem-tier-redeem-desc" value="' + String(t.redeemDesc || '1 ly Cà phê / Cà phê sữa / Bạc sỉu').replace(/"/g, '&quot;') + '"></div>' +
+    '</div>' +
+    '<div class="form-group" style="margin:0;"><label>Quyền lợi (mỗi dòng: fa-icon|Nội dung)</label><textarea class="form-control mem-tier-benefits" rows="4" style="font-size:12px;font-family:var(--mono);">' + benText.replace(/</g, '&lt;') + '</textarea></div>';
+  return row;
+}
+
+function renderMemTiersList(items) {
+  var list = document.getElementById('mem-cms-tiers-list');
+  if (!list) return;
+  list.innerHTML = '';
+  var arr = Array.isArray(items) && items.length ? items : [
+    { id: 'member', name: 'Thành viên', minSun: 0 },
+    { id: 'silver', name: 'Bạc', minSun: 20 },
+    { id: 'gold', name: 'Vàng', minSun: 50 },
+    { id: 'diamond', name: 'Kim cương', minSun: 100 }
+  ];
+  arr.forEach(function (it) { list.appendChild(buildMemTierRow(it)); });
+}
+
+function collectMemTiersFromForm() {
+  var rows = document.querySelectorAll('#mem-cms-tiers-list .mem-tier-row');
+  var out = [];
+  rows.forEach(function (row) {
+    var gv = function (sel) { var el = row.querySelector(sel); return el ? String(el.value || '').trim() : ''; };
+    var benefitsRaw = gv('.mem-tier-benefits');
+    var benefits = benefitsRaw.split('\n').map(function (line) {
+      line = String(line || '').trim();
+      if (!line) return null;
+      var p = line.split('|');
+      return { icon: (p[0] || 'fa-gift').trim(), text: (p.slice(1).join('|') || p[0] || '').trim() };
+    }).filter(Boolean);
+    out.push({
+      id: row.dataset.tierId || ('tier_' + out.length),
+      name: gv('.mem-tier-name'),
+      minSun: parseInt(gv('.mem-tier-min'), 10) || 0,
+      sunPerCup: parseFloat(gv('.mem-tier-cup')) || 1,
+      redeemSun: parseInt(gv('.mem-tier-redeem'), 10) || 10,
+      redeemDesc: gv('.mem-tier-redeem-desc') || '1 ly Cà phê / Cà phê sữa / Bạc sỉu',
+      multiplier: parseFloat(gv('.mem-tier-mult')) || 1,
+      benefits: benefits
+    });
+  });
+  return out;
+}
+
 function collectMemCmsItemsFromForm() {
   var rows = document.querySelectorAll('#mem-cms-items-list .mem-cms-row');
   var items = [];
@@ -3352,6 +3422,7 @@ async function hydrateMemberPortalCmsForm() {
   } catch (eDz) { /* */ }
   renderMemCmsItemsList(cmsItems);
   renderMemCatBannersList(s.categoryBanners || []);
+  renderMemTiersList(s.memberTiers || []);
   renderMemCmsCatalogEditors(s.menuLabelCatalog, s.menuTagCatalog);
   var specEl = document.getElementById('mem-cms-cat-banner-spec');
   if (specEl && s.mediaSpecs && s.mediaSpecs.categoryBanner) specEl.textContent = s.mediaSpecs.categoryBanner.split('(')[0].trim();
@@ -3385,6 +3456,7 @@ function collectMemberPortalCmsFromForm() {
     menuLabelCatalog: collectMemCatCatalogFromList_('mem-cms-label-catalog-list'),
     menuTagCatalog: collectMemCatCatalogFromList_('mem-cms-tag-catalog-list'),
     categoryBanners: collectMemCatBannersFromForm(),
+    memberTiers: collectMemTiersFromForm(),
     mediaSpecs: {
       carousel: '1200×480px (tỉ lệ ~5:2, JPG/WebP)',
       categoryBanner: '960×200px (tỉ lệ ~24:5, JPG/WebP)',

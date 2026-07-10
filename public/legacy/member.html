@@ -262,7 +262,9 @@
       background: linear-gradient(180deg, #fffbf7 0%, rgba(255,252,248,.92) 100%);
       border-bottom-color: rgba(120, 82, 48, 0.08);
       box-shadow: 0 4px 20px rgba(234, 88, 12, 0.06);
+      border-radius: 0 0 18px 18px;
     }
+    html { scroll-behavior: smooth; scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px)); scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); overscroll-behavior-y: none; }
     .mem-topbar.mem-topbar-hidden { transform: translateY(-100%); pointer-events: none; }
     .mem-topbar-inner { max-width: 1100px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; }
     .mem-logo-txt { font-family: var(--display); font-weight: 800; font-size: 1.25rem; color: var(--primary-dk); letter-spacing: -0.02em; }
@@ -582,7 +584,7 @@
     .mem-confirm { width: 100%; margin-top: 12px; }
 
     /* -- App V2: bottom nav + offers + more -- */
-    body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+    body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
     @media (min-width: 900px) { body { padding-bottom: 100px; } }
     .mem-topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
     .mem-topbar-actions.mem-hidden { display: none !important; }
@@ -624,13 +626,15 @@
     .mem-offers-shell { width: 100%; max-width: none; margin: 0; }
     @media (min-width: 900px) { .mem-offers-shell { max-width: none; } }
     .mem-offers-page .section-title { display: none; }
-    body[data-mem-tab="offers"] .mem-topbar-user { display: none !important; }
-    body[data-mem-tab="offers"] .mem-topbar-inner { justify-content: flex-end; }
+    body[data-mem-tab="offers"] .mem-topbar { display: none !important; }
+    body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0; }
+    body[data-mem-tab="offers"] #sec-offers { margin: 0; padding: 0; max-width: none; }
     .mem-offers-hero {
-      margin: 0; padding: 18px 16px 0; position: relative; overflow: hidden;
+      margin: 0; padding: calc(14px + env(safe-area-inset-top, 0px)) 0 0; position: relative; overflow: hidden;
       background: linear-gradient(165deg, #3f3f46 0%, #52525b 38%, #71717a 100%);
-      color: #fff; border-radius: 0 0 28px 28px;
+      color: #fff; border-radius: 0;
     }
+    .mem-offers-hero-top, .mem-offers-card, .mem-offers-expiry { padding-left: 16px; padding-right: 16px; }
     .mem-offers-hero.tier-member {
       background: linear-gradient(165deg, #292524 0%, #44403c 42%, #78716c 100%);
     }
@@ -671,10 +675,11 @@
     .mem-voucher-pill:active { transform: scale(.98); }
     .mem-offers-card {
       position: relative; z-index: 1; margin: 16px 12px 0;
-      background: #fff; border-radius: 20px; padding: 18px 16px 16px;
+      background: #fff; border-radius: 22px; padding: 18px 16px 16px;
       box-shadow: 0 16px 40px rgba(30, 15, 5, .14);
       border: 1px solid rgba(255,255,255,.65);
     }
+    #btn-top-cart, #btn-top-group { display: none !important; }
     .mem-barcode-wrap { text-align: center; padding-bottom: 4px; }
     .mem-barcode-wrap .code-text {
       font-family: var(--mono); font-size: 14px; font-weight: 800; letter-spacing: 0.14em;
@@ -797,15 +802,100 @@
     .mem-voucher-desc { font-size: 11px; color: var(--text3); margin: 0 0 6px; line-height: 1.4; }
     .mem-voucher-meta { font-size: 10px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 5px; }
     .mem-voucher-meta i { font-size: 10px; opacity: .85; }
-    .mem-more-list { display: flex; flex-direction: column; gap: 0; }
+    #sec-more { padding: 8px 12px 24px; max-width: 480px; margin: 0 auto; }
+    body[data-mem-tab="more"] .mem-topbar-meta { display: none !important; }
+    .mem-more-card {
+      background: #fff; border-radius: 22px; padding: 6px;
+      box-shadow: 0 8px 28px rgba(40, 25, 15, .07); border: 1px solid rgba(120, 82, 48, .08);
+    }
+    .mem-more-list { display: flex; flex-direction: column; gap: 2px; }
     .mem-more-group { font-size: 11px; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin: 16px 0 8px; }
     .mem-more-item {
-      display: flex; align-items: center; gap: 12px; padding: 14px 12px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-      margin-bottom: 8px; cursor: pointer; text-decoration: none; color: inherit;
+      display: flex; align-items: center; gap: 14px; padding: 15px 14px;
+      background: transparent; border: none; border-radius: 16px;
+      margin: 0; cursor: pointer; text-decoration: none; color: inherit; width: 100%;
+      font-family: var(--font); text-align: left; transition: background .15s;
     }
-    .mem-more-item i { width: 22px; text-align: center; color: var(--primary); }
-    .mem-more-item span { flex: 1; font-size: 14px; font-weight: 700; }
+    .mem-more-item:active { background: rgba(234, 88, 12, .06); }
+    .mem-more-item .mem-more-ico {
+      width: 42px; height: 42px; border-radius: 14px; flex-shrink: 0;
+      background: linear-gradient(145deg, #fff7ed, #ffedd5);
+      display: flex; align-items: center; justify-content: center; color: var(--primary-dk); font-size: 17px;
+    }
+    .mem-more-item span { flex: 1; font-size: 15px; font-weight: 800; color: var(--text); }
+    .mem-more-item .mem-more-chev { color: var(--text3); font-size: 12px; opacity: .7; }
+    .mem-more-divider { height: 1px; background: var(--border); margin: 4px 14px; }
+    .mem-more-contact-card {
+      margin: 8px 6px 0; padding: 12px; border-radius: 16px;
+      background: var(--surface2); border: 1px solid var(--border); display: none;
+    }
+    .mem-more-contact-card.open { display: block; }
+    .mem-more-contact-card a {
+      display: flex; align-items: center; gap: 10px; padding: 10px 8px;
+      text-decoration: none; color: var(--text); font-weight: 700; font-size: 13px; border-radius: 12px;
+    }
+    .mem-more-contact-card a i { width: 20px; text-align: center; color: var(--primary); }
+    .mem-more-logout-wrap { margin-top: 20px; padding: 0 4px; }
+    .mem-more-logout-wrap .btn { width: 100%; border-radius: 16px; padding: 14px; font-size: 14px; }
+    /* Tier detail page */
+    .mem-tier-overlay {
+      position: fixed; inset: 0; z-index: 200; background: #f5f5f4;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .mem-tier-page-head {
+      position: sticky; top: 0; z-index: 3;
+      display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 12px;
+      background: rgba(255,252,248,.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+    }
+    .mem-tier-back {
+      width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text); flex-shrink: 0;
+    }
+    .mem-tier-page-head h1 { flex: 1; text-align: center; font-size: 16px; font-weight: 900; margin: 0 18px 0 0; color: var(--text); }
+    .mem-tier-page-card {
+      margin: 14px 14px 0; padding: 20px 18px 16px; border-radius: 20px; color: #fff;
+      position: relative; overflow: hidden; min-height: 140px;
+    }
+    .mem-tier-page-card::after {
+      content: ''; position: absolute; right: -20px; bottom: -20px; width: 140px; height: 140px; opacity: .18;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M70 20c-8 12-18 18-30 20M15 55c14-6 28-4 40 8' fill='none' stroke='%23fbbf24' stroke-width='2'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
+    .mem-tier-page-card.tier-member { background: linear-gradient(135deg, #292524, #57534e); }
+    .mem-tier-page-card.tier-silver { background: linear-gradient(135deg, #334155, #64748b); }
+    .mem-tier-page-card.tier-gold { background: linear-gradient(135deg, #78350f, #b45309); }
+    .mem-tier-page-card.tier-diamond { background: linear-gradient(135deg, #0f172a, #1e293b); }
+    .mem-tier-page-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; position: relative; z-index: 1; }
+    .mem-tier-page-card-top h2 { margin: 0; font-family: var(--display); font-size: 1.5rem; font-weight: 900; }
+    .mem-tier-page-sun { font-size: 13px; font-weight: 800; opacity: .92; }
+    .mem-tier-page-sub { margin: 4px 0 14px; font-size: 11px; font-weight: 800; letter-spacing: .08em; opacity: .75; position: relative; z-index: 1; }
+    .mem-tier-page-track { height: 6px; border-radius: 999px; background: rgba(255,255,255,.25); position: relative; z-index: 1; }
+    .mem-tier-page-fill { height: 100%; border-radius: 999px; background: #fff; width: 0%; transition: width .4s; }
+    .mem-tier-page-note { margin: 12px 0 0; font-size: 10px; line-height: 1.45; opacity: .78; position: relative; z-index: 1; }
+    .mem-tier-tabs {
+      display: flex; gap: 0; overflow-x: auto; padding: 16px 14px 0; scrollbar-width: none;
+      border-bottom: 1px solid var(--border); background: #fff;
+    }
+    .mem-tier-tabs::-webkit-scrollbar { display: none; }
+    .mem-tier-tab {
+      flex-shrink: 0; border: none; background: transparent; padding: 10px 14px 12px;
+      font-size: 13px; font-weight: 800; color: var(--text3); cursor: pointer; font-family: var(--font);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .mem-tier-tab.on { color: var(--primary); border-bottom-color: var(--primary); }
+    .mem-tier-benefits { padding: 8px 14px 20px; background: #fff; min-height: 200px; }
+    .mem-tier-benefit {
+      display: flex; align-items: flex-start; gap: 14px; padding: 14px 4px;
+      border-bottom: 1px solid rgba(120, 82, 48, .08);
+    }
+    .mem-tier-benefit:last-child { border-bottom: none; }
+    .mem-tier-benefit-ico {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      background: #fff7ed; display: flex; align-items: center; justify-content: center;
+      color: var(--primary); font-size: 18px;
+    }
+    .mem-tier-benefit p { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.45; color: var(--text); padding-top: 10px; }
     .mem-subpanel { display: none; }
     .mem-subpanel.open { display: block; }
     .mem-sub-back {
@@ -925,6 +1015,64 @@
     .mem-home-spotlight-block[data-spot="hot"] { background: linear-gradient(135deg, rgba(254,226,226,.5), rgba(255,252,248,.96)); border-color: rgba(239,68,68,.18); }
     .mem-home-spotlight-block[data-spot="mon-moi"] { background: linear-gradient(135deg, rgba(219,234,254,.55), rgba(255,252,248,.96)); border-color: rgba(59,130,246,.16); }
     .mem-home-spotlight-block[data-spot="nen-thu"] { background: linear-gradient(135deg, rgba(254,249,195,.55), rgba(255,252,248,.96)); border-color: rgba(234,179,8,.18); }
+    .mem-home-fav-block {
+      background: linear-gradient(135deg, rgba(254,226,226,.45), rgba(255,252,248,.98));
+      border-color: rgba(244,63,94,.16);
+    }
+    .mem-home-recent-block {
+      background: linear-gradient(135deg, rgba(219,234,254,.4), rgba(255,252,248,.98));
+      border-color: rgba(59,130,246,.14);
+    }
+    .mem-tag-fav { background: linear-gradient(135deg, #e11d48, #f43f5e) !important; color: #fff !important; }
+    .menu-label-badge.lbl-fav {
+      background: linear-gradient(135deg, #e11d48, #fb7185); color: #fff;
+    }
+    .mem-home-recent-list { display: flex; flex-direction: column; gap: 10px; padding: 0 4px 4px; }
+    .mem-order-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 18px;
+      padding: 14px 16px; box-shadow: 0 4px 16px rgba(40,25,15,.05);
+    }
+    .mem-order-card-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px;
+    }
+    .mem-order-card-id { font-size: 13px; font-weight: 900; color: var(--text); margin: 0 0 3px; }
+    .mem-order-card-time { font-size: 11px; color: var(--text3); font-weight: 600; }
+    .mem-order-status {
+      flex-shrink: 0; font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 999px;
+      letter-spacing: .02em;
+    }
+    .mem-order-status.st-done { background: rgba(34,197,94,.14); color: #15803d; }
+    .mem-order-status.st-pending { background: rgba(251,191,36,.2); color: #92400e; }
+    .mem-order-status.st-cancel { background: rgba(239,68,68,.12); color: #b91c1c; }
+    .mem-order-status.st-default { background: var(--surface2); color: var(--text2); }
+    .mem-order-items { margin: 0 0 10px; padding: 0; list-style: none; }
+    .mem-order-items li {
+      display: flex; justify-content: space-between; gap: 8px; font-size: 12px;
+      padding: 6px 0; border-bottom: 1px dashed rgba(120,82,48,.1);
+    }
+    .mem-order-items li:last-child { border-bottom: none; }
+    .mem-order-items .qty { color: var(--text3); font-weight: 700; flex-shrink: 0; }
+    .mem-order-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding-top: 10px; border-top: 1px solid var(--border);
+    }
+    .mem-order-total { font-size: 14px; font-weight: 900; color: var(--primary-dk); font-family: var(--display); }
+    .mem-order-pay { font-size: 11px; color: var(--text3); font-weight: 700; margin-top: 2px; }
+    .mem-order-reorder {
+      border: none; background: var(--primary-dk); color: #fff; font-size: 11px; font-weight: 800;
+      padding: 8px 14px; border-radius: 999px; cursor: pointer; font-family: var(--font);
+    }
+    .mem-orders-page-head { margin-bottom: 16px; }
+    .mem-orders-page-head h2 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
+    .mem-orders-page-head p { margin: 0; font-size: 12px; color: var(--text3); }
+    .mem-orders-empty {
+      text-align: center; padding: 32px 16px; color: var(--text3); font-size: 13px;
+    }
+    .mem-orders-empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: .5; }
+    @media (min-width: 900px) {
+      .mem-orders-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .mem-home-recent-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    }
     .mem-home-spotlight-block .mem-section-head h2 { font-size: 1.08rem; }
     .mem-home-spotlight-tag {
       display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px;
@@ -1259,10 +1407,10 @@
       padding: 0 14px 18px; box-sizing: border-box;
     }
     @media (max-width: 899px) {
+      #mem-nav-desktop { display: none !important; }
       body.mem-logged-in .mem-bottom-nav { display: flex !important; }
-      body.mem-logged-in .mem-nav-desktop { display: none !important; }
       body.mem-logged-in {
-        padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
       }
     }
     @media (min-width: 900px) {
@@ -1296,6 +1444,34 @@
     .mem-topbar-inner { max-width: 1200px; margin: 0 auto; width: 100%; }
     @media (min-width: 900px) {
       .mem-topbar { border-bottom: 1px solid var(--border); background: rgba(255,252,248,.97); }
+      .mem-topbar-inner {
+        display: flex; align-items: center; gap: 14px;
+        padding: 10px 24px; flex-wrap: nowrap;
+      }
+      .mem-topbar-user { flex: 0 0 auto; max-width: 260px; }
+      .mem-topbar-greet strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+      #mem-nav-desktop {
+        display: flex !important;
+        flex: 1; justify-content: center; align-items: center;
+        padding: 0; margin: 0; max-width: none; gap: 6px; flex-wrap: nowrap;
+        border: none; background: transparent;
+      }
+      #mem-nav-desktop .mem-nav-b {
+        padding: 9px 16px; font-size: 13px; font-weight: 800;
+        border-radius: 999px; border: 1px solid transparent;
+        background: transparent; color: var(--text2);
+        white-space: nowrap;
+      }
+      #mem-nav-desktop .mem-nav-b i { font-size: 14px; }
+      #mem-nav-desktop .mem-nav-b.on {
+        background: var(--primary-dk); color: #fff; border-color: var(--primary-dk);
+        box-shadow: 0 4px 14px rgba(124, 45, 18, .22);
+      }
+      #mem-nav-desktop .mem-nav-b:not(.on):hover {
+        background: rgba(234, 88, 12, .08); color: var(--primary-dk);
+      }
+      .mem-topbar-actions { flex-shrink: 0; margin-left: auto; }
+      body.mem-logged-in #mem-nav-desktop { display: flex !important; }
       .mem-gate-screen { max-width: 520px; margin: 0 auto; }
     }
     .mem-topbar-user {
@@ -2769,6 +2945,15 @@
           <span id="home-member-code" class="mem-topbar-meta"></span>
         </div>
       </div>
+      <nav class="mem-nav-desktop mem-hidden" id="mem-nav-desktop" aria-label="Menu chính (màn hình lớn)">
+        <button type="button" class="mem-nav-b on" data-sec="home"><i class="fa-solid fa-house"></i> Trang chủ</button>
+        <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i> Đặt hàng</button>
+        <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled style="display:none !important;"><i class="fa-solid fa-cart-shopping"></i> Giỏ <em class="mem-nav-cart-badge" id="mem-nav-cart-badge-dt" style="display:none">0</em></button>
+        <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled style="display:none !important;"><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>
+        <button type="button" class="mem-nav-b" data-sec="packages" disabled style="display:none !important;"><i class="fa-solid fa-sun"></i> Gói Sun</button>
+        <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i> Ưu đãi</button>
+        <button type="button" class="mem-nav-b" data-sec="more" disabled><i class="fa-solid fa-bars"></i> Khác</button>
+      </nav>
       <div class="mem-topbar-actions mem-hidden" id="mem-topbar-actions">
         <button type="button" class="mem-top-cart-btn mem-hidden" id="btn-top-cart" title="Giỏ hàng" aria-label="Giỏ hàng">
           <i class="fa-solid fa-cart-shopping"></i>
@@ -2781,21 +2966,12 @@
             <p class="mem-notif-empty">Chưa có thông báo mới</p>
           </div>
         </div>
+        <button type="button" class="mem-top-icon-btn" id="btn-top-offers" title="Ưu đãi" aria-label="Ưu đãi"><i class="fa-solid fa-ticket"></i></button>
         <button type="button" class="mem-top-group-btn mem-hidden" id="btn-top-group" title="Đơn nhóm - đặt cùng bạn bè" aria-label="Đơn nhóm"><i class="fa-solid fa-user-group"></i><span>Đơn nhóm</span></button>
       </div>
       <button type="button" class="mem-top-fav-btn mem-hidden" id="btn-top-favorites" title="Món yêu thích" aria-label="Món yêu thích" style="display:none;"><i class="fa-solid fa-heart"></i></button>
     </div>
   </header>
-
-  <nav class="mem-nav-desktop mem-hidden" id="mem-nav-desktop" aria-label="Menu chính (màn hình lớn)">
-    <button type="button" class="mem-nav-b on" data-sec="home"><i class="fa-solid fa-house"></i> Trang chủ</button>
-    <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i> Đặt hàng</button>
-    <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled style="display:none !important;"><i class="fa-solid fa-cart-shopping"></i> Giỏ <em class="mem-nav-cart-badge" id="mem-nav-cart-badge-dt" style="display:none">0</em></button>
-    <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled style="display:none !important;"><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>
-    <button type="button" class="mem-nav-b" data-sec="packages" disabled style="display:none !important;"><i class="fa-solid fa-sun"></i> Gói Sun</button>
-    <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i> Ưu đãi</button>
-    <button type="button" class="mem-nav-b" data-sec="more" disabled><i class="fa-solid fa-bars"></i> Khác</button>
-  </nav>
 
   <div class="mem-portal-main" id="mem-portal-main">
 
@@ -2848,6 +3024,7 @@
     </div>
 
     <div class="mem-home-menu-block">
+      <div id="mem-home-personal" class="mem-home-spotlight"></div>
       <div id="mem-home-curated" class="mem-home-spotlight"></div>
       <div id="mem-home-menu-sections" class="mem-home-menu-sections">
         <p style="color:var(--text3);font-size:13px;padding:0 12px;">Đang tải thực đơn…</p>
@@ -3278,7 +3455,7 @@
           </div>
           <div class="mem-tier-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
             <div class="mem-tier-fill" id="mem-tier-fill"></div>
-            <div class="mem-tier-marker" id="mem-tier-marker" aria-hidden="true"><i class="fa-solid fa-mug-hot"></i></div>
+            <div class="mem-tier-marker" id="mem-tier-marker" aria-hidden="true"><i class="fa-solid fa-sun"></i></div>
           </div>
           <p class="mem-tier-hint" id="mem-tier-hint">Tích ly để nâng hạng và nhận thêm quyền lợi.</p>
         </div>
@@ -3314,13 +3491,30 @@
   <!-- MORE -->
   <section class="section mem-hidden" id="sec-more">
     <div id="sec-more-hub">
-      <div class="mem-page-head" style="margin-bottom:16px;"><h2><i class="fa-solid fa-bars"></i> Khác</h2><p>Tiện ích &amp; tài khoản</p></div>
-      <button type="button" class="mem-more-item" data-more="orders"><i class="fa-solid fa-clock-rotate-left"></i><span>Lịch sử đơn hàng</span><i class="fa-solid fa-chevron-right" style="color:var(--text3);"></i></button>
-      <button type="button" class="mem-more-item" data-more="profile"><i class="fa-solid fa-user"></i><span>Thông tin cá nhân</span><i class="fa-solid fa-chevron-right" style="color:var(--text3);"></i></button>
-      <button type="button" class="mem-more-item" id="btn-more-contact-toggle"><i class="fa-solid fa-headset"></i><span>Liên hệ &amp; góp ý</span><i class="fa-solid fa-chevron-right" style="color:var(--text3);"></i></button>
-      <div class="mem-more-contact-card" id="mem-more-contact-card">
-        <a id="mem-support-phone" href="tel:0900000000"><i class="fa-solid fa-phone"></i><span id="mem-support-label">Gọi hotline</span></a>
-        <a id="mem-support-zalo" href="https://zalo.me/" target="_blank" rel="noopener"><i class="fa-brands fa-comment-dots"></i><span>Nhắn tin Zalo</span></a>
+      <div class="mem-more-card">
+        <div class="mem-more-list">
+          <button type="button" class="mem-more-item" data-more="orders">
+            <span class="mem-more-ico"><i class="fa-solid fa-clock-rotate-left"></i></span>
+            <span>Lịch sử đơn hàng</span>
+            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
+          </button>
+          <div class="mem-more-divider"></div>
+          <button type="button" class="mem-more-item" data-more="profile">
+            <span class="mem-more-ico"><i class="fa-solid fa-user"></i></span>
+            <span>Thông tin cá nhân</span>
+            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
+          </button>
+          <div class="mem-more-divider"></div>
+          <button type="button" class="mem-more-item" id="btn-more-contact-toggle">
+            <span class="mem-more-ico"><i class="fa-solid fa-headset"></i></span>
+            <span>Liên hệ &amp; góp ý</span>
+            <i class="fa-solid fa-chevron-right mem-more-chev"></i>
+          </button>
+        </div>
+        <div class="mem-more-contact-card" id="mem-more-contact-card">
+          <a id="mem-support-phone" href="tel:0900000000"><i class="fa-solid fa-phone"></i><span id="mem-support-label">Gọi hotline</span></a>
+          <a id="mem-support-zalo" href="https://zalo.me/" target="_blank" rel="noopener"><i class="fa-brands fa-comment-dots"></i><span>Nhắn tin Zalo</span></a>
+        </div>
       </div>
       <div class="mem-more-logout-wrap">
         <button type="button" class="btn btn-sec" id="btn-more-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
@@ -3345,6 +3539,28 @@
       <button type="button" class="mem-voucher-close" id="mem-voucher-close"><i class="fa-solid fa-xmark"></i></button>
       <div id="mem-voucher-detail"></div>
       <button type="button" class="btn" style="width:100%;margin-top:14px;" id="mem-voucher-apply"><i class="fa-solid fa-bolt"></i> Áp dụng ngay</button>
+    </div>
+  </div>
+
+  <div class="mem-tier-overlay mem-hidden" id="mem-tier-overlay" aria-hidden="true">
+    <div class="mem-tier-page">
+      <div class="mem-tier-page-head">
+        <button type="button" class="mem-tier-back" id="mem-tier-back" aria-label="Quay lại"><i class="fa-solid fa-chevron-left"></i></button>
+        <h1>Hạng thành viên</h1>
+      </div>
+      <div class="mem-tier-page-card tier-member" id="mem-tier-page-card">
+        <div class="mem-tier-page-card-top">
+          <div>
+            <h2 id="mem-tier-page-name">Thành viên</h2>
+            <p class="mem-tier-page-sub" id="mem-tier-page-rank-label">THÀNH VIÊN</p>
+          </div>
+          <div class="mem-tier-page-sun"><strong id="mem-tier-page-sun">0</strong> SUN</div>
+        </div>
+        <div class="mem-tier-page-track"><div class="mem-tier-page-fill" id="mem-tier-page-fill"></div></div>
+        <p class="mem-tier-page-note" id="mem-tier-page-note">1 ly hoàn tất = 1 Sun · Đổi 10 Sun = 1 ly Cà phê / Cà phê sữa / Bạc sỉu</p>
+      </div>
+      <div class="mem-tier-tabs" id="mem-tier-tabs" role="tablist"></div>
+      <div class="mem-tier-benefits" id="mem-tier-benefits"></div>
     </div>
   </div>
 
@@ -5723,8 +5939,48 @@ function applyMemberPortalFromSettings(raw) {
         if (tu) tu.classList.toggle('mem-hidden', !on);
         if (ta) ta.classList.toggle('mem-hidden', !on);
         if (bf) bf.classList.toggle('mem-hidden', !on);
-        if (bg) bg.classList.toggle('mem-hidden', !on);
+        if (bg) bg.classList.add('mem-hidden');
         if (lg) lg.classList.toggle('mem-hidden', !!on);
+      }
+      var homeScrollSpyWired = false;
+      var homeScrollObs = null;
+      function initHomeScrollSpy() {
+        var blocks = document.querySelectorAll('#mem-home-personal .mem-home-spotlight-block, #mem-home-curated .mem-home-spotlight-block, #mem-home-menu-sections .mem-home-cat-block');
+        if (!blocks.length) return;
+        if (!homeScrollObs) {
+          homeScrollObs = new IntersectionObserver(function (entries) {
+            if ((document.body.getAttribute('data-mem-tab') || '') !== 'home') return;
+            var best = null;
+            var bestRatio = 0;
+            entries.forEach(function (e) {
+              if (e.isIntersecting && e.intersectionRatio > bestRatio) {
+                bestRatio = e.intersectionRatio;
+                best = e.target;
+              }
+            });
+            if (!best || bestRatio < 0.12) return;
+            var label = best.getAttribute('data-scroll-label') || best.getAttribute('data-cat') || '';
+            var titleEl = $('home-welcome');
+            var subEl = $('home-member-code');
+            if (label && titleEl) {
+              titleEl.textContent = label;
+              if (subEl) subEl.textContent = '';
+            }
+          }, { root: null, rootMargin: '-68px 0px -55% 0px', threshold: [0, 0.12, 0.3, 0.5] });
+          if (!homeScrollSpyWired) {
+            homeScrollSpyWired = true;
+            window.addEventListener('scroll', function () {
+              if ((document.body.getAttribute('data-mem-tab') || '') !== 'home') return;
+              var y = window.scrollY || document.documentElement.scrollTop || 0;
+              if (y > 72 || !state.homeHeaderDefault) return;
+              var titleEl = $('home-welcome');
+              var subEl = $('home-member-code');
+              if (titleEl) titleEl.textContent = state.homeHeaderDefault.title || '';
+              if (subEl) subEl.textContent = state.homeHeaderDefault.sub || '';
+            }, { passive: true });
+          }
+        }
+        blocks.forEach(function (b) { homeScrollObs.observe(b); });
       }
       function syncGatePhoneUi() {
         var inp = $('gate-phone');
@@ -6018,6 +6274,7 @@ function applyMemberPortalFromSettings(raw) {
         paintMemberBarcode();
         applySupportLinks();
         renderHomePackages(r);
+        loadMemberOrderInsights();
       }
       function parsePkgPerks(p, variant) {
         var desc = String(p.description || '').trim();
@@ -6204,13 +6461,21 @@ function applyMemberPortalFromSettings(raw) {
           return 'Hết hạn ' + dt.toLocaleDateString('vi-VN');
         } catch (e) { return ''; }
       }
-      function computeTierProgressClient(cups) {
-        var tiers = [
-          { name: 'Thành viên', min: 0 },
-          { name: 'Bạc', min: 20 },
-          { name: 'Vàng', min: 50 },
-          { name: 'Kim cương', min: 100 }
+      function getMemberTiers() {
+        var s = window.memberPortalSettings || {};
+        var tiers = (s.memberTiers && s.memberTiers.length) ? s.memberTiers.slice() : [
+          { id: 'member', name: 'Thành viên', minSun: 0, sunPerCup: 1, redeemSun: 10, benefits: [] },
+          { id: 'silver', name: 'Bạc', minSun: 20, sunPerCup: 1, redeemSun: 10, benefits: [] },
+          { id: 'gold', name: 'Vàng', minSun: 50, sunPerCup: 1, redeemSun: 10, benefits: [] },
+          { id: 'diamond', name: 'Kim cương', minSun: 100, sunPerCup: 1, redeemSun: 10, multiplier: 1.5, benefits: [] }
         ];
+        return tiers.sort(function (a, b) { return (parseInt(a.minSun, 10) || 0) - (parseInt(b.minSun, 10) || 0); });
+      }
+      function computeTierProgressClient(cups) {
+        var tiers = getMemberTiers().map(function (t) {
+          return { name: t.name, min: parseInt(t.minSun, 10) || 0 };
+        });
+        if (!tiers.length) tiers = [{ name: 'Thành viên', min: 0 }];
         var c = Math.max(0, parseInt(cups, 10) || 0);
         var current = tiers[0];
         var next = tiers[1];
@@ -6252,6 +6517,97 @@ function applyMemberPortalFromSettings(raw) {
         if (hint) hint.textContent = tp.tierHint || '';
         var prog = $('mem-tier-progress');
         if (prog) prog.classList.toggle('mem-tier-maxed', !tp.nextTier);
+      }
+      var tierPageSelectedId = '';
+      function getMemberSunBalance() {
+        var o = state.portal && state.portal.offers;
+        var prof = state.portal && state.portal.profile;
+        var tp = (o && o.tierProgress) || null;
+        if (tp && tp.cups != null) return parseInt(tp.cups, 10) || 0;
+        return parseInt((prof && prof.points) || (o && o.cups) || 0, 10) || 0;
+      }
+      function getMemberCurrentTierName() {
+        var tp = computeTierProgressClient(getMemberSunBalance());
+        return tp.currentTier || 'Thành viên';
+      }
+      function tierIdFromName(name) {
+        var n = String(name || '').toLowerCase();
+        if (n.indexOf('kim') >= 0 || n.indexOf('diamond') >= 0) return 'diamond';
+        if (n.indexOf('vàng') >= 0 || n.indexOf('vang') >= 0 || n.indexOf('gold') >= 0) return 'gold';
+        if (n.indexOf('bạc') >= 0 || n.indexOf('bac') >= 0 || n.indexOf('silver') >= 0) return 'silver';
+        return 'member';
+      }
+      function renderTierPageBenefits(tierId) {
+        var box = $('mem-tier-benefits');
+        if (!box) return;
+        var tier = getMemberTiers().find(function (t) { return t.id === tierId; }) || getMemberTiers()[0];
+        if (!tier) { box.innerHTML = ''; return; }
+        var benefits = Array.isArray(tier.benefits) ? tier.benefits : [];
+        if (!benefits.length) {
+          benefits = [
+            { icon: 'fa-sun', text: 'Tích ' + (tier.sunPerCup || 1) + ' Sun mỗi ly hoàn tất' },
+            { icon: 'fa-gift', text: 'Đổi ' + (tier.redeemSun || 10) + ' Sun = ' + (tier.redeemDesc || '1 ly Cà phê / Cà phê sữa / Bạc sỉu') }
+          ];
+        }
+        box.innerHTML = benefits.map(function (b) {
+          var icRaw = String(b.icon || 'fa-gift').trim();
+          var icCls = icRaw.indexOf('fa-') === 0 ? icRaw : ('fa-' + icRaw);
+          return '<div class="mem-tier-benefit"><span class="mem-tier-benefit-ico"><i class="fa-solid ' + esc(icCls) + '"></i></span><p>' + esc(b.text || '') + '</p></div>';
+        }).join('');
+      }
+      function renderTierPageTabs() {
+        var tabs = $('mem-tier-tabs');
+        if (!tabs) return;
+        var tiers = getMemberTiers();
+        var sel = tierPageSelectedId || tierIdFromName(getMemberCurrentTierName());
+        tabs.innerHTML = tiers.map(function (t) {
+          var on = t.id === sel ? ' on' : '';
+          return '<button type="button" class="mem-tier-tab' + on + '" data-tier-id="' + escAttr(t.id) + '" role="tab">' + esc(t.name) + '</button>';
+        }).join('');
+        tabs.querySelectorAll('.mem-tier-tab').forEach(function (btn) {
+          btn.onclick = function () {
+            tierPageSelectedId = btn.getAttribute('data-tier-id') || '';
+            renderTierPageTabs();
+            renderTierPageBenefits(tierPageSelectedId);
+          };
+        });
+      }
+      function paintTierPageCard() {
+        var sun = getMemberSunBalance();
+        var tp = computeTierProgressClient(sun);
+        var tierName = tp.currentTier || 'Thành viên';
+        var card = $('mem-tier-page-card');
+        if (card) card.className = 'mem-tier-page-card ' + tierHeroClass(tierName);
+        if ($('mem-tier-page-name')) $('mem-tier-page-name').textContent = tierName;
+        if ($('mem-tier-page-rank-label')) $('mem-tier-page-rank-label').textContent = String(tierName).toUpperCase();
+        if ($('mem-tier-page-sun')) $('mem-tier-page-sun').textContent = String(sun);
+        if ($('mem-tier-page-fill')) $('mem-tier-page-fill').style.width = (tp.progressPct != null ? tp.progressPct : 0) + '%';
+        var tierDef = getMemberTiers().find(function (t) { return t.name === tierName; });
+        var note = tp.tierHint || '';
+        if (tierDef && tierDef.redeemSun) {
+          note = (tierDef.sunPerCup || 1) + ' ly hoàn tất = ' + (tierDef.sunPerCup || 1) + ' Sun · Đổi ' + tierDef.redeemSun + ' Sun = ' + (tierDef.redeemDesc || '1 ly Cà phê / Cà phê sữa / Bạc sỉu');
+        }
+        if ($('mem-tier-page-note')) $('mem-tier-page-note').textContent = note;
+      }
+      function openTierPage(preselectId) {
+        tierPageSelectedId = preselectId || tierIdFromName(getMemberCurrentTierName());
+        paintTierPageCard();
+        renderTierPageTabs();
+        renderTierPageBenefits(tierPageSelectedId);
+        var ov = $('mem-tier-overlay');
+        if (ov) {
+          ov.classList.remove('mem-hidden');
+          ov.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+      function closeTierPage() {
+        var ov = $('mem-tier-overlay');
+        if (ov) {
+          ov.classList.add('mem-hidden');
+          ov.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
       }
       function renderOffers() {
         var o = state.portal && state.portal.offers ? state.portal.offers : null;
@@ -6524,14 +6880,160 @@ function applyMemberPortalFromSettings(raw) {
       function renderOrderHistory() {
         var box = $('more-panel-orders');
         if (!box) return;
-        box.innerHTML = '<p style="color:var(--text3);">Đang tải…</p>';
-        api('getMemberOrderHistory', state.phone, 15).then(function (r) {
-          var orders = (r && r.orders) || [];
-          if (!orders.length) { box.innerHTML = '<p>Chưa có đơn.</p>'; return; }
-          box.innerHTML = orders.map(function (o) {
-            return '<div class="card" style="margin-bottom:8px;font-size:12px;"><strong>' + esc(o.id) + '</strong> · ' + fmt(o.total) + '<br><span style="color:var(--text3);">' + esc(o.paymentMethod || '') + ' · ' + esc(o.status || '') + '</span></div>';
-          }).join('');
-        }).catch(function () { box.innerHTML = '<p class="err">Không tải được.</p>'; });
+        box.innerHTML = '<div class="mem-orders-page-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đơn hàng</h2><p>Theo dõi đơn đã đặt, trạng thái và đặt lại nhanh.</p></div><p style="color:var(--text3);font-size:13px;">Đang tải…</p>';
+        api('getMemberOrderHistory', state.phone, 20).then(function (r) {
+          state.memberOrders = (r && r.orders) || [];
+          state.memberInsights = computeMemberInsights(state.memberOrders);
+          var orders = state.memberOrders;
+          if (!orders.length) {
+            box.innerHTML = '<div class="mem-orders-page-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đơn hàng</h2><p>Theo dõi đơn đã đặt, trạng thái và đặt lại nhanh.</p></div>' +
+              '<div class="mem-orders-empty"><i class="fa-solid fa-receipt"></i>Chưa có đơn hàng nào.<br>Đặt món đầu tiên để xem lịch sử tại đây.</div>';
+            return;
+          }
+          box.innerHTML = '<div class="mem-orders-page-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đơn hàng</h2><p>' + orders.length + ' đơn gần nhất</p></div>' +
+            '<div class="mem-orders-list">' + orders.map(function (o, idx) { return buildOrderHistoryCardHtml(o, idx); }).join('') + '</div>';
+          box.querySelectorAll('[data-reorder-idx]').forEach(function (btn) {
+            btn.onclick = function () {
+              var i = parseInt(btn.getAttribute('data-reorder-idx'), 10);
+              reorderFromHistory(orders[i]);
+            };
+          });
+        }).catch(function () {
+          box.innerHTML = '<div class="mem-orders-page-head"><h2>Lịch sử đơn hàng</h2></div><p class="err">Không tải được lịch sử. Thử lại sau.</p>';
+        });
+      }
+      function fmtOrderTime(t) {
+        if (!t) return '';
+        try {
+          var d = new Date(t);
+          if (isNaN(d.getTime())) return String(t);
+          return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch (e) { return String(t); }
+      }
+      function orderStatusKind(st) {
+        var s = String(st || '').toLowerCase();
+        if (s.indexOf('hủy') >= 0 || s.indexOf('huỷ') >= 0 || s.indexOf('cancel') >= 0) return 'cancel';
+        if (s.indexOf('hoàn') >= 0 || s.indexOf('xong') >= 0 || s.indexOf('giao') >= 0 || s.indexOf('complete') >= 0) return 'done';
+        if (s.indexOf('chờ') >= 0 || s.indexOf('pending') >= 0 || s.indexOf('mới') >= 0) return 'pending';
+        return 'default';
+      }
+      function buildOrderHistoryCardHtml(o, idx) {
+        var oid = esc(o.orderId || o.id || '—');
+        var amt = o.finalAmount != null ? o.finalAmount : (o.total != null ? o.total : o.totalAmount);
+        var items = Array.isArray(o.items) ? o.items : [];
+        var stKind = orderStatusKind(o.status);
+        var itemsHtml = items.length ? items.map(function (it) {
+          var q = parseInt(it.quantity, 10) || 1;
+          var nm = esc(it.name || 'Món');
+          var p = it.totalPrice != null ? fmt(it.totalPrice) : (it.price != null ? fmt((parseFloat(it.price) || 0) * q) : '');
+          return '<li><span>' + nm + '</span><span class="qty">×' + q + (p ? ' · ' + p : '') + '</span></li>';
+        }).join('') : '<li><span style="color:var(--text3);">Không có chi tiết món</span></li>';
+        var disc = parseFloat(o.discount) || 0;
+        var discLine = disc > 0 ? '<div class="mem-order-pay">Giảm: −' + fmt(disc) + '</div>' : '';
+        return '<article class="mem-order-card">' +
+          '<div class="mem-order-card-head">' +
+          '<div><p class="mem-order-card-id">#' + oid + '</p><p class="mem-order-card-time">' + esc(fmtOrderTime(o.time)) + '</p></div>' +
+          '<span class="mem-order-status st-' + stKind + '">' + esc(o.status || 'Đơn hàng') + '</span></div>' +
+          '<ul class="mem-order-items">' + itemsHtml + '</ul>' +
+          (o.note ? '<p style="font-size:11px;color:var(--text3);margin:0 0 8px;"><i class="fa-solid fa-note-sticky"></i> ' + esc(o.note) + '</p>' : '') +
+          '<div class="mem-order-foot">' +
+          '<div><div class="mem-order-total">' + fmt(amt) + '</div>' +
+          '<div class="mem-order-pay">' + esc(o.paymentMethod || '—') + (o.promoCode ? ' · ' + esc(o.promoCode) : '') + '</div>' + discLine + '</div>' +
+          '<button type="button" class="mem-order-reorder" data-reorder-idx="' + idx + '"><i class="fa-solid fa-rotate-right"></i> Đặt lại</button></div></article>';
+      }
+      function findMenuByNameOrId(name, id) {
+        if (!state.menu || !state.menu.length) return null;
+        return state.menu.find(function (m) {
+          if (id && String(m.id) === String(id)) return true;
+          return String(m.name || '').trim().toLowerCase() === String(name || '').trim().toLowerCase();
+        }) || null;
+      }
+      function computeMemberInsights(orders) {
+        var counts = {};
+        (orders || []).forEach(function (o) {
+          (o.items || []).forEach(function (it) {
+            var name = String(it.name || '').trim();
+            if (!name) return;
+            var key = (String(it.id || name)).toLowerCase();
+            if (!counts[key]) counts[key] = { name: name, id: it.id, count: 0, lastTime: 0 };
+            counts[key].count += parseInt(it.quantity, 10) || 1;
+            var t = new Date(o.time).getTime() || 0;
+            if (t > counts[key].lastTime) counts[key].lastTime = t;
+          });
+        });
+        var keys = Object.keys(counts);
+        var favKeys = keys.filter(function (k) { return counts[k].count >= 2; });
+        favKeys.sort(function (a, b) { return counts[b].count - counts[a].count; });
+        if (!favKeys.length) {
+          favKeys = keys.sort(function (a, b) { return counts[b].count - counts[a].count; }).slice(0, 4);
+        } else {
+          favKeys = favKeys.slice(0, 8);
+        }
+        return {
+          favorites: favKeys.map(function (k) { return counts[k]; }),
+          recentOrders: (orders || []).slice(0, 5)
+        };
+      }
+      function loadMemberOrderInsights() {
+        if (!state.phone || state.phone.length < 9) return Promise.resolve();
+        return api('getMemberOrderHistory', state.phone, 40).then(function (r) {
+          state.memberOrders = (r && r.orders) || [];
+          state.memberInsights = computeMemberInsights(state.memberOrders);
+          renderHomePersonalSections();
+        }).catch(function () { /* ignore */ });
+      }
+      function reorderFromHistory(order) {
+        var items = (order && order.items) || [];
+        if (!items.length) { goOrder(); return; }
+        var first = items[0];
+        var m = findMenuByNameOrId(first.name, first.id);
+        goOrder();
+        setTimeout(function () {
+          if (m && window.MemOrder && MemOrder.openProduct) MemOrder.openProduct(m);
+          else showToast('Vào thực đơn để chọn món đặt lại');
+        }, 160);
+      }
+      function renderHomePersonalSections() {
+        var box = $('mem-home-personal');
+        if (!box) return;
+        var ins = state.memberInsights;
+        if (!ins || (!ins.favorites.length && !ins.recentOrders.length)) {
+          box.innerHTML = '';
+          return;
+        }
+        var html = '';
+        if (ins.favorites.length) {
+          html += '<div class="mem-home-spotlight-block mem-home-fav-block" data-scroll-label="Món bạn thích">';
+          html += '<div class="mem-section-head"><h2><i class="fa-solid fa-heart"></i> Gợi ý cho bạn<span class="mem-home-spotlight-tag mem-tag-fav">Món bạn thích</span></h2></div>';
+          html += '<div class="mem-home-curated-scroll">';
+          ins.favorites.forEach(function (f) {
+            var m = findMenuByNameOrId(f.name, f.id);
+            if (!m || m.available === false) return;
+            html += '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false, 'Món bạn thích') + '</div>';
+          });
+          html += '</div></div>';
+        }
+        if (ins.recentOrders.length) {
+          html += '<div class="mem-home-spotlight-block mem-home-recent-block" data-scroll-label="Đặt gần đây">';
+          html += '<div class="mem-section-head"><h2><i class="fa-solid fa-clock-rotate-left"></i> Đặt gần đây</h2>';
+          html += '<button type="button" class="mem-link-btn" id="mem-home-see-orders">Xem tất cả</button></div>';
+          html += '<div class="mem-home-recent-list">';
+          ins.recentOrders.forEach(function (o, idx) {
+            html += buildOrderHistoryCardHtml(o, idx);
+          });
+          html += '</div></div>';
+        }
+        box.innerHTML = html;
+        wireHomeMenuCards(box);
+        box.querySelectorAll('[data-reorder-idx]').forEach(function (btn) {
+          btn.onclick = function () {
+            var i = parseInt(btn.getAttribute('data-reorder-idx'), 10);
+            reorderFromHistory(ins.recentOrders[i]);
+          };
+        });
+        var seeAll = $('mem-home-see-orders');
+        if (seeAll) seeAll.onclick = function () { openMoreSub('orders'); switchSection('more'); setTab('more'); };
+        initHomeScrollSpy();
       }
       function renderTermsPanel() {
         var box = $('more-panel-terms');
@@ -6680,7 +7182,7 @@ function applyMemberPortalFromSettings(raw) {
             return m.available !== false && resolveMenuLabelId(m) === sec.labelId;
           }).slice(0, 10);
           if (!items.length) return;
-          html += '<div class="mem-home-spotlight-block" data-spot="' + sec.spot + '">';
+          html += '<div class="mem-home-spotlight-block" data-spot="' + sec.spot + '" data-scroll-label="' + escAttr(sec.title) + '">';
           html += '<div class="mem-section-head"><h2><i class="fa-solid ' + sec.icon + '"></i> ' + esc(sec.title);
           html += '<span class="mem-home-spotlight-tag">' + sec.tag + '</span></h2></div>';
           html += '<div class="mem-home-curated-scroll">';
@@ -6709,7 +7211,7 @@ function applyMemberPortalFromSettings(raw) {
           var catItems = items.filter(function (m) { return norm(m.category) === cat; });
           if (!catItems.length) return;
           var banner = getCategoryBanner(cat);
-          html += '<div class="mem-home-cat-block" data-cat="' + escAttr(cat) + '">';
+          html += '<div class="mem-home-cat-block" data-cat="' + escAttr(cat) + '" data-scroll-label="' + escAttr(cat) + '">';
           html += '<div class="mem-section-head"><h2><i class="fa-solid fa-mug-hot"></i> ' + esc(cat) + '</h2>';
           html += '<button type="button" class="mem-link-btn mem-home-cat-more" data-cat="' + escAttr(cat) + '">Xem thêm</button></div>';
           if (banner && banner.imageUrl) {
@@ -6727,6 +7229,7 @@ function applyMemberPortalFromSettings(raw) {
         container.innerHTML = html || '<p style="color:var(--text3);font-size:13px;padding:0 12px;">Chưa có món trong thực đơn.</p>';
         renderHomeCuratedSections();
         wireHomeMenuCards(container);
+        initHomeScrollSpy();
         container.querySelectorAll('.mem-home-cat-more').forEach(function (btn) {
           btn.onclick = function () {
             var c = btn.getAttribute('data-cat') || '';
@@ -6864,8 +7367,9 @@ function applyMemberPortalFromSettings(raw) {
         var title = '';
         var sub = '';
         if (s === 'home') {
-          title = shortName ? (shortName + ' ơi, Cà Phê nhé!') : 'Xin chào, Cà Phê nhé!';
+          title = shortName ? (shortName + ' ơi!') : 'Xin chào!';
           sub = timeGreeting();
+          state.homeHeaderDefault = { title: title, sub: sub };
         } else if (s === 'order') {
           title = 'Đặt hàng';
           sub = '';
@@ -6880,7 +7384,7 @@ function applyMemberPortalFromSettings(raw) {
           sub = '';
         } else if (s === 'more') {
           title = 'Khác';
-          sub = '';
+          sub = 'Tiện ích & tài khoản';
         } else if (s === 'favorites') {
           title = 'Yêu thích';
           sub = '';
@@ -7136,11 +7640,16 @@ function applyMemberPortalFromSettings(raw) {
       function menuCardPlaceholderImg() {
         return 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect fill="#f5e6d3" width="100%" height="100%"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-size="72">🥛</text></svg>');
       }
-      function buildMenuCardBlocksHtml(m, withNutri) {
+      function buildMenuCardBlocksHtml(m, withNutri, extraBadge) {
         var src = (m.imageUrl && String(m.imageUrl).trim()) ? esc(m.imageUrl) : menuCardPlaceholderImg();
         var img = '<img src="' + src + '" alt="" loading="lazy" decoding="async">';
         var label = buildMenuLabelHtml(m);
-        var badgeWrap = label ? '<div class="menu-card-badges">' + label + '</div>' : '';
+        var badgeWrap = '';
+        if (label || extraBadge) {
+          badgeWrap = '<div class="menu-card-badges">' + label;
+          if (extraBadge) badgeWrap += '<span class="menu-label-badge lbl-fav">' + esc(extraBadge) + '</span>';
+          badgeWrap += '</div>';
+        }
         var tags = buildMenuTagsHtml(m);
         var meta = '';
         if (withNutri) {
@@ -8349,6 +8858,7 @@ function applyMemberPortalFromSettings(raw) {
         switchSection('home');
         setTab('home');
         renderHomeMenuPreview();
+        loadMemberOrderInsights();
         showToast('👋 Xin chào! Đang tải thông tin hội viên…');
         state.gateLookupInFlight = false;
         tryPendingGroupJoin();
@@ -8426,6 +8936,8 @@ function applyMemberPortalFromSettings(raw) {
       };
       var btg = $('btn-top-group');
       if (btg) btg.onclick = function () { goGroup(); };
+      var bto = $('btn-top-offers');
+      if (bto) bto.onclick = function () { goOffers(); };
       var btc = $('btn-top-cart');
       if (btc) btc.onclick = function () { goCart(); };
       var btnMoreContact = $('btn-more-contact-toggle');
@@ -8459,18 +8971,13 @@ function applyMemberPortalFromSettings(raw) {
         btn.onclick = function () {
           var key = btn.getAttribute('data-offers-go');
           if (key === 'tier') {
-            var hero = $('mem-offers-hero');
-            if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            openTierPage();
           } else if (key === 'redeem') {
             var cups = parseInt(($('mem-offers-cups') && $('mem-offers-cups').textContent) || '0', 10) || 0;
             if (cups >= 10) showToast('Bạn đủ 10 Sun — liên hệ quầy để đổi 1 ly Cà phê / Cà phê sữa / Bạc sỉu');
             else showToast('Cần 10 Sun để đổi 1 ly Cà phê / Cà phê sữa / Bạc sỉu (hiện có ' + cups + ' Sun)');
           } else if (key === 'history') { openMoreSub('orders'); switchSection('more'); setTab('more'); }
-          else if (key === 'benefits') {
-            var hero = $('mem-offers-hero');
-            if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            showToast('Quyền lợi theo hạng: Thành viên · Bạc · Vàng · Kim cương');
-          }
+          else if (key === 'benefits') { openTierPage(); }
         };
       });
       var gfSkip = $('mem-group-feedback-skip');
@@ -8490,11 +8997,14 @@ function applyMemberPortalFromSettings(raw) {
         showToast('Cảm ơn bạn đã góp ý!');
         closeGroupFeedback(true);
       };
+      var tierBack = $('mem-tier-back');
+      if (tierBack) tierBack.onclick = function () { closeTierPage(); };
       (function initTopbarScrollHide() {
         var tb = $('mem-topbar');
         if (!tb) return;
         var lastY = 0;
         window.addEventListener('scroll', function () {
+          if ((document.body.getAttribute('data-mem-tab') || '') === 'offers') return;
           var y = window.scrollY || document.documentElement.scrollTop || 0;
           if (y > 80 && y > lastY + 6) tb.classList.add('mem-topbar-hidden');
           else if (y < lastY - 6 || y < 48) tb.classList.remove('mem-topbar-hidden');
