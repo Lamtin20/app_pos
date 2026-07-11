@@ -140,6 +140,7 @@
   /** Đơn đang chờ CK — khi thành công chỉ phát ting, không đọc số tiền. */
   var lastPaymentWasTransfer = false;
   var bankPollSession = 0;
+  var bankPollCount = 0;
   var invoiceSettings = {};
   var printInvoiceWhenPaid = false;
   // Pickup đã được gỡ bỏ theo yêu cầu
@@ -2022,11 +2023,17 @@
     document.getElementById('qr-memo').textContent = orderId;
     updateQrBankInfo();
   }
+  function setQrScanStatus(txt) {
+    var el = document.querySelector('.qr-waiting');
+    if (el) el.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' + (txt || 'Đang quét giao dịch ngân hàng tự động…');
+  }
   function bankPollTick() {
     if (!currentOrderId || bankPollInFlight) return;
     var session = bankPollSession;
     bankPollInFlight = true;
+    bankPollCount++;
     var expAmt = Math.round(Number(currentFinalAmount) || 0);
+    setQrScanStatus('Đang quét sheet Bank transfer (lần ' + bankPollCount + ') — tìm «' + currentOrderId + '»…');
     api.callLong('checkBankTransferPayment', 55000, currentOrderId, expAmt).then(function (result) {
       bankPollInFlight = false;
       if (session !== bankPollSession) return;
@@ -2037,8 +2044,15 @@
         closeQrOverlay();
         return;
       }
-      if (result.status === 'paid') onPaySuccess();
-      else if (result.status === 'partial') {
+      if (result.status === 'paid') {
+        onPaySuccess();
+        return;
+      }
+      if (result.status === 'error') {
+        showToast('⚠️ ' + (result.message === 'confirm_failed' ? 'Thấy giao dịch CK nhưng chưa chốt được đơn — bấm Xác nhận tay' : (result.message || 'Lỗi khớp CK')));
+        return;
+      }
+      if (result.status === 'partial') {
         var exp = Math.round(Number(result.expectedAmount) || expAmt);
         var paid = Math.round(Number(result.amountPaid) || 0);
         var rem = Math.max(0, exp - paid);
@@ -2060,9 +2074,11 @@
     stopPolling();
     bankPollInFlight = false;
     bankPollFailCount = 0;
+    bankPollCount = 0;
     bankPollSession++;
+    setQrScanStatus('Đang quét sheet Bank transfer — tìm nội dung «' + (currentOrderId || '') + '»…');
     bankPollTick();
-    pollingInterval = setInterval(bankPollTick, 1000);
+    pollingInterval = setInterval(bankPollTick, 800);
   }
   function stopPolling() { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } bankPollInFlight = false; }
   async function cancelQrTransfer() {
