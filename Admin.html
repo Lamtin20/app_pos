@@ -1128,9 +1128,24 @@
         <div id="promo-impact-body" style="font-size:12px;color:var(--text3);">Bấm «Tải báo cáo» để xem tổng giảm giá theo mã.</div>
       </div>
 
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">Danh sách mã khuyến mãi</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="promo-filter-count">Đang tải…</div>
+          </div>
+          <div class="period-tabs" id="promo-filter-tabs">
+            <button type="button" class="period-tab active" data-promo-filter="all" onclick="setPromoFilter('all',this)">Tất cả</button>
+            <button type="button" class="period-tab" data-promo-filter="on" onclick="setPromoFilter('on',this)">Đang bật</button>
+            <button type="button" class="period-tab" data-promo-filter="off" onclick="setPromoFilter('off',this)">Đã tắt</button>
+            <button type="button" class="period-tab" data-promo-filter="expired" onclick="setPromoFilter('expired',this)">Hết hạn</button>
+          </div>
+        </div>
+      </div>
+
       <div class="table-scroll">
         <table class="data-table">
-          <thead><tr><th>Mã KM</th><th>Tên</th><th>Loại</th><th>Giá trị</th><th>Min đơn</th><th>Quy tắc</th><th>Hạn</th><th>Bật</th><th>Sửa</th></tr></thead>
+          <thead><tr><th>Mã KM</th><th>Tên</th><th>Loại</th><th>Giá trị</th><th>Min đơn</th><th>Quy tắc</th><th>Hạn</th><th>Bật</th><th>Sửa / Xóa</th></tr></thead>
           <tbody id="promo-tbody"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3);">Đang tải...</td></tr></tbody>
         </table>
       </div>
@@ -5013,45 +5028,100 @@ function closePromoTemplateHelp() {
   if (ov) ov.style.display = 'none';
 }
 
+window.__promoFilterStatus = 'all';
+
+function promoIsExpired(p) {
+  if (!p || !p.endDate) return false;
+  var d = new Date(p.endDate);
+  return !isNaN(d.getTime()) && d < new Date();
+}
+
+function promoStatusKind(p) {
+  var onPos = p && p.active !== false;
+  var expired = promoIsExpired(p);
+  if (expired) return 'expired';
+  if (!onPos) return 'off';
+  return 'on';
+}
+
+function setPromoFilter(status, btn) {
+  window.__promoFilterStatus = status || 'all';
+  document.querySelectorAll('#promo-filter-tabs .period-tab').forEach(function (b) {
+    b.classList.toggle('active', b === btn);
+  });
+  renderPromotionsTable();
+}
+
+function renderPromotionsTable() {
+  var promos = window.__adminPromosList || [];
+  var filter = window.__promoFilterStatus || 'all';
+  var filtered = promos.filter(function (p) {
+    if (filter === 'all') return true;
+    return promoStatusKind(p) === filter;
+  });
+  var tbody = document.getElementById('promo-tbody');
+  var countEl = document.getElementById('promo-filter-count');
+  if (countEl) {
+    var label = filter === 'on' ? 'Đang bật' : (filter === 'off' ? 'Đã tắt' : (filter === 'expired' ? 'Hết hạn' : 'Tất cả'));
+    countEl.textContent = 'Hiển thị ' + filtered.length + ' / ' + promos.length + ' mã · Lọc: ' + label;
+  }
+  if (!tbody) return;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3);">' +
+      (promos.length ? 'Không có mã phù hợp bộ lọc' : 'Chưa có khuyến mãi') + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(function (p) {
+    var expired = promoIsExpired(p);
+    var rt = p.ruleType ? '<span class="badge blue">' + escapeHtml(p.ruleType) + '</span>' : '-';
+    var typeLabel = p.type === 'info' ? 'Ghi chú' : (p.type === 'percent' ? '%' : '₫');
+    var typeBadge = p.type === 'info' ? 'amber' : (p.type === 'percent' ? 'blue' : 'green');
+    var onPos = p.active !== false;
+    var statusBadge = !onPos ? 'red' : (expired ? 'amber' : 'green');
+    var statusText = !onPos ? 'Tắt' : (expired ? 'Hết hạn' : 'Bật');
+    var codeAttr = escapeHtml(String(p.code || '').trim().toUpperCase());
+    return '<tr>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace;color:var(--purple2);font-weight:700;">' + codeAttr + '</td>' +
+      '<td style="font-weight:500;">' + escapeHtml(p.name) + '</td>' +
+      '<td><span class="badge ' + typeBadge + '">' + typeLabel + '</span></td>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace;">' + (p.type === 'percent' ? p.value + '%' : (p.type === 'info' ? '' : fmt(p.value))) + '</td>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace;">' + (p.minOrder > 0 ? fmt(p.minOrder) : '-') + '</td>' +
+      '<td style="font-size:11px;color:var(--text3);">' + rt + '</td>' +
+      '<td style="color:var(--text3);">' + (p.endDate ? new Date(p.endDate).toLocaleDateString('vi-VN') : 'Vô hạn') + '</td>' +
+      '<td><span class="badge ' + statusBadge + '">' + statusText + '</span></td>' +
+      '<td style="white-space:nowrap;">' +
+      '<button type="button" class="btn btn-ghost btn-sm" onclick="fillPromoEditByCode(\'' + codeAttr + '\')"><i class="fa-solid fa-pen"></i></button> ' +
+      '<button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deletePromotionByCode(\'' + codeAttr + '\')"><i class="fa-solid fa-trash"></i></button>' +
+      '</td></tr>';
+  }).join('');
+}
+
 async function loadPromotions() {
   try {
     const promos = await api.call('getPromotionsAdmin');
     window.__adminPromosList = promos || [];
-    const tbody = document.getElementById('promo-tbody');
-    if (!promos || promos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3);">Chưa có khuyến mãi</td></tr>';
-      return;
-    }
-    tbody.innerHTML = promos.map(function (p, idx) {
-      const now = new Date();
-      const expired = p.endDate && new Date(p.endDate) < now;
-      const rt = p.ruleType ? '<span class="badge blue">' + escapeHtml(p.ruleType) + '</span>' : '-';
-      const typeLabel = p.type === 'info' ? 'Ghi chú' : (p.type === 'percent' ? '%' : '₫');
-      const typeBadge = p.type === 'info' ? 'amber' : (p.type === 'percent' ? 'blue' : 'green');
-      const onPos = p.active !== false;
-      const statusBadge = !onPos ? 'red' : (expired ? 'amber' : 'green');
-      const statusText = !onPos ? 'Tắt' : (expired ? 'Hết hạn' : 'Bật');
-      return '<tr>' +
-        '<td style="font-family:\'JetBrains Mono\',monospace;color:var(--purple2);font-weight:700;">' + escapeHtml(p.code) + '</td>' +
-        '<td style="font-weight:500;">' + escapeHtml(p.name) + '</td>' +
-        '<td><span class="badge ' + typeBadge + '">' + typeLabel + '</span></td>' +
-        '<td style="font-family:\'JetBrains Mono\',monospace;">' + (p.type === 'percent' ? p.value + '%' : (p.type === 'info' ? '' : fmt(p.value))) + '</td>' +
-        '<td style="font-family:\'JetBrains Mono\',monospace;">' + (p.minOrder > 0 ? fmt(p.minOrder) : '-') + '</td>' +
-        '<td style="font-size:11px;color:var(--text3);">' + rt + '</td>' +
-        '<td style="color:var(--text3);">' + (p.endDate ? new Date(p.endDate).toLocaleDateString('vi-VN') : 'Vô hạn') + '</td>' +
-        '<td><span class="badge ' + statusBadge + '">' + statusText + '</span></td>' +
-        '<td><button type="button" class="btn btn-ghost btn-sm" onclick="fillPromoEdit(' + idx + ')"><i class="fa-solid fa-pen"></i></button></td>' +
-      '</tr>';
-    }).join('');
+    renderPromotionsTable();
   } catch (e) {
     console.error(e);
   }
 }
 
+function fillPromoEditByCode(code) {
+  var list = window.__adminPromosList;
+  if (!list || !list.length) return;
+  var want = String(code || '').trim().toUpperCase();
+  var p = list.find(function (x) { return String(x.code || '').trim().toUpperCase() === want; });
+  if (!p) { showToast('Không tìm thấy mã', 'error'); return; }
+  fillPromoEditFromRow(p);
+}
+
 function fillPromoEdit(idx) {
   var list = window.__adminPromosList;
   if (!list || !list[idx]) return;
-  var p = list[idx];
+  fillPromoEditFromRow(list[idx]);
+}
+
+function fillPromoEditFromRow(p) {
   document.getElementById('promo-orig-code').value = String(p.code || '').trim().toUpperCase();
   document.getElementById('promo-code').value = String(p.code || '').trim().toUpperCase();
   document.getElementById('promo-code').readOnly = true;
@@ -5082,6 +5152,21 @@ function fillPromoEdit(idx) {
   if (act) act.checked = p.active !== false;
   showToast('📋 Đã nạp mã, bạn chỉnh sửa rồi bấm «Tạo / cập nhật»', 'success');
   try { document.getElementById('promo-code').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e3) {}
+}
+
+async function deletePromotionByCode(code) {
+  var c = String(code || '').trim().toUpperCase();
+  if (!c) return;
+  if (!confirm('Xóa mã KM «' + c + '» khỏi hệ thống? Hành động không hoàn tác.')) return;
+  try {
+    var r = await api.call('deletePromotion', c);
+    showToast('✅ ' + ((r && r.message) || 'Đã xóa'), 'success');
+    var orig = (document.getElementById('promo-orig-code') || {}).value || '';
+    if (String(orig).trim().toUpperCase() === c) clearPromoForm(true);
+    loadPromotions();
+  } catch (e) {
+    showToast('❌ ' + (e.message || e), 'error');
+  }
 }
 
 function clearPromoForm(skipToast) {
