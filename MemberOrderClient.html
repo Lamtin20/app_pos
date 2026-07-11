@@ -563,9 +563,11 @@
       }
       qrOrderLock = null;
       if (awaitInfo) clearAwait();
-      syncNavBadge();
+      syncNavBadge(p.imageUrl);
       scheduleGroupSync();
-      toast('✅ ' + p.name + ' +1');
+      var added = ex || cart[cart.length - 1];
+      if (inGroup()) showGroupAddedPopup(added);
+      else toast('✅ ' + p.name + ' +1');
     }
     function addToCart() {
       if (!currentProduct) return;
@@ -605,17 +607,15 @@
           quantity: currentQty
         });
       }
+      var addedItem = ex || cart[cart.length - 1];
       closeModal();
       qrOrderLock = null;
       if (awaitInfo) clearAwait(); // bắt đầu đơn mới thì rời màn hình chờ nhận nước
-      syncNavBadge();
+      syncNavBadge(currentProduct.imageUrl);
       scheduleGroupSync();
       if (appliedPromo) applyPromo(appliedPromo, true);
-      toast('✅ Đã thêm ' + currentProduct.name);
-      // Khách mời trong nhóm: thêm món xong đưa thẳng sang màn Đơn nhóm để hoàn tất
-      if (isGuest() && inGroup() && global.SUN_MEM && global.SUN_MEM.goCart) {
-        setTimeout(function () { global.SUN_MEM.goCart(); }, 450);
-      }
+      if (inGroup()) showGroupAddedPopup(addedItem);
+      else toast('✅ Đã thêm ' + currentProduct.name);
     }
   
     // ============================================================
@@ -1116,30 +1116,111 @@
     function ensureGroupBlock() {
       return $('mem-group-page-root');
     }
+    function showGroupAddedPopup(item) {
+      if (!inGroup() || !item) return;
+      var modal = $('mem-group-added-modal');
+      var lead = $('mem-group-added-lead');
+      var box = $('mem-group-added-item');
+      if (!modal || !lead || !box) return;
+      var gName = (group && group.groupName) ? group.groupName : ((group && group.groupId) || 'nhóm');
+      lead.innerHTML = 'Món nước của bạn đã được thêm thành công vào đơn nhóm <strong>' + esc(gName) + '</strong>.';
+      var parts = buildOptsParts(item);
+      var img = item.imageUrl || '';
+      var qty = parseInt(item.quantity, 10) || 1;
+      var price = fmt(lineUnit(item) * qty);
+      var note = item.note ? ('<span>' + esc(item.note) + '</span>') : '';
+      box.innerHTML =
+        (img ? '<img src="' + esc(img) + '" alt="">' : '<div style="width:56px;height:56px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">🥤</div>') +
+        '<div class="mem-group-added-item-info"><strong>' + esc(item.name) + (qty > 1 ? ' × ' + qty : '') + '</strong>' +
+        (parts.length ? '<span>' + esc(parts.join(' · ')) + '</span>' : '') + note +
+        '</div><div class="mem-group-added-item-price">' + price + '</div>';
+      modal.classList.remove('mem-hidden');
+    }
+    function wireGroupMyItemActions() {
+      var addBtn = $('mem-group-add-more');
+      if (addBtn) addBtn.onclick = function () {
+        if (global.SUN_MEM && global.SUN_MEM.goOrder) global.SUN_MEM.goOrder();
+      };
+      var editBtn = $('mem-group-edit-toggle');
+      if (editBtn) editBtn.onclick = function () {
+        renderGroupOrdersPanel._editing = !renderGroupOrdersPanel._editing;
+        renderGroupOrdersPanel();
+      };
+      var panel = $('mem-group-orders-panel');
+      if (!panel) return;
+      panel.querySelectorAll('[data-act]').forEach(function (btn) {
+        btn.onclick = function () {
+          var idx = parseInt(btn.getAttribute('data-idx'), 10);
+          var act = btn.getAttribute('data-act');
+          if (act === 'del') cart.splice(idx, 1);
+          else if (act === 'plus') cart[idx].quantity++;
+          else if (act === 'minus') {
+            cart[idx].quantity--;
+            if (cart[idx].quantity < 1) cart.splice(idx, 1);
+          }
+          if (!cart.length) renderGroupOrdersPanel._editing = false;
+          if (appliedPromo) applyPromo(appliedPromo, true);
+          renderCartList();
+          syncNavBadge();
+          scheduleGroupSync();
+        };
+      });
+    }
     function renderGroupOrdersPanel() {
       var panel = $('mem-group-orders-panel');
       if (!panel) return;
       if (!inGroup()) {
         panel.classList.add('mem-hidden');
         panel.innerHTML = '';
+        renderGroupOrdersPanel._editing = false;
         return;
       }
       panel.classList.remove('mem-hidden');
+      var editing = !!renderGroupOrdersPanel._editing;
       var myHtml = '';
       if (cart.length) {
-        myHtml = '<div class="mem-group-my-items"><div class="mem-group-section-label"><i class="fa-solid fa-mug-hot"></i> Món của bạn</div>' +
-          cart.map(function (it) {
-            return '<div class="mem-group-mi"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
-              '<span>' + fmt(lineUnit(it) * it.quantity) + '</span></div>';
-          }).join('') + '</div>';
+        myHtml = '<div class="mem-group-my-items' + (editing ? ' mem-group-editing' : '') + '">' +
+          '<div class="mem-group-section-label"><i class="fa-solid fa-mug-hot"></i> Món của bạn</div>' +
+          cart.map(function (it, idx) {
+            var parts = buildOptsParts(it);
+            var opts = parts.length ? ('<div class="mem-ci-opts">' + esc(parts.join(' · ')) + '</div>') : '';
+            var note = it.note ? ('<div class="mem-ci-note">' + esc(it.note) + '</div>') : '';
+            var thumb = it.imageUrl ? ('<img class="mem-group-mi-thumb" src="' + esc(it.imageUrl) + '" alt="">') : '';
+            if (editing) {
+              return '<div class="mem-group-mi mem-group-mi-own">' +
+                '<div class="mem-group-mi-row">' + thumb +
+                '<div class="mem-group-mi-body"><strong>' + esc(it.name) + '</strong>' + opts + note +
+                '</div><span class="mem-group-mi-price">' + fmt(lineUnit(it) * it.quantity) + '</span></div>' +
+                '<div class="mem-ci-qty">' +
+                '<button type="button" class="mem-ci-btn" data-act="minus" data-idx="' + idx + '">−</button>' +
+                '<span>' + it.quantity + '</span>' +
+                '<button type="button" class="mem-ci-btn" data-act="plus" data-idx="' + idx + '">+</button>' +
+                '<button type="button" class="mem-ci-del" data-act="del" data-idx="' + idx + '"><i class="fa-solid fa-trash"></i></button>' +
+                '</div></div>';
+            }
+            return '<div class="mem-group-mi mem-group-mi-own">' + thumb +
+              '<div class="mem-group-mi-body"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
+              opts + note + '</div>' +
+              '<span class="mem-group-mi-price">' + fmt(lineUnit(it) * it.quantity) + '</span></div>';
+          }).join('') +
+          '<div class="mem-group-my-actions">' +
+          '<button type="button" class="btn btn-sm" id="mem-group-add-more"><i class="fa-solid fa-plus"></i> Thêm món</button>' +
+          '<button type="button" class="btn btn-sm btn-ghost" id="mem-group-edit-toggle"><i class="fa-solid fa-pen"></i> ' +
+          (editing ? 'Xong' : 'Chỉnh sửa') + '</button>' +
+          '</div></div>';
       } else {
-        myHtml = '<p class="mem-group-members-empty"><i class="fa-solid fa-basket-shopping"></i> Bạn chưa chọn món — vào tab Đặt hàng để thêm</p>';
+        renderGroupOrdersPanel._editing = false;
+        myHtml = '<p class="mem-group-members-empty"><i class="fa-solid fa-basket-shopping"></i> Bạn chưa chọn món — vào tab Đặt hàng để thêm</p>' +
+          '<div class="mem-group-my-actions">' +
+          '<button type="button" class="btn btn-sm" id="mem-group-add-more"><i class="fa-solid fa-plus"></i> Thêm món</button>' +
+          '</div>';
       }
       var othersHtml = renderGroupMembersList();
       panel.innerHTML =
         '<div class="mem-group-orders-head"><i class="fa-solid fa-list-check"></i> Tổng hợp đơn nhóm</div>' +
         myHtml +
         (othersHtml ? ('<div class="mem-group-section-label" style="margin-top:14px;"><i class="fa-solid fa-users"></i> Món của bạn bè</div>' + othersHtml) : '');
+      wireGroupMyItemActions();
     }
     function renderGroupPage() {
       renderGroupCard();
@@ -1216,7 +1297,7 @@
         var gSub = group.total || 0;
         var gPay = Math.max(0, gSub - Math.min(gSub, Math.max(groupAutoDiscount(gSub), discount)));
         html += '<button type="button" class="btn mem-group-finalize-btn" id="mem-group-finalize">' +
-          '<i class="fa-solid fa-utensils"></i> Chốt đơn & gửi bếp - ' + fmt(gPay) +
+          '<i class="fa-solid fa-utensils"></i> Chốt đơn - ' + fmt(gPay) +
           ' <span class="mem-group-finalize-n">(' + groupTotalQty() + ' món' + (groupDiscPct() > 0 ? ' · đã giảm ' + groupDiscPct() + '%' : '') + ')</span></button>' +
           '<div class="mem-group-finalize-hint"><i class="fa-solid fa-circle-info"></i> Muốn <strong>chuyển khoản</strong>? Vào tab <strong>Giỏ hàng</strong> để chọn hình thức thanh toán trước khi chốt.</div>';
       }
@@ -1232,7 +1313,7 @@
         if (!groupTotalQty()) { toast('Nhóm chưa có món nào - mọi người thêm món trước nhé'); return; }
         var cSub = group.total || 0;
         var cPay = Math.max(0, cSub - Math.min(cSub, Math.max(groupAutoDiscount(cSub), discount)));
-        if (!confirm('Chốt đơn nhóm «' + (group.groupName || '') + '» - ' + groupTotalQty() + ' món, thanh toán ' + fmt(cPay) + (groupDiscPct() > 0 && groupAutoDiscount(cSub) >= discount ? ' (đã giảm ' + groupDiscPct() + '%)' : '') + ' và gửi cho bếp?')) return;
+        if (!confirm('Chốt đơn nhóm «' + (group.groupName || '') + '» - ' + groupTotalQty() + ' món, thanh toán ' + fmt(cPay) + (groupDiscPct() > 0 && groupAutoDiscount(cSub) >= discount ? ' (đã giảm ' + groupDiscPct() + '%)' : '') + '?')) return;
         fz.disabled = true;
         fz.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi đơn cho bếp…';
         var p = submitOrder();
@@ -1269,7 +1350,7 @@
         if (!cart.length) { toast('Bạn chưa chọn món nào - chọn tại tab Đặt hàng nhé'); return; }
         dn.disabled = true;
         groupSyncNow().then(function () {
-          toast('✅ Đã lưu ' + cartQty() + ' món của bạn vào nhóm - chờ trưởng nhóm chốt đơn');
+          showGroupAddedPopup(cart[cart.length - 1]);
         }).finally(function () { dn.disabled = false; });
       };
       applyGroupModeUi();
@@ -1312,6 +1393,7 @@
         }
       });
       if (global.memSyncHeaderCart) global.memSyncHeaderCart(n, n > prev ? img : '');
+      else if (global.memSyncBottomNavCart) global.memSyncBottomNavCart(n, n > prev ? img : '');
       syncNavBadge._last = n;
       syncOrderCta();
     }
@@ -1868,6 +1950,7 @@
       },
       renderCartPage: renderCartPage,
       renderGroupPage: renderGroupPage,
+      showGroupAddedPopup: showGroupAddedPopup,
       syncNavBadge: syncNavBadge,
       cartQty: cartQty,
       setPendingPromo: function (code) { pendingPromo = String(code || '').trim().toUpperCase(); },

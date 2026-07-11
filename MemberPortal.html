@@ -908,7 +908,10 @@
       backface-visibility: hidden;
       transform: translateZ(0);
     }
-    #btn-top-cart, #btn-top-group { display: none !important; }
+    #btn-top-cart { display: none !important; }
+    @media (min-width: 900px) {
+      #btn-top-group { display: inline-flex !important; }
+    }
     .mem-barcode-wrap { text-align: center; padding-bottom: 4px; overflow: hidden; border-radius: 10px; }
     .mem-barcode-wrap .code-text {
       font-family: var(--mono); font-size: 14px; font-weight: 800; letter-spacing: 0.14em;
@@ -1436,7 +1439,6 @@
     .mem-bottom-nav .mem-nav-cart,
     .mem-bottom-nav [data-sec="packages"],
     .mem-nav-desktop .mem-nav-cart,
-    .mem-nav-desktop .mem-nav-group,
     .mem-nav-desktop [data-sec="packages"] { display: none !important; }
     .mem-bottom-nav [data-sec="more"],
     .mem-nav-desktop [data-sec="more"] { display: flex !important; }
@@ -1805,7 +1807,9 @@
       width: 100%; height: 100%; border: none; border-radius: 16px;
       background: var(--surface); box-shadow: 0 8px 28px rgba(60,40,25,.08);
     }
-    body.mem-view-order { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+    body.mem-view-order { padding-bottom: 0; }
+    body[data-mem-tab="order"] .mem-pk-head { padding-top: 10px; margin-bottom: 4px; }
+    body[data-mem-tab="order"] .pk-wrap { padding-top: 10px; }
     .mem-home-menu-grid .menu-card .bd { padding: 9px 10px 10px; }
     .menu-card .bd .pr,
     .mem-home-menu-grid .menu-card .bd .pr,
@@ -1877,12 +1881,18 @@
       }
       body[data-mem-tab="home"] #sec-home,
       body[data-mem-tab="more"] #sec-more,
-      body[data-mem-tab="offers"] #sec-offers {
+      body[data-mem-tab="offers"] #sec-offers,
+      body[data-mem-tab="order"] #sec-order,
+      body[data-mem-tab="cart"] #sec-cart,
+      body[data-mem-tab="group"] #sec-group {
         padding-bottom: var(--mem-bottom-nav-clearance) !important;
       }
       body.mem-logged-in[data-mem-tab="home"],
       body.mem-logged-in[data-mem-tab="more"],
-      body.mem-logged-in[data-mem-tab="offers"] {
+      body.mem-logged-in[data-mem-tab="offers"],
+      body.mem-logged-in[data-mem-tab="order"],
+      body.mem-logged-in[data-mem-tab="cart"],
+      body.mem-logged-in[data-mem-tab="group"] {
         padding-bottom: 0 !important;
       }
       body[data-mem-tab="offers"] .mem-offers-body {
@@ -2255,7 +2265,7 @@
       margin: 0 0 4px; display: flex; align-items: center; gap: 8px;
     }
     .mem-pk-head p { margin: 0; font-size: 12px; color: var(--text3); line-height: 1.45; }
-    #sec-order .pk-wrap { max-width: 560px; margin: 0 auto; padding: 4px 12px 100px; }
+    #sec-order .pk-wrap { max-width: 560px; margin: 0 auto; padding: 10px 12px 12px; }
     .pk-search-bar {
       display: none; align-items: center; gap: 8px; margin-bottom: 10px;
       background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
@@ -2624,7 +2634,7 @@
     #mem-product-modal .mem-pd-meta-extra-wrap .mem-pd-meta-card:last-child { margin-bottom: 0; }
 
     /* Giỏ hàng */
-    body.mem-view-cart { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+    body.mem-view-cart { padding-bottom: 0; }
     body.mem-logged-in.mem-view-cart #sec-cart { display: block !important; }
     body.mem-logged-in.mem-view-group #sec-group { display: block !important; }
     .mem-cart-section { max-width: 560px; margin: 0 auto; }
@@ -2656,7 +2666,8 @@
       display: flex; align-items: center; gap: 8px;
     }
     .mem-profile-sheet { max-width: 440px; }
-    .mem-cart-section { max-width: 560px; margin: 0 auto; padding: 0 12px 24px; }
+    .mem-cart-section { max-width: 560px; margin: 0 auto; padding: 10px 12px 24px; }
+    body[data-mem-tab="cart"] .mem-cart-section .mem-page-head { padding-top: 10px; margin-bottom: 14px; }
     .mem-cart-empty { text-align: center; color: var(--text3); padding: 28px 12px; font-size: 13px; }
     .mem-cart-item {
       background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
@@ -2847,6 +2858,18 @@
       display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
       font-size: 12px; color: var(--text2); padding: 3px 0;
     }
+    .mem-group-mi-own {
+      align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(8, 145, 178, .12);
+    }
+    .mem-group-mi-own:last-of-type { border-bottom: none; }
+    .mem-group-mi-thumb {
+      width: 44px; height: 44px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+      background: #fff; border: 1px solid var(--border);
+    }
+    .mem-group-mi-row { display: flex; gap: 10px; align-items: flex-start; width: 100%; }
+    .mem-group-mi-body { flex: 1; min-width: 0; }
+    .mem-group-mi-body strong { display: block; font-size: 13px; color: var(--text); margin-bottom: 2px; }
+    .mem-group-mi-price { font-weight: 900; color: var(--primary); white-space: nowrap; font-size: 13px; }
     .mem-group-mi .mem-ci-opts { flex-basis: 100%; font-size: 11px; color: var(--text3); }
     .mem-group-mi-empty { color: var(--text3); font-style: italic; }
     #mem-group-block.mem-group-flash .mem-group-card {
@@ -2978,6 +3001,64 @@
       border: 1px solid var(--border); box-shadow: 0 12px 32px rgba(60, 40, 25, .18);
     }
     .mem-group-more-btn { display: flex; width: 100%; margin-top: 8px; justify-content: center; }
+    .mem-group-my-actions {
+      display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+    }
+    .mem-group-my-actions .btn { flex: 1; min-width: 120px; justify-content: center; }
+    .mem-group-my-items.mem-group-editing .mem-group-mi {
+      flex-direction: column; align-items: stretch; gap: 6px;
+    }
+    .mem-group-my-items.mem-group-editing .mem-group-mi-row {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+    }
+    .mem-group-my-items.mem-group-editing .mem-ci-qty { margin-top: 4px; }
+
+    /* Popup món đã thêm vào đơn nhóm */
+    .mem-group-added-sheet { text-align: center; max-width: 380px; }
+    .mem-group-added-check {
+      width: 52px; height: 52px; margin: 0 auto 10px; border-radius: 50%;
+      background: rgba(21, 128, 61, .12); color: var(--green);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .mem-group-added-sheet h3 { margin: 0 0 8px; font-size: 1.05rem; }
+    .mem-group-added-lead { font-size: 13px; color: var(--text3); margin: 0 0 14px; line-height: 1.45; }
+    .mem-group-added-item {
+      display: flex; gap: 12px; align-items: center; text-align: left;
+      padding: 12px; border-radius: 14px; border: 1px solid var(--border);
+      background: var(--surface2); margin-bottom: 16px;
+    }
+    .mem-group-added-item img {
+      width: 56px; height: 56px; border-radius: 12px; object-fit: cover; flex-shrink: 0;
+      background: #fff;
+    }
+    .mem-group-added-item-info { flex: 1; min-width: 0; }
+    .mem-group-added-item-info strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .mem-group-added-item-info span { font-size: 12px; color: var(--text3); line-height: 1.4; }
+    .mem-group-added-item-price { font-weight: 900; color: var(--primary); font-size: 14px; white-space: nowrap; }
+
+    /* Mời vào đơn nhóm: chỉ hiện popup nhập tên */
+    body.mem-group-invite { background: #f3ece4 !important; }
+    body.mem-group-invite .mem-topbar,
+    body.mem-group-invite .mem-bottom-nav,
+    body.mem-group-invite .mem-nav-desktop,
+    body.mem-group-invite #mem-home-dashboard,
+    body.mem-group-invite #mem-home-login-block,
+    body.mem-group-invite .mem-carousel-wrap,
+    body.mem-group-invite .mem-boot-bar { display: none !important; }
+    body.mem-group-invite #sec-home { min-height: 100vh; background: #f3ece4; }
+    body.mem-group-invite #mem-guest-cancel,
+    body.mem-group-invite #mem-guest-close,
+    body.mem-group-invite .mem-guest-note { display: none !important; }
+    body.mem-group-invite #mem-guest-modal { background: rgba(60, 40, 25, .35); }
+
+    /* Bottom nav: slot Ưu đãi → Giỏ khi đang đặt hàng có món */
+    .mem-bottom-nav [data-nav-cart-swap="1"] { position: relative; }
+    .mem-bottom-nav [data-nav-cart-swap="1"].mem-cart-bump { animation: memCartBump .45s ease; }
+    .mem-nav-offers-cart-badge {
+      position: absolute; top: 2px; right: 8px; min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px; background: var(--primary-lt); color: #fff; font-size: 10px; font-weight: 800;
+      font-style: normal; display: none; align-items: center; justify-content: center;
+    }
 
     /* ===== Trang chủ: bố cục gọn gàng, menu 2 cột trên mobile ===== */
     body.mem-logged-in #sec-home { padding: 0; }
@@ -3620,7 +3701,7 @@
         <button type="button" class="mem-nav-b on" data-sec="home"><i class="fa-solid fa-house"></i> Trang chủ</button>
         <button type="button" class="mem-nav-b" data-sec="order" disabled><i class="fa-solid fa-mug-hot"></i> Đặt hàng</button>
         <button type="button" class="mem-nav-b mem-nav-cart" data-sec="cart" disabled style="display:none !important;"><i class="fa-solid fa-cart-shopping"></i> Giỏ <em class="mem-nav-cart-badge" id="mem-nav-cart-badge-dt" style="display:none">0</em></button>
-        <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled style="display:none !important;"><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>
+        <button type="button" class="mem-nav-b mem-nav-group" data-sec="group" disabled><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>
         <button type="button" class="mem-nav-b" data-sec="packages" disabled style="display:none !important;"><i class="fa-solid fa-sun"></i> Gói Sun</button>
         <button type="button" class="mem-nav-b" data-sec="offers" disabled><i class="fa-solid fa-ticket"></i> Ưu đãi</button>
         <button type="button" class="mem-nav-b" data-sec="more" disabled><i class="fa-solid fa-bars"></i> Khác</button>
@@ -4402,6 +4483,20 @@
     </div>
   </div>
 
+  <!-- Popup: món đã thêm vào đơn nhóm -->
+  <div class="mem-register-modal mem-hidden" id="mem-group-added-modal" role="dialog" aria-modal="true" aria-labelledby="mem-group-added-title">
+    <div class="mem-register-sheet mem-group-added-sheet">
+      <div class="mem-group-added-check"><i class="fa-solid fa-circle-check"></i></div>
+      <h3 id="mem-group-added-title">Thêm món thành công!</h3>
+      <p class="mem-group-added-lead" id="mem-group-added-lead"></p>
+      <div class="mem-group-added-item" id="mem-group-added-item"></div>
+      <div class="mem-register-actions">
+        <button type="button" class="btn btn-ghost" id="mem-group-added-close">Đóng</button>
+        <button type="button" class="btn" id="mem-group-added-more"><i class="fa-solid fa-plus"></i> Thêm món</button>
+      </div>
+    </div>
+  </div>
+
   <!--MEMBER_SCRIPTS_CORE-->
 <!--MEMBER_ORDER_CLIENT-->
 <script>
@@ -4577,7 +4672,7 @@
         if (tu) tu.classList.toggle('mem-hidden', !on);
         if (ta) ta.classList.toggle('mem-hidden', !on);
         if (bf) bf.classList.toggle('mem-hidden', !on);
-        if (bg) bg.classList.add('mem-hidden');
+        if (bg) bg.classList.toggle('mem-hidden', !on);
         if (lg) lg.classList.toggle('mem-hidden', !!on);
       }
       var homeScrollSpyWired = false;
@@ -6475,8 +6570,14 @@
       }
       function renderSkyScene() { updateMemSky(); }
       window.memCartFlyAnim = function (imageUrl) {
-        var cartBtn = $('btn-top-cart');
-        if (!cartBtn || cartBtn.classList.contains('mem-hidden')) return;
+        var tab = document.body.getAttribute('data-mem-tab') || '';
+        var isMobile = window.innerWidth < 900;
+        var cartBtn = null;
+        if (isMobile && tab === 'order') {
+          cartBtn = document.querySelector('.mem-bottom-nav [data-nav-cart-swap="1"]');
+        }
+        if (!cartBtn) cartBtn = $('btn-top-cart');
+        if (!cartBtn || (cartBtn.id === 'btn-top-cart' && cartBtn.classList.contains('mem-hidden'))) return;
         var fromEl = $('mem-product-modal') && !$('mem-product-modal').classList.contains('mem-hidden')
           ? $('mem-sheet-hero') : null;
         var rect = fromEl ? fromEl.getBoundingClientRect() : { left: window.innerWidth / 2 - 18, top: window.innerHeight / 2 - 18 };
@@ -6498,6 +6599,37 @@
         void cartBtn.offsetWidth;
         cartBtn.classList.add('mem-cart-bump');
       };
+      window.memSyncBottomNavCart = function (qty, imageUrl) {
+        var n = parseInt(qty, 10) || 0;
+        var tab = document.body.getAttribute('data-mem-tab') || '';
+        var isMobile = window.innerWidth < 900;
+        document.querySelectorAll('.mem-bottom-nav [data-sec="offers"]').forEach(function (btn) {
+          var icon = btn.querySelector('i');
+          var label = btn.querySelector('span');
+          var badge = btn.querySelector('.mem-nav-offers-cart-badge');
+          if (!badge) {
+            badge = document.createElement('em');
+            badge.className = 'mem-nav-offers-cart-badge';
+            btn.appendChild(badge);
+          }
+          var swap = isMobile && n > 0 && tab === 'order';
+          if (swap) {
+            btn.setAttribute('data-nav-cart-swap', '1');
+            btn.setAttribute('data-sec-swap', 'cart');
+            if (icon) icon.className = 'fa-solid fa-cart-shopping';
+            if (label) label.textContent = 'Giỏ';
+            badge.textContent = String(n);
+            badge.style.display = 'inline-flex';
+          } else {
+            btn.removeAttribute('data-nav-cart-swap');
+            btn.removeAttribute('data-sec-swap');
+            if (icon) icon.className = 'fa-solid fa-ticket';
+            if (label) label.textContent = 'Ưu đãi';
+            badge.style.display = 'none';
+          }
+        });
+        if (imageUrl && n > 0 && isMobile && tab === 'order') window.memCartFlyAnim(imageUrl);
+      };
       window.memSyncHeaderCart = function (qty, imageUrl) {
         var btn = $('btn-top-cart');
         var badge = $('mem-top-cart-badge');
@@ -6507,7 +6639,8 @@
           badge.textContent = String(n);
           badge.style.display = n > 0 ? 'inline-flex' : 'none';
         }
-        if (imageUrl && n > 0) window.memCartFlyAnim(imageUrl);
+        if (window.memSyncBottomNavCart) window.memSyncBottomNavCart(n, imageUrl);
+        else if (imageUrl && n > 0) window.memCartFlyAnim(imageUrl);
       };
       function timeGreeting() {
         var h = new Date().getHours();
@@ -6585,6 +6718,9 @@
         if (s !== 'home') titleEl.textContent = title;
         subEl.textContent = sub;
         syncTopbarActionButtons(s);
+        if (window.memSyncBottomNavCart && window.MemOrder && MemOrder.cartQty) {
+          window.memSyncBottomNavCart(MemOrder.cartQty(), '');
+        }
         var avBtn = $('mem-avatar-btn');
         var userWrap = $('mem-topbar-user');
         if (avBtn) avBtn.classList.add('mem-hidden');
@@ -7951,7 +8087,7 @@
 
       function handleNavClick(btn) {
         if (!btn) return;
-        var sec = btn.getAttribute('data-sec');
+        var sec = btn.getAttribute('data-sec-swap') || btn.getAttribute('data-sec');
         if (!sec) return;
         // Đã đăng nhập / khách mời trong nhóm: đảm bảo mọi tab đều mở
         if (state.phone || state.guest) {
@@ -8114,10 +8250,37 @@
       if (gmc) gmc.onclick = closeGuestGate;
       if (gmx) gmx.onclick = closeGuestGate;
       if (gmj) gmj.onclick = function () { confirmGuestJoin(); };
-      if (gmm) gmm.addEventListener('click', function (e) { if (e.target === gmm) closeGuestGate(); });
+      if (gmm) gmm.addEventListener('click', function (e) {
+        if (document.body.classList.contains('mem-group-invite')) return;
+        if (e.target === gmm) closeGuestGate();
+      });
       var gmn = $('mem-guest-name');
-      if (gmn) gmn.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Enter') { ev.preventDefault(); confirmGuestJoin(); }
+      var gmjBtn = $('mem-guest-join');
+      function syncGuestJoinBtn() {
+        if (!gmjBtn || !gmn) return;
+        var ok = !!String(gmn.value || '').trim();
+        gmjBtn.disabled = !ok;
+        gmjBtn.classList.toggle('ready', ok);
+      }
+      if (gmn) {
+        gmn.addEventListener('input', syncGuestJoinBtn);
+        gmn.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter') { ev.preventDefault(); confirmGuestJoin(); }
+        });
+      }
+      syncGuestJoinBtn();
+      var gamClose = $('mem-group-added-close');
+      var gamMore = $('mem-group-added-more');
+      var gamModal = $('mem-group-added-modal');
+      if (gamClose) gamClose.onclick = function () {
+        if (gamModal) gamModal.classList.add('mem-hidden');
+      };
+      if (gamMore) gamMore.onclick = function () {
+        if (gamModal) gamModal.classList.add('mem-hidden');
+        goOrder();
+      };
+      if (gamModal) gamModal.addEventListener('click', function (e) {
+        if (e.target === gamModal && gamModal) gamModal.classList.add('mem-hidden');
       });
       if (gml) gml.onclick = function (ev) {
         ev.preventDefault();
@@ -8383,16 +8546,19 @@
       }
       function openGuestGate(code) {
         pendingGuestGroupCode = String(code || '').trim().toUpperCase();
+        document.body.classList.add('mem-group-invite');
+        switchSection('home');
         var m = $('mem-guest-modal');
         var nm = $('mem-guest-name');
         if (nm) nm.value = (window.MemOrder && MemOrder.guestName && MemOrder.guestName()) || '';
         var lead = $('mem-guest-lead');
-        if (lead) lead.innerHTML = 'Bạn được mời vào <strong>đơn nhóm ' + esc(pendingGuestGroupCode) +
-          '</strong>. Chỉ cần nhập tên để chọn món - <strong>không cần đăng nhập</strong>.';
+        if (lead) lead.innerHTML = 'Bạn được mời vào đơn nhóm <strong>' + esc(pendingGuestGroupCode) +
+          '</strong>. Chỉ cần nhập tên để chọn món — <strong>không cần đăng nhập</strong>.';
         if (m) m.classList.remove('mem-hidden');
         setTimeout(function () { if (nm) nm.focus(); }, 120);
       }
       function closeGuestGate() {
+        if (document.body.classList.contains('mem-group-invite')) return;
         var m = $('mem-guest-modal');
         if (m) m.classList.add('mem-hidden');
       }
@@ -8407,6 +8573,7 @@
         try {
           var r = await MemOrder.joinGroup(code, name);
           if (r === true) {
+            document.body.classList.remove('mem-group-invite');
             closeGuestGate();
             enterGuestMode(name);
             goOrder();
