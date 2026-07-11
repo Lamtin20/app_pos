@@ -349,7 +349,18 @@
     }
     body[data-sky-dark="1"] .mem-write-name { color: #fef9c3; }
     body.mem-logged-in:not([data-sky-dark="1"]) .mem-write-name { color: #c2410c; }
-    .mem-greet-oi {
+    .mem-greet-hi {
+      font-family: 'Caveat', 'Be Vietnam Pro', cursive;
+      font-weight: 700;
+      font-size: 1.45em;
+      letter-spacing: 0.01em;
+      line-height: 1.45;
+      display: inline-block;
+      padding-bottom: 3px;
+    }
+    body[data-sky-dark="1"] .mem-greet-hi { color: #fef9c3; }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-greet-hi { color: #c2410c; }
+    .mem-greet-tail {
       font-family: 'Caveat', 'Be Vietnam Pro', cursive;
       font-weight: 700;
       font-size: 1.45em;
@@ -360,8 +371,8 @@
       opacity: 0;
       animation: memGreetOi 0.45s ease 0.92s forwards;
     }
-    body[data-sky-dark="1"] .mem-greet-oi { color: #fef9c3; }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-greet-oi { color: #c2410c; }
+    body[data-sky-dark="1"] .mem-greet-tail { color: #fef9c3; }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-greet-tail { color: #c2410c; }
     @keyframes memWriteName {
       to { clip-path: inset(0 0 0 0); }
     }
@@ -798,7 +809,7 @@
     @media (min-width: 900px) { .mem-offers-shell { max-width: none; } }
     .mem-offers-page .section-title { display: none; }
     body[data-mem-tab="offers"] .mem-topbar { display: none !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important; border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
-    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--offers-page-bg, var(--bg)) !important; }
+    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--bg) !important; }
     body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0 !important; margin-top: 0 !important; background: transparent; }
     body[data-mem-tab="offers"] #sec-offers { margin: 0; padding: 0; max-width: none; }
     body[data-mem-tab="offers"] #sec-offers.section { padding: 0; max-width: none; }
@@ -824,18 +835,18 @@
       body[data-mem-tab="offers"] .mem-offers-hero {
         max-width: none; margin: 0; border-radius: 0; padding-top: 12px;
       }
-      body[data-mem-tab="offers"] .mem-offers-hero .mem-offers-eyebrow { display: block; }
+      body[data-mem-tab="offers"] .mem-offers-hero .mem-offers-eyebrow { display: none; }
       body[data-mem-tab="offers"] .mem-offers-body {
         max-width: none; margin: 0; border-radius: 0; padding: 18px 16px 28px;
       }
       body[data-mem-tab="offers"] .mem-offers-card { margin-left: 14px; margin-right: 14px; }
     }
     .mem-offers-hero {
-      margin: 0; padding: calc(env(safe-area-inset-top, 0px) + 8px) 0 14px; position: relative; overflow: hidden;
+      margin: 0; padding: env(safe-area-inset-top, 0px) 0 14px; position: relative; overflow: hidden;
       background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 38%, #fde68a 72%, #fcd34d 100%);
-      color: #92400e; border-radius: 0;
+      color: #92400e; border-radius: 0 0 20px 20px;
     }
-    .mem-offers-hero-top, .mem-offers-card, .mem-offers-expiry { padding-left: 20px; padding-right: 20px; }
+    .mem-offers-hero-top, .mem-offers-card, .mem-offers-expiry { padding-left: 16px; padding-right: 16px; }
     .mem-offers-hero.tier-member {
       background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 38%, #fde68a 72%, #fcd34d 100%);
       color: #92400e;
@@ -892,21 +903,18 @@
         background: linear-gradient(180deg, #0a0a0a 0%, #262626 55%, #404040 100%);
         color: #fef3c7;
       }
-      .mem-offers-hero { border-radius: 0; padding-bottom: 18px; }
+      .mem-offers-hero { border-radius: 0 0 22px 22px; padding-bottom: 18px; }
       .mem-offers-hero-top {
         flex-direction: column; align-items: stretch; gap: 14px;
-        padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0;
+        padding: 16px 16px 0;
       }
       .mem-offers-hero-head {
-        display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
       }
       .mem-offers-eyebrow {
-        font-family: var(--display);
-        font-size: clamp(1.35rem, 5.5vw, 1.65rem); font-weight: 900;
-        letter-spacing: .06em; text-transform: uppercase;
-        opacity: 1; margin: 0; line-height: 1.2;
+        font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+        opacity: .88; margin: 0;
       }
-      .mem-voucher-pill { display: none !important; }
       .mem-offers-tier-name,
       .mem-offers-cups-line { display: none !important; }
       .mem-offers-stat-row {
@@ -958,11 +966,7 @@
       display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
       padding: 10px 0 0;
     }
-    .mem-offers-eyebrow {
-      font-family: var(--display); font-size: 1.5rem; font-weight: 900;
-      letter-spacing: .06em; text-transform: uppercase; margin: 0 0 4px; line-height: 1.2;
-    }
-    .mem-voucher-pill { display: none !important; }
+    .mem-offers-eyebrow { font-size: 11px; font-weight: 700; opacity: .82; letter-spacing: .04em; margin: 0 0 4px; }
     .mem-offers-tier-badge {
       display: none;
     }
@@ -2156,23 +2160,23 @@
       scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none;
     }
     .mem-home-hot-belt-wrap {
-      overflow-x: auto; overflow-y: hidden;
-      margin: 0 -14px; padding: 2px 14px 8px;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none; -ms-overflow-style: none;
-      -webkit-mask-image: none; mask-image: none;
-      touch-action: pan-x;
+      overflow: hidden; margin: 0 -4px; padding: 2px 0 6px;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
     }
-    .mem-home-hot-belt-wrap::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .mem-home-hot-belt {
-      display: flex; gap: 12px; width: max-content;
-      animation: none;
-      will-change: auto;
+      display: flex; gap: 10px; width: max-content;
+      animation: memHotBelt 48s linear infinite;
+      will-change: transform;
     }
+    .mem-home-hot-belt-wrap:hover .mem-home-hot-belt { animation-play-state: paused; }
     .mem-home-hot-belt .menu-card {
-      flex: 0 0 min(76vw, 240px); max-width: 240px; scroll-snap-align: start;
-      width: min(76vw, 240px); min-width: 0; box-sizing: border-box;
+      flex: 0 0 42%; max-width: 180px; scroll-snap-align: start;
+      width: 42%; min-width: 0; box-sizing: border-box;
+    }
+    @keyframes memHotBelt {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
     .mem-home-curated-scroll::-webkit-scrollbar { display: none; }
     .mem-home-curated-scroll .menu-card {
@@ -2184,7 +2188,6 @@
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       }
       #mem-home-dashboard .mem-home-menu-grid .menu-card,
-      #mem-home-dashboard .mem-home-hot-belt .menu-card,
       #mem-home-dashboard .mem-home-curated-scroll .menu-card,
       #mem-home-dashboard .mem-home-spotlight .menu-card {
         width: 100% !important;
@@ -2193,17 +2196,25 @@
         flex: unset !important;
       }
       .mem-home-hot-belt-wrap {
-        overflow: visible;
-        margin: 0;
-        -webkit-mask-image: none;
-        mask-image: none;
+        overflow: hidden;
+        margin: 0 -4px;
+        padding: 2px 0 6px;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
       }
       .mem-home-hot-belt {
-        animation: none !important;
-        width: 100% !important;
-        display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        display: flex !important;
         gap: 14px;
+        width: max-content !important;
+        animation: memHotBelt 48s linear infinite !important;
+        will-change: transform;
+      }
+      .mem-home-hot-belt-wrap:hover .mem-home-hot-belt { animation-play-state: paused; }
+      #mem-home-dashboard .mem-home-hot-belt .menu-card {
+        flex: 0 0 180px !important;
+        max-width: 180px !important;
+        width: 180px !important;
+        min-width: 180px;
       }
       .mem-home-curated-scroll,
       .mem-home-fav-block .mem-home-curated-scroll {
@@ -4381,6 +4392,9 @@
         <div class="mem-offers-hero-text">
           <div class="mem-offers-hero-head">
             <p class="mem-offers-eyebrow">Ưu đãi</p>
+            <button type="button" class="mem-voucher-pill" id="mem-voucher-pill" title="Voucher của tôi">
+              <i class="fa-solid fa-ticket"></i> Voucher của tôi
+            </button>
           </div>
           <span class="mem-offers-tier-badge" id="mem-offers-tier-badge"><i class="fa-solid fa-crown"></i> Hội viên SUN</span>
           <h1 class="mem-offers-tier-name" id="mem-offers-tier">Thành viên</h1>
@@ -7804,10 +7818,7 @@ function applyMemberPortalFromSettings(raw) {
           hero.id = 'mem-offers-hero';
         }
         document.body.style.setProperty('--offers-page-bg', offersPageBgForTier(tierCls));
-        document.body.setAttribute('data-offers-tier', tierCls);
-        if ((document.body.getAttribute('data-mem-tab') || '') === 'offers') {
-          document.body.style.backgroundColor = offersPageBgForTier(tierCls);
-        }
+        document.body.style.backgroundColor = '';
         paintOfferSparkles();
         if ($('mem-offers-tier')) $('mem-offers-tier').textContent = tierName;
         if ($('mem-offers-cups')) $('mem-offers-cups').textContent = String(cups);
@@ -8840,7 +8851,7 @@ function applyMemberPortalFromSettings(raw) {
         var beltCards = beltItems.map(function (m) {
           return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
         }).join('');
-        html += '<div class="mem-home-hot-belt-wrap"><div class="mem-home-hot-belt">' + beltCards + '</div></div></div>';
+        html += '<div class="mem-home-hot-belt-wrap"><div class="mem-home-hot-belt">' + beltCards + beltCards + '</div></div></div>';
         box.innerHTML = html;
         wireHomeMenuCards(box);
       }
@@ -9121,7 +9132,7 @@ function applyMemberPortalFromSettings(raw) {
           titleEl.textContent = 'Xin chào!';
           return;
         }
-        titleEl.innerHTML = '<span class="mem-write-name-wrap"><span class="mem-write-name">' + esc(shortName) + '</span></span><span class="mem-greet-oi"> ơi!</span>';
+        titleEl.innerHTML = '<span class="mem-greet-hi">Hi, </span><span class="mem-write-name-wrap"><span class="mem-write-name">' + esc(shortName) + '</span></span><span class="mem-greet-tail">!</span>';
       }
       function syncTopbarActionButtons(tab) {
         var notifyBtn = $('btn-top-notify');
@@ -9146,7 +9157,6 @@ function applyMemberPortalFromSettings(raw) {
         if (s === 'register') s = 'packages';
         document.body.setAttribute('data-mem-tab', s);
         document.body.style.backgroundColor = '';
-        if (s !== 'offers') document.body.removeAttribute('data-offers-tier');
         renderSkyScene();
         var titleEl = $('home-welcome');
         var subEl = $('home-member-code');
@@ -9160,7 +9170,7 @@ function applyMemberPortalFromSettings(raw) {
         if (s === 'home') {
           paintHomeWelcomeName(shortName);
           sub = timeGreeting() + '!';
-          state.homeHeaderDefault = { title: shortName ? (shortName + ' ơi!') : 'Xin chào!', sub: sub };
+          state.homeHeaderDefault = { title: shortName ? ('Hi, ' + shortName + '!') : 'Xin chào!', sub: sub };
         } else if (s === 'order') {
           title = 'Đặt hàng';
           sub = '';
@@ -9180,7 +9190,7 @@ function applyMemberPortalFromSettings(raw) {
           title = 'Yêu thích';
           sub = '';
         } else {
-          title = shortName ? (shortName + ' ơi!') : 'Xin chào!';
+          title = shortName ? ('Hi, ' + shortName + '!') : 'Xin chào!';
           sub = s === 'home' ? timeGreeting() : '';
         }
         if (state.guest && shortName) {
@@ -9200,10 +9210,6 @@ function applyMemberPortalFromSettings(raw) {
         if (userWrap) {
           var hideOffersUser = s === 'offers' && window.innerWidth < 900;
           userWrap.classList.toggle('mem-hidden', hideOffersUser);
-        }
-        if (s === 'offers') {
-          var tierKey = document.body.getAttribute('data-offers-tier') || 'tier-member';
-          document.body.style.backgroundColor = offersPageBgForTier(tierKey);
         }
       }
       function applyTopbarAvatar(url) {
@@ -11076,6 +11082,8 @@ function applyMemberPortalFromSettings(raw) {
         switchSection('home');
         setupRegPayTiles();
         setupRegFulfillmentTiles();
+        var vp = $('mem-voucher-pill');
+        if (vp) vp.onclick = function () { showToast('Danh sách voucher đã lưu - sắp ra mắt'); };
         wireMemAiInput();
         wireScheduleWeekDelegates();
         menuPlaceSkeleton(6);
