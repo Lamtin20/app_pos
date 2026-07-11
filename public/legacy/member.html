@@ -809,7 +809,7 @@
     @media (min-width: 900px) { .mem-offers-shell { max-width: none; } }
     .mem-offers-page .section-title { display: none; }
     body[data-mem-tab="offers"] .mem-topbar { display: none !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important; border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
-    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--bg) !important; }
+    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--offers-page-bg, var(--bg)) !important; }
     body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0 !important; margin-top: 0 !important; background: transparent; }
     body[data-mem-tab="offers"] #sec-offers { margin: 0; padding: 0; max-width: none; }
     body[data-mem-tab="offers"] #sec-offers.section { padding: 0; max-width: none; }
@@ -888,37 +888,44 @@
       .mem-offers-hero-pattern,
       .mem-offers-sparkles { display: none !important; }
       .mem-offers-hero.tier-member {
-        background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 55%, #fde68a 100%);
+        background: #fffbeb;
         color: #92400e;
       }
       .mem-offers-hero.tier-silver {
-        background: linear-gradient(180deg, #475569 0%, #64748b 55%, #94a3b8 100%);
+        background: #475569;
         color: #f8fafc;
       }
       .mem-offers-hero.tier-gold {
-        background: linear-gradient(180deg, #78350f 0%, #b45309 50%, #fbbf24 100%);
+        background: #78350f;
         color: #fffbeb;
       }
       .mem-offers-hero.tier-diamond {
-        background: linear-gradient(180deg, #0a0a0a 0%, #262626 55%, #404040 100%);
+        background: #0a0a0a;
         color: #fef3c7;
       }
-      .mem-offers-hero { border-radius: 0 0 22px 22px; padding-bottom: 18px; }
+      .mem-offers-hero { border-radius: 0; padding-bottom: 18px; }
       .mem-offers-hero-top {
-        flex-direction: column; align-items: stretch; gap: 14px;
-        padding: 16px 16px 0;
+        flex-direction: column; align-items: center; gap: 14px;
+        padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 0;
+      }
+      .mem-offers-hero-text {
+        width: 100%; display: flex; flex-direction: column; align-items: center;
       }
       .mem-offers-hero-head {
-        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        width: 100%; margin-bottom: 4px;
       }
       .mem-offers-eyebrow {
-        font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
-        opacity: .88; margin: 0;
+        font-family: var(--display);
+        font-size: clamp(1.55rem, 6.5vw, 1.9rem); font-weight: 900;
+        letter-spacing: .1em; text-transform: uppercase;
+        opacity: 1; margin: 0; line-height: 1.15; text-align: center; width: 100%;
       }
       .mem-offers-tier-name,
       .mem-offers-cups-line { display: none !important; }
       .mem-offers-stat-row {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        width: 100%; max-width: 340px; margin: 0 auto;
       }
       .mem-offers-stat {
         display: flex; align-items: center; gap: 10px; min-width: 0;
@@ -940,17 +947,12 @@
       .mem-offers-stat-val {
         display: block; font-family: var(--display); font-size: 1.08rem; font-weight: 900; line-height: 1.15;
       }
-      .mem-voucher-pill {
-        border-color: rgba(255,255,255,.42); background: rgba(255,255,255,.18);
-        color: inherit; font-size: 11px; padding: 9px 14px; align-self: flex-end;
-        box-shadow: 0 4px 14px rgba(15, 10, 5, .08);
-      }
       .mem-offers-card { margin: 10px 12px 0; border-radius: 16px; padding: 16px 14px 14px; }
       .mem-offers-expiry {
         font-size: 10px; opacity: .78; padding: 0 12px 12px; margin-top: 8px;
         color: inherit;
       }
-      .mem-offers-body { padding: 14px 12px 0; background: #f5f5f4; }
+      .mem-offers-body { padding: 14px 12px 0; background: transparent; }
       body[data-mem-tab="offers"] .mem-promo-list {
         padding-bottom: var(--mem-menu-row-gap);
       }
@@ -1029,7 +1031,7 @@
     .mem-tier-maxed .mem-tier-to { color: #16a34a; }
     .mem-tier-maxed .mem-tier-marker { border-color: #16a34a; color: #16a34a; }
     .mem-offers-body {
-      background: #f5f5f4; padding: 16px 12px var(--mem-menu-row-gap); position: relative; z-index: 2;
+      background: transparent; padding: 16px 12px var(--mem-menu-row-gap); position: relative; z-index: 2;
       border-radius: 0; margin-top: 0;
     }
     .mem-offers-quick {
@@ -4392,9 +4394,6 @@
         <div class="mem-offers-hero-text">
           <div class="mem-offers-hero-head">
             <p class="mem-offers-eyebrow">Ưu đãi</p>
-            <button type="button" class="mem-voucher-pill" id="mem-voucher-pill" title="Voucher của tôi">
-              <i class="fa-solid fa-ticket"></i> Voucher của tôi
-            </button>
           </div>
           <span class="mem-offers-tier-badge" id="mem-offers-tier-badge"><i class="fa-solid fa-crown"></i> Hội viên SUN</span>
           <h1 class="mem-offers-tier-name" id="mem-offers-tier">Thành viên</h1>
@@ -7818,7 +7817,10 @@ function applyMemberPortalFromSettings(raw) {
           hero.id = 'mem-offers-hero';
         }
         document.body.style.setProperty('--offers-page-bg', offersPageBgForTier(tierCls));
-        document.body.style.backgroundColor = '';
+        document.body.setAttribute('data-offers-tier', tierCls);
+        if ((document.body.getAttribute('data-mem-tab') || '') === 'offers') {
+          document.body.style.backgroundColor = offersPageBgForTier(tierCls);
+        }
         paintOfferSparkles();
         if ($('mem-offers-tier')) $('mem-offers-tier').textContent = tierName;
         if ($('mem-offers-cups')) $('mem-offers-cups').textContent = String(cups);
@@ -9157,6 +9159,7 @@ function applyMemberPortalFromSettings(raw) {
         if (s === 'register') s = 'packages';
         document.body.setAttribute('data-mem-tab', s);
         document.body.style.backgroundColor = '';
+        if (s !== 'offers') document.body.removeAttribute('data-offers-tier');
         renderSkyScene();
         var titleEl = $('home-welcome');
         var subEl = $('home-member-code');
@@ -9210,6 +9213,10 @@ function applyMemberPortalFromSettings(raw) {
         if (userWrap) {
           var hideOffersUser = s === 'offers' && window.innerWidth < 900;
           userWrap.classList.toggle('mem-hidden', hideOffersUser);
+        }
+        if (s === 'offers') {
+          var tierKey = document.body.getAttribute('data-offers-tier') || 'tier-member';
+          document.body.style.backgroundColor = offersPageBgForTier(tierKey);
         }
       }
       function applyTopbarAvatar(url) {
@@ -11082,8 +11089,6 @@ function applyMemberPortalFromSettings(raw) {
         switchSection('home');
         setupRegPayTiles();
         setupRegFulfillmentTiles();
-        var vp = $('mem-voucher-pill');
-        if (vp) vp.onclick = function () { showToast('Danh sách voucher đã lưu - sắp ra mắt'); };
         wireMemAiInput();
         wireScheduleWeekDelegates();
         menuPlaceSkeleton(6);
