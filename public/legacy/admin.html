@@ -1645,7 +1645,8 @@
             <button type="button" class="btn btn-gold btn-sm" onclick="addMemCatBannerRow()"><i class="fa-solid fa-plus"></i> Thêm banner</button>
           </div>
           <p style="font-size:11px;color:var(--text3);margin:0 0 10px;line-height:1.45;">
-            Kích thước khuyến nghị: <strong id="mem-cms-cat-banner-spec">960×200px</strong> (tỉ lệ ~24:5, JPG/WebP).
+            <strong>Mobile:</strong> <span id="mem-cms-cat-banner-spec-mobile">750×150px</span> (5:1) ·
+            <strong>Desktop:</strong> <span id="mem-cms-cat-banner-spec-desktop">1200×240px</span> (5:1), JPG/WebP.
             Tên danh mục phải khớp tên trên sheet Menu.
           </p>
           <div id="mem-cms-cat-banners-list" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -1660,8 +1661,10 @@
         <div style="margin:0 0 12px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);">
           <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px;">Hướng dẫn kích thước ảnh (UX/UI)</div>
           <ul style="margin:0;padding-left:18px;font-size:11px;color:var(--text3);line-height:1.55;">
-            <li>Banner trượt đầu trang: <strong>1200×480px</strong> (~5:2)</li>
-            <li>Banner danh mục: <strong>960×200px</strong> (~24:5)</li>
+            <li>Banner trượt Mobile: <strong>750×300px</strong> (5:2)</li>
+            <li>Banner trượt Desktop: <strong>680×272px</strong> (5:2, mỗi ảnh)</li>
+            <li>Banner danh mục Mobile: <strong>750×150px</strong> (5:1)</li>
+            <li>Banner danh mục Desktop: <strong>1200×240px</strong> (5:1)</li>
             <li>Ảnh đăng nhập / hero: <strong>900×1200px</strong> (dọc)</li>
             <li>Ảnh món (Menu): vuông <strong>800×800px</strong> trở lên</li>
           </ul>
@@ -3115,11 +3118,21 @@ async function loadMembershipAdmin(silent = false) {
 
 
 var MEM_CMS_ZONE_OPTS = [
-  { id: 'carousel', label: 'Banner trượt (đầu trang)' },
+  { id: 'carousel_mobile', label: 'Banner trượt đầu trang — Mobile' },
+  { id: 'carousel_desktop', label: 'Banner trượt đầu trang — Desktop' },
+  { id: 'carousel', label: 'Banner trượt đầu trang (Mobile & Desktop)' },
   { id: 'hero_login', label: 'Ảnh lớn đăng nhập' },
   { id: 'hero_register', label: 'Ảnh hero đăng ký gói' },
   { id: 'menu_hero_bg', label: 'Nền vùng thực đơn' }
 ];
+var MEM_CMS_ZONE_SPECS = {
+  carousel_mobile: '750×300px (5:2, JPG/WebP) — hiển thị 1 banner/lượt',
+  carousel_desktop: '680×272px (5:2, JPG/WebP) — mỗi ảnh trong carousel 2 banner',
+  carousel: 'Mobile 750×300px · Desktop 680×272px (5:2) — nên tách zone Mobile/Desktop',
+  hero_login: '900×1200px (dọc, JPG/WebP)',
+  hero_register: '1200×480px (5:2, JPG/WebP)',
+  menu_hero_bg: '1200×480px (5:2, JPG/WebP)'
+};
 var _memCmsRowSeq = 0;
 
 function memCmsZoneSelectHtml(selected) {
@@ -3159,6 +3172,15 @@ function bindMemCmsRowUpload(row) {
   }
   if (perp) perp.addEventListener('change', syncSched);
   syncSched();
+  var zoneSel = row.querySelector('.mem-cms-zone');
+  var specHint = row.querySelector('.mem-cms-zone-spec');
+  function syncZoneSpec() {
+    if (!specHint || !zoneSel) return;
+    var z = zoneSel.value || 'carousel_mobile';
+    specHint.textContent = 'Kích thước khuyến nghị: ' + (MEM_CMS_ZONE_SPECS[z] || MEM_CMS_ZONE_SPECS.carousel_mobile);
+  }
+  if (zoneSel) zoneSel.addEventListener('change', syncZoneSpec);
+  syncZoneSpec();
 }
 
 function buildMemCmsItemRow(data) {
@@ -3187,6 +3209,7 @@ function buildMemCmsItemRow(data) {
     '<div class="form-group"><label>Kết thúc</label><input type="datetime-local" class="form-control mem-cms-end" value="' + escAttr(endVal) + '"></div>' +
     '<div class="form-group" style="grid-column:span 2;"><label>Link (tuỳ chọn)</label><input type="url" class="form-control mem-cms-link" value="' + escAttr(d.linkUrl) + '" placeholder="https://…"></div>' +
     '<div class="form-group" style="grid-column:1/-1;"><label>Ảnh (upload imgbb)</label>' +
+    '<p class="mem-cms-zone-spec" style="font-size:11px;color:var(--text3);margin:0 0 6px;line-height:1.45;"></p>' +
     '<input type="file" class="form-control mem-cms-file" accept="image/jpeg,image/png,image/webp,image/gif" style="padding:8px;margin-bottom:6px;">' +
     '<div class="mem-cms-upload-st" style="font-size:11px;color:var(--text3);margin-bottom:6px;"></div>' +
     '<input type="url" class="form-control mem-cms-img" value="' + escAttr(d.image) + '" placeholder="https://i.ibb.co/…"></div>' +
@@ -3210,17 +3233,32 @@ function renderMemCmsItemsList(items) {
   if (!list) return;
   list.innerHTML = '';
   var arr = Array.isArray(items) ? items.filter(function (it) { return it && it.zone !== 'hero_login'; }) : [];
-  if (!arr.length) arr = [{ zone: 'carousel', enabled: true, perpetual: true, sortOrder: 0 }];
+  if (!arr.length) arr = [{ zone: 'carousel_mobile', enabled: true, perpetual: true, sortOrder: 0 }];
   arr.forEach(function (it) { list.appendChild(buildMemCmsItemRow(it)); });
 }
 
 function addMemCmsItemRow() {
   var list = document.getElementById('mem-cms-items-list');
   if (!list) return;
-  list.appendChild(buildMemCmsItemRow({ zone: 'carousel', enabled: true, perpetual: true, sortOrder: list.children.length }));
+  list.appendChild(buildMemCmsItemRow({ zone: 'carousel_mobile', enabled: true, perpetual: true, sortOrder: list.children.length }));
 }
 
 var _memCatBannerSeq = 0;
+function bindMemCatBannerFileInput(fileIn, urlIn, status) {
+  if (!fileIn || !urlIn) return;
+  fileIn.addEventListener('change', function () {
+    var f = fileIn.files && fileIn.files[0];
+    if (!f) return;
+    if (status) status.textContent = 'Đang upload…';
+    sunUploadImageToImgbbClient(f, 'mem-cat-banner-' + Date.now()).then(function (res) {
+      urlIn.value = res.url || '';
+      if (status) status.textContent = sunFormatUploadOk_(res);
+      showToast('✅ Upload xong', 'success');
+    }).catch(function (e) {
+      if (status) status.textContent = '❌ ' + (e.message || e);
+    });
+  });
+}
 function buildMemCatBannerRow(d) {
   d = d || {};
   var row = document.createElement('div');
@@ -3230,28 +3268,17 @@ function buildMemCatBannerRow(d) {
   row.innerHTML =
     '<div class="form-group" style="margin:0;"><label>Tên danh mục</label><input type="text" class="form-control mem-cat-banner-cat" placeholder="Sữa hạt" value="' + escAttr_(d.category || '') + '"></div>' +
     '<div class="form-group" style="margin:0;"><label>Link (tuỳ chọn)</label><input type="url" class="form-control mem-cat-banner-link" placeholder="https://…" value="' + escAttr_(d.linkUrl || '') + '"></div>' +
-    '<div class="form-group" style="margin:0;grid-column:1/-1;"><label>Ảnh banner (upload imgbb)</label>' +
-    '<input type="file" class="form-control mem-cat-banner-file" accept="image/jpeg,image/png,image/webp,image/gif" style="padding:8px;margin-bottom:6px;">' +
-    '<div class="mem-cat-banner-upload-st" style="font-size:11px;color:var(--text3);margin-bottom:4px;"></div>' +
-    '<input type="url" class="form-control mem-cat-banner-img" placeholder="https://i.ibb.co/…" value="' + escAttr_(d.imageUrl || '') + '"></div>' +
+    '<div class="form-group" style="margin:0;grid-column:1/-1;"><label>Ảnh banner Mobile (750×150px)</label>' +
+    '<input type="file" class="form-control mem-cat-banner-file-mobile" accept="image/jpeg,image/png,image/webp,image/gif" style="padding:8px;margin-bottom:6px;">' +
+    '<div class="mem-cat-banner-upload-st-mobile" style="font-size:11px;color:var(--text3);margin-bottom:4px;"></div>' +
+    '<input type="url" class="form-control mem-cat-banner-img-mobile" placeholder="https://i.ibb.co/…" value="' + escAttr_(d.imageUrlMobile || d.imageUrl || '') + '"></div>' +
+    '<div class="form-group" style="margin:0;grid-column:1/-1;"><label>Ảnh banner Desktop (1200×240px)</label>' +
+    '<input type="file" class="form-control mem-cat-banner-file-desktop" accept="image/jpeg,image/png,image/webp,image/gif" style="padding:8px;margin-bottom:6px;">' +
+    '<div class="mem-cat-banner-upload-st-desktop" style="font-size:11px;color:var(--text3);margin-bottom:4px;"></div>' +
+    '<input type="url" class="form-control mem-cat-banner-img-desktop" placeholder="https://i.ibb.co/…" value="' + escAttr_(d.imageUrlDesktop || d.imageUrl || '') + '"></div>' +
     '<div style="grid-column:1/-1;text-align:right;"><button type="button" class="btn btn-ghost btn-sm" onclick="this.closest(\'.mem-cat-banner-row\').remove()"><i class="fa-solid fa-trash"></i> Xóa</button></div>';
-  var fileIn = row.querySelector('.mem-cat-banner-file');
-  var urlIn = row.querySelector('.mem-cat-banner-img');
-  var status = row.querySelector('.mem-cat-banner-upload-st');
-  if (fileIn && urlIn) {
-    fileIn.addEventListener('change', function () {
-      var f = fileIn.files && fileIn.files[0];
-      if (!f) return;
-      if (status) status.textContent = 'Đang upload…';
-      sunUploadImageToImgbbClient(f, 'mem-cat-banner-' + Date.now()).then(function (res) {
-        urlIn.value = res.url || '';
-        if (status) status.textContent = sunFormatUploadOk_(res);
-        showToast('✅ Upload xong', 'success');
-      }).catch(function (e) {
-        if (status) status.textContent = '❌ ' + (e.message || e);
-      });
-    });
-  }
+  bindMemCatBannerFileInput(row.querySelector('.mem-cat-banner-file-mobile'), row.querySelector('.mem-cat-banner-img-mobile'), row.querySelector('.mem-cat-banner-upload-st-mobile'));
+  bindMemCatBannerFileInput(row.querySelector('.mem-cat-banner-file-desktop'), row.querySelector('.mem-cat-banner-img-desktop'), row.querySelector('.mem-cat-banner-upload-st-desktop'));
   return row;
 }
 function escAttr_(s) {
@@ -3276,9 +3303,16 @@ function collectMemCatBannersFromForm() {
   rows.forEach(function (row) {
     var gv = function (sel) { var el = row.querySelector(sel); return el ? String(el.value || '').trim() : ''; };
     var cat = gv('.mem-cat-banner-cat');
-    var img = gv('.mem-cat-banner-img');
-    if (!cat && !img) return;
-    out.push({ category: cat, imageUrl: img, linkUrl: gv('.mem-cat-banner-link') });
+    var imgMob = gv('.mem-cat-banner-img-mobile');
+    var imgDesk = gv('.mem-cat-banner-img-desktop');
+    if (!cat && !imgMob && !imgDesk) return;
+    out.push({
+      category: cat,
+      imageUrl: imgDesk || imgMob,
+      imageUrlMobile: imgMob,
+      imageUrlDesktop: imgDesk,
+      linkUrl: gv('.mem-cat-banner-link')
+    });
   });
   return out;
 }
@@ -3579,8 +3613,10 @@ async function hydrateMemberPortalCmsForm() {
   renderMemCatBannersList(s.categoryBanners || []);
   renderMemTiersList(s.memberTiers || []);
   renderMemCmsCatalogEditors(s.menuLabelCatalog, s.menuTagCatalog);
-  var specEl = document.getElementById('mem-cms-cat-banner-spec');
-  if (specEl && s.mediaSpecs && s.mediaSpecs.categoryBanner) specEl.textContent = s.mediaSpecs.categoryBanner.split('(')[0].trim();
+  var specMob = document.getElementById('mem-cms-cat-banner-spec-mobile');
+  var specDesk = document.getElementById('mem-cms-cat-banner-spec-desktop');
+  if (specMob && s.mediaSpecs && s.mediaSpecs.categoryBannerMobile) specMob.textContent = s.mediaSpecs.categoryBannerMobile.split('(')[0].trim();
+  if (specDesk && s.mediaSpecs && s.mediaSpecs.categoryBannerDesktop) specDesk.textContent = s.mediaSpecs.categoryBannerDesktop.split('(')[0].trim();
 }
 
 function collectMemberPortalCmsFromForm() {
@@ -3613,8 +3649,12 @@ function collectMemberPortalCmsFromForm() {
     categoryBanners: collectMemCatBannersFromForm(),
     memberTiers: collectMemTiersFromForm(),
     mediaSpecs: {
-      carousel: '1200×480px (tỉ lệ ~5:2, JPG/WebP)',
-      categoryBanner: '960×200px (tỉ lệ ~24:5, JPG/WebP)',
+      carouselMobile: '750×300px (5:2, JPG/WebP)',
+      carouselDesktop: '680×272px (5:2, JPG/WebP)',
+      carousel: '750×300px mobile · 680×272px desktop (5:2)',
+      categoryBannerMobile: '750×150px (5:1, JPG/WebP)',
+      categoryBannerDesktop: '1200×240px (5:1, JPG/WebP)',
+      categoryBanner: '750×150px mobile · 1200×240px desktop (5:1)',
       heroLogin: '900×1200px (dọc, JPG/WebP)',
       menuItem: '800×800px vuông trở lên'
     },

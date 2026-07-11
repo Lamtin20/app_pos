@@ -6412,7 +6412,9 @@ var MEMBER_PORTAL_PROP_KEY = 'MEMBER_PORTAL_JSON_V1';
 var MEMBER_PORTAL_CMS_KEY = 'MEMBER_PORTAL_CMS_V1';
 var MEMBER_PORTAL_CMS_MAX_BYTES = 9000;
 var MEMBER_CMS_ZONES_ = {
-  carousel: 'Banner trượt (đầu trang)',
+  carousel: 'Banner trượt đầu trang (Mobile & Desktop)',
+  carousel_mobile: 'Banner trượt đầu trang — Mobile',
+  carousel_desktop: 'Banner trượt đầu trang — Desktop',
   hero_login: 'Ảnh lớn cột phải / đăng nhập',
   hero_register: 'Ảnh hero khu đăng ký gói',
   menu_hero_bg: 'Nền ảnh vùng thực đơn'
@@ -6541,8 +6543,14 @@ function applyMemberPortalCmsToSettings_(settings, cmsAll, forAdmin) {
     if (!byZone[it.zone]) byZone[it.zone] = [];
     byZone[it.zone].push(it);
   });
-  var carousel = byZone.carousel || [];
-  if (carousel.length) merged.banners = cmsItemsToBannerSlides_(carousel);
+  var carouselLegacy = byZone.carousel || [];
+  var carouselMobile = (byZone.carousel_mobile && byZone.carousel_mobile.length) ? byZone.carousel_mobile : carouselLegacy;
+  var carouselDesktop = (byZone.carousel_desktop && byZone.carousel_desktop.length) ? byZone.carousel_desktop : carouselLegacy;
+  if (carouselMobile.length) merged.bannersMobile = cmsItemsToBannerSlides_(carouselMobile);
+  if (carouselDesktop.length) merged.bannersDesktop = cmsItemsToBannerSlides_(carouselDesktop);
+  if (carouselDesktop.length) merged.banners = merged.bannersDesktop;
+  else if (carouselMobile.length) merged.banners = merged.bannersMobile;
+  else if (carouselLegacy.length) merged.banners = cmsItemsToBannerSlides_(carouselLegacy);
   else if (!Array.isArray(merged.banners) || !merged.banners.length) {
     merged.banners = cmsItemsToBannerSlides_(migrateLegacyBannersToCmsItems_(merged.banners || []));
   }

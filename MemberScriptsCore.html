@@ -117,6 +117,14 @@ var memberPortalSettings = null;
 var memCarouselTimer = null;
 var memCarouselIndex = 0;
 var memCarouselList = [];
+function carouselBannersForSettings(s) {
+  s = s || {};
+  var mobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 899px)').matches;
+  if (mobile && Array.isArray(s.bannersMobile) && s.bannersMobile.length) return s.bannersMobile;
+  if (!mobile && Array.isArray(s.bannersDesktop) && s.bannersDesktop.length) return s.bannersDesktop;
+  return Array.isArray(s.banners) ? s.banners : [];
+}
+var memCarouselViewportMobile = null;
 var memCarouselResizeBound = false;
 
 function stopMemCarousel() {
@@ -250,14 +258,25 @@ function buildMemCarouselSlides(banners) {
   }).join('');
   box.innerHTML = '<div class="mem-carousel-track">' + slidesHtml + '</div><div class="mem-carousel-dots" id="mem-carousel-dots"></div>';
   memCarouselIndex = 0;
+  memCarouselViewportMobile = window.matchMedia && window.matchMedia('(max-width: 899px)').matches;
   rebuildMemCarouselDots();
   applyMemCarouselView();
   startMemCarouselTimer();
   if (!memCarouselResizeBound) {
     memCarouselResizeBound = true;
     window.addEventListener('resize', function () {
-      applyMemCarouselView();
-      rebuildMemCarouselDots();
+      var isMobile = window.matchMedia && window.matchMedia('(max-width: 899px)').matches;
+      if (memCarouselViewportMobile === isMobile) {
+        applyMemCarouselView();
+        rebuildMemCarouselDots();
+        return;
+      }
+      memCarouselViewportMobile = isMobile;
+      if (memberPortalSettings) buildMemCarouselSlides(carouselBannersForSettings(memberPortalSettings));
+      else {
+        applyMemCarouselView();
+        rebuildMemCarouselDots();
+      }
       startMemCarouselTimer();
     });
   }
@@ -315,7 +334,7 @@ function applyMemberPortalFromSettings(raw) {
   if (hi && s.heroImageUrl) hi.src = s.heroImageUrl;
   var gateHero = document.getElementById('mem-gate-hero-img');
   if (gateHero && s.heroImageUrl) gateHero.src = s.heroImageUrl;
-  var carouselBanners = Array.isArray(s.banners) ? s.banners : d.banners;
+  var carouselBanners = carouselBannersForSettings(s);
   buildMemCarouselSlides(carouselBanners);
   var heroReg = document.getElementById('mem-disp-hero-register-img');
   if (heroReg && s.heroRegisterImageUrl) {
