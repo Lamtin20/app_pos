@@ -2084,7 +2084,7 @@
 
 
     /* Premium gate */
-    body.mem-gate-mode { background: linear-gradient(165deg, #faf6f0 0%, #f3ebe3 45%, #efe4d8 100%); }
+    body.mem-gate-mode { background: #faf6f0; }
     .mem-gate-screen { min-height: 100dvh; padding: 16px; max-width: none; }
     .mem-gate-shell { max-width: 440px; margin: 0 auto; position: relative; }
     .mem-gate-hero-bg {
@@ -2372,44 +2372,80 @@
       .mem-gate-foot { text-align: left; margin-top: 18px; font-size: 12px; }
     }
     @media (max-width: 899px) {
+      body.mem-gate-mode { background: #faf6f0; overflow: hidden; }
       .mem-gate-screen {
-        min-height: 100dvh; padding: 0; align-items: stretch;
+        min-height: 100dvh; height: 100dvh; padding: 0; align-items: stretch;
+        overflow: hidden;
       }
       .mem-gate-shell {
-        max-width: none; margin: 0; min-height: 100dvh;
+        max-width: none; margin: 0; min-height: 100dvh; height: 100dvh;
         display: flex; flex-direction: column;
       }
       .mem-gate-hero-bg { display: none; }
       .mem-gate-panel {
         flex: 1; border-radius: 0; border: none; box-shadow: none;
         padding: 0; display: flex; flex-direction: column; min-height: 100dvh;
-        overflow: hidden;
+        overflow: hidden; background: #faf6f0;
       }
       .mem-gate-panel::before { display: none; }
       .mem-gate-mobile-brand {
         display: block; flex-shrink: 0;
-        padding: calc(env(safe-area-inset-top, 0px) + 28px) 24px 32px;
-        background: linear-gradient(155deg, #7c2d12 0%, #c2410c 48%, #d97706 100%);
-        text-align: center; position: relative; overflow: hidden;
+        padding: calc(env(safe-area-inset-top, 0px) + 36px) 24px 52px;
+        background: linear-gradient(165deg, #7c2d12 0%, #b45309 42%, #d97706 100%);
+        text-align: center; position: relative; overflow: visible;
+      }
+      .mem-gate-mobile-brand::before {
+        content: '🍃'; position: absolute; top: calc(env(safe-area-inset-top, 0px) + 18px);
+        right: 18%; font-size: 14px; opacity: .75; transform: rotate(18deg);
       }
       .mem-gate-mobile-brand::after {
-        content: ''; position: absolute; inset: 0; pointer-events: none;
-        background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.14) 50%, transparent 58%);
-        animation: memTierShine 5s ease-in-out infinite;
+        content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 28px;
+        background: #faf6f0;
+        border-radius: 28px 28px 0 0;
+        box-shadow: 0 -6px 20px rgba(124, 45, 18, .08);
       }
       .mem-gate-mobile-brand strong {
-        position: relative; z-index: 1;
-        font-family: var(--display); font-size: clamp(1.15rem, 5.2vw, 1.38rem);
-        font-weight: 900; color: #fff; letter-spacing: .01em;
+        position: relative; z-index: 1; display: flex; flex-direction: column; gap: 2px;
+        font-family: var(--display); color: #fff; letter-spacing: .01em;
         text-shadow: 0 2px 14px rgba(0, 0, 0, .2);
       }
+      .mem-gate-brand-line1 {
+        font-size: clamp(.82rem, 3.6vw, .95rem); font-weight: 700; opacity: .92;
+      }
+      .mem-gate-brand-line2 {
+        font-size: clamp(1.28rem, 6vw, 1.55rem); font-weight: 900; line-height: 1.15;
+      }
       .mem-gate-brand {
-        flex-shrink: 0; padding: 22px 22px 0; background: var(--surface);
-        border-radius: 24px 24px 0 0; margin-top: -18px; position: relative; z-index: 1;
+        flex: 1; flex-shrink: 0; padding: 0 22px 0; background: #faf6f0;
+        border-radius: 0; margin-top: -34px; position: relative; z-index: 2;
+        display: flex; flex-direction: column; align-items: center;
+      }
+      .mem-gate-logo-wrap {
+        width: 88px; height: 88px; margin: 0 auto 14px; border-radius: 50%;
+        background: #fff; border: 4px solid #faf6f0;
+        box-shadow: 0 8px 28px rgba(124, 45, 18, .14);
       }
       .mem-gate-brand .mem-gate-eyebrow { display: none !important; }
-      .mem-gate-card { margin: 0 22px; }
-      .mem-gate-foot { padding: 0 22px calc(24px + env(safe-area-inset-bottom, 0px)); margin-top: 14px; }
+      .mem-gate-brand .mem-gate-title {
+        font-size: clamp(1.35rem, 6vw, 1.55rem); text-align: center; margin-bottom: 6px;
+        color: #3d2b1f;
+      }
+      .mem-gate-brand .mem-gate-sub {
+        text-align: center; font-size: 13px; margin-bottom: 18px; max-width: 320px;
+      }
+      .mem-gate-card {
+        margin: 0 22px; flex-shrink: 0;
+        background: #fff; border: 1px solid rgba(214, 196, 176, .65);
+        box-shadow: 0 10px 32px rgba(60, 40, 25, .06);
+      }
+      .mem-gate-foot {
+        padding: 16px 28px calc(20px + env(safe-area-inset-bottom, 0px));
+        margin-top: auto; text-align: center; font-size: 12px; color: #8b7355;
+        position: relative;
+      }
+      .mem-gate-foot::after {
+        content: '☕ 🍃'; display: block; margin-top: 10px; font-size: 16px; opacity: .55;
+      }
     }
     .mem-topbar-user {
       display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
@@ -3557,6 +3593,50 @@
     .mem-group-added-item-info strong { display: block; font-size: 14px; margin-bottom: 4px; }
     .mem-group-added-item-info span { font-size: 12px; color: var(--text3); line-height: 1.4; }
     .mem-group-added-item-price { font-weight: 900; color: var(--primary); font-size: 14px; white-space: nowrap; }
+    .mem-group-added-voucher {
+      text-align: left; margin-bottom: 14px; padding: 14px;
+      border-radius: 16px; border: 1px solid rgba(234, 88, 12, .18);
+      background: linear-gradient(165deg, #fffaf5 0%, #fff 100%);
+    }
+    .mem-group-added-voucher.mem-hidden { display: none !important; }
+    .mem-group-added-voucher-head {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+      font-size: 13px; font-weight: 800; color: var(--primary-dk);
+    }
+    .mem-group-added-voucher-head i { color: var(--primary-lt); }
+    .mem-group-added-promo-list { display: flex; flex-direction: column; gap: 8px; }
+    .mem-group-added-promo-pick {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+      width: 100%; text-align: left; padding: 10px 12px; border-radius: 12px;
+      border: 1px solid var(--border); background: #fff; cursor: pointer;
+      transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+    }
+    .mem-group-added-promo-pick:hover { border-color: rgba(234, 88, 12, .35); }
+    .mem-group-added-promo-pick.mem-promo-on {
+      border-color: var(--primary-lt); background: #fff7ed;
+      box-shadow: 0 0 0 2px rgba(234, 88, 12, .12);
+    }
+    .mem-group-added-promo-t { font-size: 13px; font-weight: 800; color: var(--primary-dk); }
+    .mem-group-added-promo-s { font-size: 11px; color: var(--text3); line-height: 1.4; }
+    .mem-group-added-promo-empty,
+    .mem-group-added-promo-loading { font-size: 12px; color: var(--text3); margin: 0; text-align: center; }
+    .mem-group-added-apply-promo { width: 100%; margin-top: 4px; justify-content: center; }
+    .mem-group-added-price-box {
+      margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(214, 196, 176, .8);
+    }
+    .mem-group-added-price-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: var(--text2); margin-bottom: 6px; gap: 10px;
+    }
+    .mem-group-added-price-row.mem-group-added-disc { color: var(--green); font-weight: 700; }
+    .mem-group-added-price-row.mem-group-added-final {
+      margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border);
+      font-size: 13px; font-weight: 800; color: var(--primary-dk);
+    }
+    .mem-group-added-price-a,
+    .mem-group-added-price-b { font-weight: 900; color: var(--primary); transition: color .3s ease; }
+    .mem-group-added-price-off { color: var(--green); font-weight: 800; }
+    .mem-group-added-sheet { max-width: 400px; max-height: 90dvh; overflow-y: auto; }
 
     /* Mời vào đơn nhóm: chỉ hiện popup nhập tên */
     body.mem-group-invite { background: #f3ece4 !important; }
@@ -4297,20 +4377,23 @@
         </aside>
         <div class="mem-gate-panel">
           <div class="mem-gate-mobile-brand" id="mem-gate-mobile-brand">
-            <strong id="mem-gate-mobile-brand-txt">Tiệm Cafe Sun &amp; Matcha</strong>
+            <strong id="mem-gate-mobile-brand-txt">
+              <span class="mem-gate-brand-line1">Tiệm Cafe</span>
+              <span class="mem-gate-brand-line2">Sun &amp; Matcha</span>
+            </strong>
           </div>
           <div class="mem-gate-brand">
             <div class="mem-gate-logo-wrap">
               <img id="mem-gate-logo-img" class="mem-gate-logo-img" alt="" style="display:none">
               <span class="mem-gate-logo-fallback">🥛</span>
             </div>
-            <h1 class="mem-gate-title" id="mem-disp-login-title">Cổng hội viên</h1>
-            <p class="mem-gate-sub" id="mem-disp-login-sub">Đăng nhập bằng SĐT để xem ưu đãi, đặt sữa hạt và quản lý gói giao hàng.</p>
+            <h1 class="mem-gate-title" id="mem-disp-login-title">Đăng Nhập</h1>
+            <p class="mem-gate-sub" id="mem-disp-login-sub">Đăng nhập bằng số điện thoại để xem chi tiết.</p>
           </div>
           <div class="mem-gate-card" id="gate-card">
             <label class="mem-gate-label" for="gate-phone"><i class="fa-solid fa-mobile-screen-button"></i> Số điện thoại (10 số)</label>
             <div class="mem-gate-input-wrap">
-              <input type="tel" id="gate-phone" placeholder="nhập số điện thoại của bạn!" maxlength="10" autocomplete="tel" inputmode="numeric" oninput="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onkeyup="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onchange="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onpaste="setTimeout(function(){window.sunSyncGatePhone&&window.sunSyncGatePhone()},0)">
+              <input type="tel" id="gate-phone" placeholder="Nhập số điện thoại của bạn!" maxlength="10" autocomplete="tel" inputmode="numeric" oninput="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onkeyup="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onchange="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onpaste="setTimeout(function(){window.sunSyncGatePhone&&window.sunSyncGatePhone()},0)">
             </div>
             <div class="mem-gate-hint-row">
               <span class="mem-gate-secure"><i class="fa-solid fa-shield-halved"></i> Bảo mật</span>
@@ -5083,9 +5166,14 @@
       <h3 id="mem-group-added-title">Thêm món thành công!</h3>
       <p class="mem-group-added-lead" id="mem-group-added-lead"></p>
       <div class="mem-group-added-item" id="mem-group-added-item"></div>
+      <div class="mem-group-added-voucher mem-hidden" id="mem-group-added-voucher">
+        <div class="mem-group-added-voucher-head"><i class="fa-solid fa-ticket"></i> Voucher của bạn</div>
+        <div class="mem-group-added-promo-list" id="mem-group-added-promo-list"></div>
+        <div class="mem-group-added-price-box" id="mem-group-added-price-box"></div>
+      </div>
       <div class="mem-register-actions">
         <button type="button" class="btn btn-ghost" id="mem-group-added-close">Hoàn tất</button>
-        <button type="button" class="btn" id="mem-group-added-more"><i class="fa-solid fa-plus"></i> Thêm món mới</button>
+        <button type="button" class="btn" id="mem-group-added-more"><i class="fa-solid fa-plus"></i> Thêm món</button>
       </div>
     </div>
   </div>
@@ -5200,7 +5288,7 @@
         var btn = $('mem-register-confirm');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang đăng ký…'; }
         try {
-          await api('registerMemberPortalCustomer', {
+          var reg = await api('registerMemberPortalCustomer', {
             phone: ph,
             name: nmEl ? String(nmEl.value || '').trim() : '',
             acceptTerms: true,
@@ -5208,7 +5296,11 @@
             acceptMarketing: $('mem-reg-marketing') && $('mem-reg-marketing').checked
           });
           closeRegisterModal();
-          showToast('Đăng ký thành công - đang đăng nhập…');
+          if (reg && reg.voucher && reg.voucher.code) {
+            showToast('🎁 Chúc mừng! Bạn nhận voucher ' + reg.voucher.code + ' giảm ' + (reg.voucher.percent || 5) + '%');
+          } else {
+            showToast('Đăng ký thành công - đang đăng nhập…');
+          }
           $('gate-phone').value = ph;
           syncGatePhoneUi();
           await runGate();
