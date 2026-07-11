@@ -314,6 +314,37 @@ function buildMemCarouselSlides(banners) {
     });
   }
 }
+function applyGateLogo(url) {
+  var logo = String(url || '').trim();
+  var img = document.getElementById('mem-gate-logo-img');
+  var fb = document.querySelector('.mem-gate-logo-fallback');
+  if (!logo) {
+    if (img) img.style.display = 'none';
+    if (fb) fb.style.display = '';
+    return;
+  }
+  if (img) {
+    img.src = logo;
+    img.style.display = 'block';
+    img.onerror = function () {
+      img.style.display = 'none';
+      if (fb) fb.style.display = '';
+    };
+  }
+  if (fb) fb.style.display = 'none';
+}
+function applySiteBrandToMember(brand) {
+  if (!brand || typeof brand !== 'object') return;
+  window.SUN_SITE_BRAND = brand;
+  var fav = String(brand.faviconUrl || brand.logoUrl || '').trim();
+  if (fav && typeof window.setFaviconUrl === 'function') window.setFaviconUrl(fav);
+  var logo = String(brand.logoUrl || '').trim();
+  try {
+    var stored = localStorage.getItem('SUN_BRAND_LOGO_DATAURL_V1') || '';
+    if (stored) logo = stored;
+  } catch (e) { /* */ }
+  applyGateLogo(logo);
+}
 function applyMemberPortalFromSettings(raw) {
   var d = {
     brandTitle: 'Tiệm Cafe Sun & Matcha',
@@ -352,6 +383,8 @@ function applyMemberPortalFromSettings(raw) {
   setTxt('mem-disp-brand-title', s.brandTitle);
   setTxt('mem-disp-brand-tag', s.brandTagline);
   setTxt('mem-group-invite-brand-txt', s.brandTitle);
+  setTxt('mem-gate-visual-brand', s.brandTitle);
+  setTxt('mem-gate-mobile-brand-txt', s.brandTitle);
   setTxt('mem-disp-login-title', s.loginCardTitle);
   setTxt('mem-disp-login-sub', s.loginCardSubtitle);
   setTxt('mem-disp-f1t', s.heroFeature1Title);
@@ -393,7 +426,13 @@ function applyMemberPortalFromSettings(raw) {
   if (sl && zalo) sl.href = zalo.indexOf('http') === 0 ? zalo : ('https://zalo.me/' + zalo.replace(/\D/g, ''));
   var lab = document.getElementById('mem-support-label');
   if (lab && phone) lab.textContent = 'Liên hệ & Góp ý · ' + phone;
+  if (window.SUN_SITE_BRAND && window.SUN_SITE_BRAND.logoUrl) applyGateLogo(window.SUN_SITE_BRAND.logoUrl);
 }
+
+fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
+  .then(function (res) { return res.ok ? res.json() : null; })
+  .then(function (data) { if (data && data.brand) applySiteBrandToMember(data.brand); })
+  .catch(function () { });
 
 (function () {
   var U = '__SUN_FAVICON_URL__';
