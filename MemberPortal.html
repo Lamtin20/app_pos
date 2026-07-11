@@ -3449,6 +3449,16 @@
     .mem-group-mi-body { flex: 1; min-width: 0; }
     .mem-group-mi-body strong { display: block; font-size: 13px; color: var(--text); margin-bottom: 2px; }
     .mem-group-mi-price { font-weight: 900; color: var(--primary); white-space: nowrap; font-size: 13px; }
+    .mem-group-mi-price-disc { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; justify-content: flex-end; }
+    .mem-group-mi-price-old, .mem-group-total-old {
+      font-weight: 600; color: var(--text3); text-decoration: line-through; font-size: 11px;
+    }
+    .mem-group-my-total {
+      display: flex; justify-content: flex-end; padding: 8px 0 2px;
+      border-top: 1px dashed rgba(8, 145, 178, .2); margin-top: 6px;
+    }
+    .mem-group-total-badge-disc { display: inline-flex; align-items: center; gap: 5px; }
+    .mem-group-member-head > span { text-align: right; max-width: 58%; }
     .mem-group-mi .mem-ci-opts { flex-basis: 100%; font-size: 11px; color: var(--text3); }
     .mem-group-mi-empty { color: var(--text3); font-style: italic; }
     #mem-group-block.mem-group-flash .mem-group-card {

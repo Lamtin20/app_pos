@@ -3463,6 +3463,16 @@
     .mem-group-mi-body { flex: 1; min-width: 0; }
     .mem-group-mi-body strong { display: block; font-size: 13px; color: var(--text); margin-bottom: 2px; }
     .mem-group-mi-price { font-weight: 900; color: var(--primary); white-space: nowrap; font-size: 13px; }
+    .mem-group-mi-price-disc { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; justify-content: flex-end; }
+    .mem-group-mi-price-old, .mem-group-total-old {
+      font-weight: 600; color: var(--text3); text-decoration: line-through; font-size: 11px;
+    }
+    .mem-group-my-total {
+      display: flex; justify-content: flex-end; padding: 8px 0 2px;
+      border-top: 1px dashed rgba(8, 145, 178, .2); margin-top: 6px;
+    }
+    .mem-group-total-badge-disc { display: inline-flex; align-items: center; gap: 5px; }
+    .mem-group-member-head > span { text-align: right; max-width: 58%; }
     .mem-group-mi .mem-ci-opts { flex-basis: 100%; font-size: 11px; color: var(--text3); }
     .mem-group-mi-empty { color: var(--text3); font-style: italic; }
     #mem-group-block.mem-group-flash .mem-group-card {
@@ -5856,6 +5866,20 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         return { id: it.id, name: it.name, qty: it.quantity, quantity: it.quantity, price: lineUnit(it) };
       });
     }
+    function fmtGroupMemberTotal(subtotal, discount, promoCode) {
+      var sub = Math.max(0, parseFloat(subtotal) || 0);
+      var disc = Math.max(0, parseFloat(discount) || 0);
+      if (disc <= 0) return fmt(sub);
+      var after = Math.max(0, sub - disc);
+      var tag = promoCode
+        ? (' <em class="mem-group-disc-tag">' + esc(promoCode) + ' −' + fmt(disc) + '</em>')
+        : (' <em class="mem-group-disc-tag">−' + fmt(disc) + '</em>');
+      return '<span class="mem-group-mi-price mem-group-mi-price-disc"><s class="mem-group-mi-price-old">' +
+        fmt(sub) + '</s> ' + fmt(after) + tag + '</span>';
+    }
+    function myCartSubtotal() {
+      return cart.reduce(function (s, it) { return s + lineUnit(it) * (parseInt(it.quantity, 10) || 1); }, 0);
+    }
     function cartForPromoApi() {
       var mine = myCartForPromoApi();
       if (inGroup() && !isHost()) return mine;
@@ -6491,9 +6515,13 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       }
       group = st;
       saveGroupSession(st.groupId);
+      var mid = memberId();
+      var mine = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
+      if (mine) {
+        myMemberPromo = String(mine.promoCode || '').trim().toUpperCase();
+        myMemberDiscount = Math.max(0, parseFloat(mine.discount) || 0);
+      }
       if (opts.adoptMyItems) {
-        var mid = memberId();
-        var mine = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
         if (mine && (mine.items || []).length && !cart.length) {
           cart = mine.items.map(function (it) {
             return {
@@ -6504,10 +6532,6 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
               options: it.options || {}, note: it.note || '', quantity: parseInt(it.quantity, 10) || 1
             };
           });
-        }
-        if (mine) {
-          myMemberPromo = String(mine.promoCode || '').trim().toUpperCase();
-          myMemberDiscount = Math.max(0, parseFloat(mine.discount) || 0);
         }
       }
       startGroupPolling();
@@ -7076,20 +7100,26 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       }
       panel.classList.remove('mem-hidden');
       var editing = !!renderGroupOrdersPanel._editing;
+      var mySub = myCartSubtotal();
       var myHtml = '';
       if (cart.length) {
         myHtml = '<div class="mem-group-my-items' + (editing ? ' mem-group-editing' : '') + '">' +
-          '<div class="mem-group-section-label"><i class="fa-solid fa-mug-hot"></i> Món của bạn</div>' +
+          '<div class="mem-group-section-label"><i class="fa-solid fa-mug-hot"></i> Món của bạn' +
+          (myMemberDiscount > 0
+            ? (' <span class="mem-group-disc-tag">' + esc(myMemberPromo || 'Voucher') + ' −' + fmt(myMemberDiscount) + '</span>')
+            : '') +
+          '</div>' +
           cart.map(function (it, idx) {
             var parts = buildOptsParts(it);
             var opts = parts.length ? ('<div class="mem-ci-opts">' + esc(parts.join(' · ')) + '</div>') : '';
             var note = it.note ? ('<div class="mem-ci-note">' + esc(it.note) + '</div>') : '';
             var thumb = it.imageUrl ? ('<img class="mem-group-mi-thumb" src="' + esc(it.imageUrl) + '" alt="">') : '';
+            var linePrice = fmt(lineUnit(it) * it.quantity);
             if (editing) {
               return '<div class="mem-group-mi mem-group-mi-own">' +
                 '<div class="mem-group-mi-row">' + thumb +
                 '<div class="mem-group-mi-body"><strong>' + esc(it.name) + '</strong>' + opts + note +
-                '</div><span class="mem-group-mi-price">' + fmt(lineUnit(it) * it.quantity) + '</span></div>' +
+                '</div><span class="mem-group-mi-price">' + linePrice + '</span></div>' +
                 '<div class="mem-ci-qty">' +
                 '<button type="button" class="mem-ci-btn" data-act="minus" data-idx="' + idx + '">−</button>' +
                 '<span>' + it.quantity + '</span>' +
@@ -7100,8 +7130,11 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             return '<div class="mem-group-mi mem-group-mi-own">' + thumb +
               '<div class="mem-group-mi-body"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
               opts + note + '</div>' +
-              '<span class="mem-group-mi-price">' + fmt(lineUnit(it) * it.quantity) + '</span></div>';
+              '<span class="mem-group-mi-price">' + linePrice + '</span></div>';
           }).join('') +
+          (myMemberDiscount > 0
+            ? ('<div class="mem-group-my-total">' + fmtGroupMemberTotal(mySub, myMemberDiscount, myMemberPromo) + '</div>')
+            : ('<div class="mem-group-my-total"><span class="mem-group-mi-price">' + fmt(mySub) + '</span></div>')) +
           '<div class="mem-group-my-actions">' +
           '<button type="button" class="btn btn-sm" id="mem-group-add-more"><i class="fa-solid fa-plus"></i> Thêm món</button>' +
           '<button type="button" class="btn btn-sm btn-ghost" id="mem-group-edit-toggle"><i class="fa-solid fa-pen"></i> ' +
@@ -7167,6 +7200,13 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       var host = isHost();
       var locked = groupLocked();
       var members = group.members || [];
+      var gSub = group.total || 0;
+      var gMemDisc = group.totalMemberDiscount || 0;
+      var gShow = group.totalAfterDiscount != null ? group.totalAfterDiscount : Math.max(0, gSub - gMemDisc);
+      var totalBadge = gMemDisc > 0
+        ? ('<span class="mem-group-total-badge mem-group-total-badge-disc" title="Tạm tính ' + fmt(gSub) + ' − voucher ' + fmt(gMemDisc) + '">' +
+          fmt(gShow) + ' <s class="mem-group-total-old">' + fmt(gSub) + '</s></span>')
+        : ('<span class="mem-group-total-badge">' + fmt(gSub) + '</span>');
       var statusTxt = locked
         ? '<span class="mem-group-st mem-group-st-locked"><i class="fa-solid fa-lock"></i> Đã khóa - chờ trưởng nhóm đặt</span>'
         : '<span class="mem-group-st mem-group-st-open"><i class="fa-solid fa-circle-dot"></i> Đang mở - mọi người thêm món nhé</span>';
@@ -7176,7 +7216,8 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         '<div class="mem-group-top">' +
         '<div class="mem-group-title-wrap">' +
         '<div class="mem-group-head"><i class="fa-solid fa-user-group"></i> ' + esc(group.groupName || ('Đơn nhóm của ' + (group.hostName || 'bạn'))) + '</div>' +
-        '<div class="mem-group-substatus">' + statusTxt + '<span class="mem-group-badge">' + members.length + ' người</span><span class="mem-group-total-badge">' + fmt(group.total || 0) + '</span>' +
+        '<div class="mem-group-substatus">' + statusTxt + '<span class="mem-group-badge">' + members.length + ' người</span>' + totalBadge +
+        (gMemDisc > 0 ? '<span class="mem-group-disc-badge">🎫 Voucher −' + fmt(gMemDisc) + '</span>' : '') +
         (groupDiscPct() > 0 ? '<span class="mem-group-disc-badge">🎁 Ưu đãi nhóm −' + groupDiscPct() + '%</span>' : '') + '</div>' +
         '<div class="mem-group-ttl-hint"><i class="fa-regular fa-clock"></i> Hiệu lực 48 giờ · hết hạn tự chốt đơn</div>' +
         (meLabel ? ('<div class="mem-group-me">' + meLabel + '</div>') : '') +
@@ -7263,7 +7304,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           : '<div class="mem-group-mi mem-group-mi-empty">Đang chọn món…</div>';
         return '<div class="mem-group-member"><div class="mem-group-member-head"><i class="fa-solid fa-circle-user"></i> ' +
           esc(m.name || ('KH ' + String(m.id || m.phone).slice(-4))) +
-          '<span>' + fmt(m.subtotal || 0) + '</span></div>' + rows + '</div>';
+          '<span>' + fmtGroupMemberTotal(m.subtotal || 0, m.discount || 0, m.promoCode || '') + '</span></div>' + rows + '</div>';
       }).join('') + '</div>';
     }
   

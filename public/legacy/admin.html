@@ -981,6 +981,8 @@
               <option value="combo_qty_tiers">Combo theo số ly (JSON tiers)</option>
               <option value="group_order">Ưu đãi đơn nhóm - giảm % tự động (5/10/15%)</option>
               <option value="feedback_reward">Voucher góp ý - tặng mã giảm % (hạn 7 ngày, dùng 1 lần)</option>
+              <option value="welcome_member">Voucher thành viên mới - tự phát % khi đăng ký</option>
+              <option value="office_week_streak">Chuỗi văn phòng T2–T5 → voucher ly miễn phí T6</option>
             </select>
           </div>
           <div class="form-group" style="grid-column:span 2;">
@@ -1045,6 +1047,8 @@
             <optgroup label="Kênh online">
               <option value="group_order_10">Ưu đãi đơn nhóm</option>
               <option value="feedback_reward_5">Voucher góp ý</option>
+              <option value="welcome_member_5">Voucher thành viên mới</option>
+              <option value="office_week_streak">Chuỗi văn phòng</option>
             </optgroup>
           </select>
           <button type="button" class="btn btn-ghost btn-sm" onclick="openPromoTemplateHelpFromSelect()"><i class="fa-solid fa-book-open"></i> Xem hướng dẫn</button>
@@ -1095,6 +1099,8 @@
             <button type="button" class="btn btn-ghost btn-sm" onclick="adminApplyPromoTemplate('group_order_10')">Đơn nhóm -10%</button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="adminApplyPromoTemplate('group_order_15')">Đơn nhóm -15%</button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="adminApplyPromoTemplate('feedback_reward_5')">Voucher góp ý -5%</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="adminApplyPromoTemplate('welcome_member_5')">TV mới -5%</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="adminApplyPromoTemplate('office_week_streak')">Chuỗi VP T2–T6</button>
           </div>
         </div>
       </div>
@@ -4984,7 +4990,9 @@ var PROMO_TEMPLATE_HELP = {
   birthday_treat: '<p>Giảm sinh nhật (xác minh ngày sinh ngoài POS).</p><ul><li><strong>Quy tắc:</strong> <code>manual</code> + ghi cảnh báo trong JSON.</li></ul>',
   vip_high_ltv: '<p>VIP theo tổng chi tiêu tích lũy.</p><ul><li><strong>Quy tắc:</strong> <code>vip_ltv</code> + <code>minLifetimeSpend</code> (số tiền).</li><li>Cần SĐT khách trên POS để đối chiếu sheet Customers.</li></ul>',
   group_order_10: '<p><strong>Ưu đãi đơn nhóm</strong> - hệ thống tự giảm % khi trưởng nhóm chốt đơn nhóm.</p><ul><li><strong>Quy tắc:</strong> <code>group_order</code> · <strong>Giá trị %:</strong> 5 / 10 / 15.</li><li>Chỉ nên bật <strong>1 mã</strong> tại một thời điểm - hệ thống lấy mã đang kích hoạt đầu tiên.</li><li>Tắt "Kích hoạt" hoặc để hết hạn = tắt ưu đãi nhóm (0%).</li><li>Không cộng dồn với mã KM: khi chốt đơn lấy mức giảm cao hơn.</li></ul>',
-  feedback_reward_5: '<p><strong>Voucher góp ý</strong> - khách để lại SĐT khi góp ý sau khi nhận nước sẽ được tặng mã <code>GYxxxx</code>.</p><ul><li><strong>Quy tắc:</strong> <code>feedback_reward</code> · <strong>Giá trị %:</strong> mức giảm (VD 5).</li><li>Voucher <strong>hạn 7 ngày</strong> từ ngày phát hành, <strong>dùng 1 lần</strong>; lưu ở sheet <em>Voucher góp ý</em> (trạng thái Chưa dùng / Đã dùng).</li><li>Khách nhập mã GYxxxx vào ô Khuyến mãi ở đơn sau - hệ thống tự kiểm tra hạn + trạng thái.</li><li>Chưa khai báo / tắt rule này = form góp ý không hứa tặng ưu đãi.</li></ul>',
+  feedback_reward_5: '<p><strong>Voucher góp ý</strong> - khách để lại SĐT khi góp ý sau khi nhận nước sẽ được tặng mã <code>GYxxxx</code>.</p><ul><li><strong>Quy tắc:</strong> <code>feedback_reward</code> · <strong>Giá trị %:</strong> mức giảm (VD 5).</li><li>Voucher <strong>hạn 7 ngày</strong> từ ngày phát hành, <strong>dùng 1 lần</strong>; lưu ở sheet <em>Voucher góp ý</em> (trạng thái Chưa dùng / Đã dùng).</li><li>Khách nhập mã GYxxxx vào ô Khuyến mãi ở đơn sau - hệ thống tự kiểm tra hạn + trạng thái.</li><li>Chưa khai báo / tắt rule này = form góp ý không hứa tặng ưu đãi.</li><li>Giảm theo % được <strong>làm tròn đến hàng nghìn</strong> (VD 870đ → 1.000đ).</li></ul>',
+  welcome_member_5: '<p><strong>Voucher thành viên mới</strong> - tự phát mã <code>TVxxxx</code> khi khách đăng ký cổng hội viên lần đầu.</p><ul><li><strong>Quy tắc:</strong> <code>welcome_member</code> · <strong>Giá trị %:</strong> mức giảm (VD 5).</li><li>JSON: <code>{"percent":5,"validDays":30}</code> — <code>validDays</code> = số ngày hiệu lực voucher.</li><li>Dùng được cho <strong>đơn cá nhân</strong> và <strong>đơn nhóm</strong> (mỗi thành viên áp voucher riêng phần món của mình).</li><li>Tắt rule hoặc để % = 0 = không phát voucher khi đăng ký.</li><li>Giảm theo % làm tròn đến hàng nghìn.</li></ul>',
+  office_week_streak: '<p><strong>Chuỗi văn phòng</strong> - khách mua liên tiếp T2→T5 (4 ngày) được tặng voucher <code>CLxxxx</code> dùng thứ 6.</p><ul><li><strong>Quy tắc:</strong> <code>office_week_streak</code> · Loại <code>info</code> (hệ thống tự xử lý).</li><li>JSON mẫu: <code>{"streakDays":4,"maxFreeAmount":30000,"rewardWeekday":5}</code></li><li><code>maxFreeAmount</code>: giá trị ly miễn phí tối đa · <code>rewardWeekday</code>: 5 = thứ 6.</li><li>Đơn <strong>cá nhân</strong> và <strong>đơn nhóm</strong> đều tính chuỗi theo SĐT từng người.</li><li>Mất chuỗi (bỏ 1 ngày T2–T5) → bắt đầu lại từ thứ 2 tuần sau.</li><li>Sheet theo dõi: <em>Chuỗi VP</em>, voucher: <em>Voucher chuỗi VP</em>.</li></ul>',
   new_customer: '<p>Giảm đơn đầu (SĐT chưa từng có đơn Hoàn thành).</p><ul><li><strong>Quy tắc:</strong> <code>new_customer</code></li></ul>',
   repeat_cup: '<p>Khách quay lại + đủ số ly trong giỏ.</p><ul><li><strong>Quy tắc:</strong> <code>repeat_2nd_cup</code> + <code>minCups</code> trong JSON.</li></ul>',
   points_redeem: '<p>Gợi ý đổi điểm (không tự trừ %).</p><ul><li><strong>Quy tắc:</strong> <code>points_redeem_hint</code> + <code>redeemCode</code> trong JSON.</li></ul>',
