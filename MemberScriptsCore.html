@@ -204,8 +204,10 @@ function applyMemCarouselView() {
   });
   if (dual && track && slides.length) {
     var visible = memCarouselVisibleCount();
-    var gap = 10;
-    var cardW = Math.max(72, Math.floor((box.offsetWidth - gap * (visible - 1)) / visible));
+    var gap = 12;
+    var wrap = document.getElementById('mem-carousel-wrap');
+    var baseW = (wrap && wrap.offsetWidth) ? wrap.offsetWidth : box.offsetWidth;
+    var cardW = Math.max(120, Math.floor((baseW - gap * (visible - 1)) / visible));
     box.style.setProperty('--mem-carousel-slide-w', cardW + 'px');
     box.style.setProperty('--mem-carousel-gap', gap + 'px');
     slides.forEach(function (sl) {
