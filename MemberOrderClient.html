@@ -58,6 +58,11 @@
       var args = Array.prototype.slice.call(arguments);
       return global.api.apply(null, args);
     }
+    function apiLong() {
+      var args = Array.prototype.slice.call(arguments);
+      if (typeof global.apiLong === 'function') return global.apiLong.apply(null, args);
+      return api.apply(null, args);
+    }
     function phone() {
       return global.SUN_MEM && global.SUN_MEM.state ? global.SUN_MEM.state.phone : '';
     }
@@ -1122,22 +1127,49 @@
       if (checkoutCard) checkoutCard.style.display = memberOnly ? 'none' : '';
       var promoBlock = document.querySelector('.mem-cart-promo-block');
       if (promoBlock) promoBlock.style.display = memberOnly ? 'none' : '';
-      // Thanh toán đang tạm ẩn cho đơn thường; riêng trưởng nhóm mở lại để chọn
-      // Chuyển khoản → hệ thống show QR sau khi chốt đơn
       var payBlock = $('mem-cart-pay-block');
-      if (payBlock) payBlock.style.display = (inGroup() && isHost()) ? '' : 'none';
+      if (payBlock) payBlock.style.display = memberOnly ? 'none' : '';
       var wait = $('mem-group-wait');
       if (wait) wait.style.display = memberOnly ? '' : 'none';
-      var sub = $('mem-cart-submit');
-      if (sub) {
-        if (inGroup() && isHost()) {
-          sub.innerHTML = '<i class="fa-solid fa-user-group"></i> Đặt đơn nhóm (' + fmt(cartFinalTotal()) + ')';
-        } else {
-          sub.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đơn';
-        }
-      }
+      syncSubmitButtonUi();
       document.body.classList.toggle('mem-group-mode', inGroup());
       document.body.classList.toggle('mem-group-guest', isGuest() && inGroup());
+    }
+    function syncPayMethodBadge() {
+      var badge = $('mem-pay-method-badge');
+      if (!badge) return;
+      badge.textContent = pay === 'Chuyển khoản' ? 'Chuyển khoản' : 'Khi nhận hàng';
+    }
+    function syncSubmitButtonUi() {
+      var sub = $('mem-cart-submit');
+      if (!sub) return;
+      if (inGroup() && !isHost()) return;
+      if (inGroup() && isHost()) {
+        sub.disabled = false;
+        sub.innerHTML = '<i class="fa-solid fa-user-group"></i> Đặt đơn nhóm (' + fmt(cartFinalTotal()) + ')';
+        return;
+      }
+      var qrPaid = $('mem-cart-qr') && $('mem-cart-qr').classList.contains('mem-cart-qr-paid');
+      if (qrOrderLock && pay === 'Chuyển khoản' && !qrPaid) {
+        sub.disabled = true;
+        sub.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Đã đặt — chờ CK';
+        return;
+      }
+      if (qrOrderLock && qrPaid) {
+        sub.disabled = true;
+        sub.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã thanh toán';
+        return;
+      }
+      sub.disabled = false;
+      if (pay === 'Chuyển khoản') {
+        sub.innerHTML = '<i class="fa-solid fa-qrcode"></i> Đặt đơn &amp; hiện QR';
+      } else {
+        sub.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Đặt đơn';
+      }
+    }
+    function syncPayUi() {
+      syncPayMethodBadge();
+      syncSubmitButtonUi();
     }
     function ensureGroupBlock() {
       return $('mem-group-page-root');
@@ -1634,13 +1666,14 @@
       var elPkDisc = $('pk-disc'); if (elPkDisc) elPkDisc.textContent = fmt(disc);
       var elPkTot = $('pk-total'); if (elPkTot) elPkTot.textContent = fmt(total);
       updateCartQr();
+      syncPayUi();
     }
     // ----- QR chuyển khoản (VietQR): chỉ hiện SAU khi gửi đơn thành công — TK lấy từ Cấu hình máy in (Admin) -----
     var BANK_QR = { bin: '970422', acc: '8511585115', name: 'LAM VAN TIN', label: 'MB Bank' };
     function syncBankQrDom() {
       var pre = $('mem-cart-qr-pre');
       if (pre) {
-        pre.innerHTML = '<i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Gửi đơn</strong>, mã QR chuyển khoản (' +
+        pre.innerHTML = '<i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Đặt đơn</strong>, mã QR chuyển khoản (' +
           esc(BANK_QR.label) + ' · ' + esc(BANK_QR.name) + ') sẽ hiện ra kèm mã đơn để bạn quét.';
       }
       var bankEl = $('mem-cart-qr-bank');
@@ -1663,7 +1696,76 @@
         syncBankQrDom();
       }).catch(function () { syncBankQrDom(); });
     }
-    var qrOrderLock = null; // {amount, memo} - set khi đơn đã gửi thành công
+    var qrOrderLock = null; // {amount, memo} - set khi đơn đã đặt thành công
+    var memBankPollIv = null;
+    var memBankPollSession = 0;
+    var memBankPollInFlight = false;
+    var memBankPollFail = 0;
+    var memBankPollCount = 0;
+    function setMemBankScanStatus(txt) {
+      var box = $('mem-cart-bank-scan');
+      var txtEl = $('mem-cart-bank-scan-txt');
+      if (box) box.style.display = txt ? '' : 'none';
+      if (txtEl) txtEl.textContent = txt || '';
+    }
+    function stopMemBankPoll() {
+      if (memBankPollIv) { clearInterval(memBankPollIv); memBankPollIv = null; }
+      memBankPollInFlight = false;
+      setMemBankScanStatus('');
+    }
+    function onMemBankPaid() {
+      stopMemBankPoll();
+      var qr = $('mem-cart-qr');
+      if (qr) qr.classList.add('mem-cart-qr-paid');
+      var h = $('mem-cart-qr-hint');
+      if (h) {
+        h.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#15803D;"></i> <strong>Thanh toán thành công!</strong> Đơn đã được xác nhận — hẹn gặp bạn tại quầy nhé.';
+      }
+      toast('✅ Thanh toán chuyển khoản thành công!');
+      syncSubmitButtonUi();
+    }
+    function memBankPollTick() {
+      if (!qrOrderLock || !qrOrderLock.memo || memBankPollInFlight) return;
+      var session = memBankPollSession;
+      memBankPollInFlight = true;
+      memBankPollCount++;
+      var orderId = qrOrderLock.memo;
+      var expAmt = Math.round(Number(qrOrderLock.amount) || 0);
+      setMemBankScanStatus('Đang quét giao dịch (lần ' + memBankPollCount + ') — tìm «' + orderId + '»…');
+      apiLong('checkBankTransferPayment', 55000, orderId, expAmt).then(function (result) {
+        memBankPollInFlight = false;
+        if (session !== memBankPollSession) return;
+        memBankPollFail = 0;
+        if (!result) return;
+        if (result.status === 'paid') { onMemBankPaid(); return; }
+        if (result.status === 'partial') {
+          var exp = Math.round(Number(result.expectedAmount) || expAmt);
+          var paid = Math.round(Number(result.amountPaid) || 0);
+          var rem = Math.max(0, exp - paid);
+          setMemBankScanStatus('Đã nhận một phần — còn thiếu ' + fmt(rem) + '. Tiếp tục quét…');
+          if (rem > 0 && rem !== qrOrderLock.amount) {
+            qrOrderLock.amount = rem;
+            updateCartQr();
+          }
+          return;
+        }
+        if (result.status === 'error') {
+          toast('⚠️ ' + (result.message === 'confirm_failed' ? 'Thấy giao dịch CK nhưng chưa chốt được đơn' : (result.message || 'Lỗi khớp CK')));
+        }
+      }).catch(function () {
+        memBankPollInFlight = false;
+        memBankPollFail++;
+        if (memBankPollFail >= 4) toast('⚠️ Đang khó kiểm tra CK tự động — kiểm tra mạng');
+      });
+    }
+    function startMemBankPoll() {
+      stopMemBankPoll();
+      memBankPollCount = 0;
+      memBankPollFail = 0;
+      memBankPollSession++;
+      memBankPollTick();
+      memBankPollIv = setInterval(memBankPollTick, 800);
+    }
     function cartFinalTotal() {
       var sub = cartSubtotal() + groupOthersSubtotal();
       return Math.max(0, sub - effectiveDiscount(sub));
@@ -1675,12 +1777,13 @@
       if (pay !== 'Chuyển khoản') {
         box.style.display = 'none';
         if (pre) pre.style.display = 'none';
+        stopMemBankPoll();
         return;
       }
       if (!qrOrderLock) {
-        // Chưa gửi đơn: chỉ nhắc, QR sẽ hiện kèm mã đơn sau khi Gửi đơn
         box.style.display = 'none';
         if (pre) pre.style.display = '';
+        stopMemBankPoll();
         return;
       }
       if (pre) pre.style.display = 'none';
@@ -1698,11 +1801,12 @@
       var ab = $('mem-cart-qr-amt-big'); if (ab) ab.textContent = fmt(amt);
       var m = $('mem-cart-qr-memo'); if (m) m.textContent = memo;
       var h = $('mem-cart-qr-hint');
-      if (h) {
-        h.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--green,#15803D);"></i> Đơn <strong>' + esc(memo) + '</strong> đã gửi cho quán - quét QR để hoàn tất chuyển khoản nhé.';
+      if (h && !box.classList.contains('mem-cart-qr-paid')) {
+        h.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--green,#15803D);"></i> Đơn <strong>' + esc(memo) + '</strong> đã đặt — quét QR để hoàn tất chuyển khoản. Hệ thống tự đối soát khi tiền về.';
       }
       var pb = $('mem-cart-qr-print');
       if (pb) pb.onclick = printMemberBill;
+      if (!box.classList.contains('mem-cart-qr-paid')) startMemBankPoll();
     }
     /** Snapshot món cho bill (chụp TRƯỚC khi dọn giỏ) - đơn nhóm gồm món mọi người. */
     function buildBillItemsSnapshot() {
@@ -2003,7 +2107,12 @@
         checkout.finalAmount = Math.max(0, subtotal - discount);
         return api('savePickupOnlineOrder', checkout);
       }).then(function (res) {
-        toast('✅ Đã gửi đơn ' + (res && res.orderId ? res.orderId : ''));
+        var oid = res && res.orderId ? String(res.orderId) : '';
+        if (pay === 'Chuyển khoản') {
+          toast('✅ Đã đặt đơn ' + oid + ' — quét QR bên dưới để chuyển khoản');
+        } else {
+          toast('✅ Đã đặt đơn ' + oid);
+        }
         if (pay === 'Chuyển khoản') {
           // Giữ QR + snapshot chi tiết đơn (để hiện số tiền và in bill sau khi giỏ đã dọn)
           // Ưu tiên số tiền server chốt - chính xác cả với đơn nhóm
@@ -2030,10 +2139,14 @@
         syncNavBadge();
         if (qrOrderLock) {
           var qb = $('mem-cart-qr');
-          if (qb) setTimeout(function () { qb.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
+          if (qb) {
+            qb.classList.remove('mem-cart-qr-paid');
+            setTimeout(function () { qb.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
+          }
         }
+        syncPayUi();
       }).catch(function (e) {
-        toast(e.message || 'Lỗi gửi đơn');
+        toast(e.message || 'Lỗi đặt đơn');
       }).finally(function () {
         if (btn) btn.disabled = false;
       });
@@ -2090,10 +2203,17 @@
       });
       document.querySelectorAll('#mem-cart-pay button').forEach(function (b) {
         b.onclick = function () {
-          document.querySelectorAll('#mem-cart-pay button').forEach(function (x) { x.classList.remove('on'); });
-          b.classList.add('on');
+          document.querySelectorAll('#mem-cart-pay button').forEach(function (x) {
+            x.classList.remove('selected');
+            x.classList.remove('on');
+          });
+          b.classList.add('selected');
           pay = b.getAttribute('data-p');
+          stopMemBankPoll();
           qrOrderLock = null;
+          var qrBox = $('mem-cart-qr');
+          if (qrBox) qrBox.classList.remove('mem-cart-qr-paid');
+          syncPayUi();
           updateCartQr();
         };
       });

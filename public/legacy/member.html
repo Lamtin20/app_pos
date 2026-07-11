@@ -3357,7 +3357,39 @@
     .mem-cart-sum { margin: 12px 0; }
     .mem-cart-sum-line { display: flex; justify-content: space-between; font-size: 13px; margin: 4px 0; }
     .mem-cart-sum-total { font-weight: 900; font-size: 16px; color: var(--primary); }
-    .mem-cart-submit-btn { width: 100%; margin-top: 8px; }
+    .mem-checkout-pay-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;
+    }
+    .mem-checkout-pay-badge {
+      font-size: 10px; font-weight: 900; color: var(--primary-dk);
+      background: rgba(234, 88, 12, .12); border: 1px solid rgba(234, 88, 12, .25);
+      border-radius: 999px; padding: 3px 10px; white-space: nowrap;
+    }
+    .mem-cart-pay-tiles .pay-method { min-height: 88px; padding: 14px 12px; gap: 6px; position: relative; }
+    .mem-pay-tile-title { font-size: 13px; font-weight: 900; line-height: 1.2; text-align: center; }
+    .mem-pay-tile-sub { font-size: 10.5px; font-weight: 600; color: var(--text3); line-height: 1.3; text-align: center; }
+    .pay-method.selected .mem-pay-tile-sub { color: var(--primary-dk); opacity: .85; }
+    .mem-cart-submit-btn {
+      width: 100%; margin-top: 10px; padding: 15px 18px; font-size: 15px; font-weight: 900;
+      border-radius: 14px; border: none;
+      background: linear-gradient(135deg, var(--primary-dk) 0%, var(--primary-lt) 100%);
+      color: #fff; box-shadow: 0 4px 14px rgba(154, 52, 18, .28);
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    }
+    .mem-cart-submit-btn:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(154, 52, 18, .35); }
+    .mem-cart-submit-btn:active:not(:disabled) { transform: scale(0.98); }
+    .mem-cart-submit-btn:disabled { opacity: .72; cursor: default; box-shadow: none; }
+    .mem-bank-scan {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 9px 12px;
+      font-size: 11.5px; font-weight: 700; color: var(--primary-dk); line-height: 1.45;
+      background: rgba(59, 130, 246, .08); border: 1px dashed rgba(59, 130, 246, .35); border-radius: 10px;
+    }
+    .mem-bank-scan i { color: #2563EB; flex-shrink: 0; }
+    .mem-cart-qr.mem-cart-qr-paid {
+      border-color: rgba(21, 128, 61, .45);
+      background: linear-gradient(155deg, #F0FDF4 0%, var(--surface) 65%);
+    }
+    .mem-cart-qr.mem-cart-qr-paid .mem-cart-qr-head { color: #15803D; }
     .mem-nav-cart { position: relative; }
     .mem-nav-cart-badge {
       position: absolute; top: 2px; right: 8px; min-width: 16px; height: 16px; padding: 0 4px;
@@ -4793,14 +4825,24 @@
         <label class="mem-field-label">Khu vực giao</label><select id="mem-cart-zone"><option value="">- Chọn khu vực -</option></select>
       </div>
       </div>
-      <!-- Thanh toán: tạm ẩn theo yêu cầu - mặc định Thanh toán khi nhận -->
-      <div id="mem-cart-pay-block" style="display:none;">
-      <label class="mem-field-label">Thanh toán</label>
-      <div class="mem-choice-grid" id="mem-cart-pay" role="group" aria-label="Thanh toán">
-        <button type="button" class="mem-choice-btn on" data-p="Thanh toán khi nhận"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i><span>Khi nhận</span></button>
-        <button type="button" class="mem-choice-btn" data-p="Chuyển khoản"><i class="fa-solid fa-building-columns" aria-hidden="true"></i><span>Chuyển khoản</span></button>
+      <div id="mem-cart-pay-block">
+      <div class="mem-checkout-pay-head">
+        <label class="mem-field-label" style="margin:0;">Thanh toán</label>
+        <span class="mem-checkout-pay-badge" id="mem-pay-method-badge">Khi nhận hàng</span>
       </div>
-      <p class="mem-cart-qr-pre" id="mem-cart-qr-pre" style="display:none;"><i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Gửi đơn</strong>, mã QR chuyển khoản sẽ hiện ra kèm mã đơn để bạn quét.</p>
+      <div class="pay-methods mem-cart-pay-tiles" id="mem-cart-pay" role="group" aria-label="Thanh toán">
+        <button type="button" class="pay-method selected" data-p="Thanh toán khi nhận">
+          <i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>
+          <span class="mem-pay-tile-title">Khi nhận hàng</span>
+          <span class="mem-pay-tile-sub">Thanh toán tại quầy</span>
+        </button>
+        <button type="button" class="pay-method" data-p="Chuyển khoản">
+          <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+          <span class="mem-pay-tile-title">Chuyển khoản</span>
+          <span class="mem-pay-tile-sub">Quét QR VietQR tự động</span>
+        </button>
+      </div>
+      <p class="mem-cart-qr-pre" id="mem-cart-qr-pre" style="display:none;"><i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Đặt đơn</strong>, mã QR chuyển khoản sẽ hiện ra kèm mã đơn để bạn quét.</p>
       </div>
       <!-- QR chuyển khoản: hiện SAU khi gửi đơn thành công -->
       <div class="mem-cart-qr" id="mem-cart-qr" style="display:none;">
@@ -4820,7 +4862,8 @@
             <div class="mem-cart-qr-row"><span>Nội dung</span><strong id="mem-cart-qr-memo"></strong></div>
           </div>
         </div>
-        <p class="mem-cart-qr-hint" id="mem-cart-qr-hint"><i class="fa-solid fa-circle-info"></i> Quét QR bằng app ngân hàng - số tiền &amp; nội dung tự điền sẵn. Chuyển xong bấm <strong>Gửi đơn</strong>, quán sẽ đối soát khi nhận đơn.</p>
+        <p class="mem-cart-qr-hint" id="mem-cart-qr-hint"><i class="fa-solid fa-circle-info"></i> Quét QR bằng app ngân hàng — số tiền &amp; nội dung tự điền sẵn. Hệ thống tự đối soát khi tiền về.</p>
+        <div class="mem-bank-scan" id="mem-cart-bank-scan" style="display:none;"><i class="fa-solid fa-circle-notch fa-spin"></i><span id="mem-cart-bank-scan-txt">Đang quét giao dịch ngân hàng…</span></div>
         <button type="button" class="btn mem-cart-qr-print" id="mem-cart-qr-print"><i class="fa-solid fa-print"></i> In bill (chi tiết đơn + QR)</button>
       </div>
       <div class="mem-cart-sum">
@@ -4828,7 +4871,7 @@
         <div class="mem-cart-sum-line"><span>Giảm KM</span><span id="mem-cart-disc">0đ</span></div>
         <div class="mem-cart-sum-line mem-cart-sum-total"><span>Tổng</span><span id="mem-cart-total">0đ</span></div>
       </div>
-      <button type="button" class="btn mem-cart-submit-btn" id="mem-cart-submit"><i class="fa-solid fa-paper-plane"></i> Gửi đơn</button>
+      <button type="button" class="btn mem-cart-submit-btn" id="mem-cart-submit"><i class="fa-solid fa-bag-shopping"></i> Đặt đơn</button>
     </div>
     </div>
     </div>
@@ -5817,6 +5860,11 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     function api() {
       var args = Array.prototype.slice.call(arguments);
       return global.api.apply(null, args);
+    }
+    function apiLong() {
+      var args = Array.prototype.slice.call(arguments);
+      if (typeof global.apiLong === 'function') return global.apiLong.apply(null, args);
+      return api.apply(null, args);
     }
     function phone() {
       return global.SUN_MEM && global.SUN_MEM.state ? global.SUN_MEM.state.phone : '';
@@ -6882,22 +6930,49 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       if (checkoutCard) checkoutCard.style.display = memberOnly ? 'none' : '';
       var promoBlock = document.querySelector('.mem-cart-promo-block');
       if (promoBlock) promoBlock.style.display = memberOnly ? 'none' : '';
-      // Thanh toán đang tạm ẩn cho đơn thường; riêng trưởng nhóm mở lại để chọn
-      // Chuyển khoản → hệ thống show QR sau khi chốt đơn
       var payBlock = $('mem-cart-pay-block');
-      if (payBlock) payBlock.style.display = (inGroup() && isHost()) ? '' : 'none';
+      if (payBlock) payBlock.style.display = memberOnly ? 'none' : '';
       var wait = $('mem-group-wait');
       if (wait) wait.style.display = memberOnly ? '' : 'none';
-      var sub = $('mem-cart-submit');
-      if (sub) {
-        if (inGroup() && isHost()) {
-          sub.innerHTML = '<i class="fa-solid fa-user-group"></i> Đặt đơn nhóm (' + fmt(cartFinalTotal()) + ')';
-        } else {
-          sub.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đơn';
-        }
-      }
+      syncSubmitButtonUi();
       document.body.classList.toggle('mem-group-mode', inGroup());
       document.body.classList.toggle('mem-group-guest', isGuest() && inGroup());
+    }
+    function syncPayMethodBadge() {
+      var badge = $('mem-pay-method-badge');
+      if (!badge) return;
+      badge.textContent = pay === 'Chuyển khoản' ? 'Chuyển khoản' : 'Khi nhận hàng';
+    }
+    function syncSubmitButtonUi() {
+      var sub = $('mem-cart-submit');
+      if (!sub) return;
+      if (inGroup() && !isHost()) return;
+      if (inGroup() && isHost()) {
+        sub.disabled = false;
+        sub.innerHTML = '<i class="fa-solid fa-user-group"></i> Đặt đơn nhóm (' + fmt(cartFinalTotal()) + ')';
+        return;
+      }
+      var qrPaid = $('mem-cart-qr') && $('mem-cart-qr').classList.contains('mem-cart-qr-paid');
+      if (qrOrderLock && pay === 'Chuyển khoản' && !qrPaid) {
+        sub.disabled = true;
+        sub.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Đã đặt — chờ CK';
+        return;
+      }
+      if (qrOrderLock && qrPaid) {
+        sub.disabled = true;
+        sub.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã thanh toán';
+        return;
+      }
+      sub.disabled = false;
+      if (pay === 'Chuyển khoản') {
+        sub.innerHTML = '<i class="fa-solid fa-qrcode"></i> Đặt đơn &amp; hiện QR';
+      } else {
+        sub.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Đặt đơn';
+      }
+    }
+    function syncPayUi() {
+      syncPayMethodBadge();
+      syncSubmitButtonUi();
     }
     function ensureGroupBlock() {
       return $('mem-group-page-root');
@@ -7394,13 +7469,14 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       var elPkDisc = $('pk-disc'); if (elPkDisc) elPkDisc.textContent = fmt(disc);
       var elPkTot = $('pk-total'); if (elPkTot) elPkTot.textContent = fmt(total);
       updateCartQr();
+      syncPayUi();
     }
     // ----- QR chuyển khoản (VietQR): chỉ hiện SAU khi gửi đơn thành công — TK lấy từ Cấu hình máy in (Admin) -----
     var BANK_QR = { bin: '970422', acc: '8511585115', name: 'LAM VAN TIN', label: 'MB Bank' };
     function syncBankQrDom() {
       var pre = $('mem-cart-qr-pre');
       if (pre) {
-        pre.innerHTML = '<i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Gửi đơn</strong>, mã QR chuyển khoản (' +
+        pre.innerHTML = '<i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Đặt đơn</strong>, mã QR chuyển khoản (' +
           esc(BANK_QR.label) + ' · ' + esc(BANK_QR.name) + ') sẽ hiện ra kèm mã đơn để bạn quét.';
       }
       var bankEl = $('mem-cart-qr-bank');
@@ -7423,7 +7499,76 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         syncBankQrDom();
       }).catch(function () { syncBankQrDom(); });
     }
-    var qrOrderLock = null; // {amount, memo} - set khi đơn đã gửi thành công
+    var qrOrderLock = null; // {amount, memo} - set khi đơn đã đặt thành công
+    var memBankPollIv = null;
+    var memBankPollSession = 0;
+    var memBankPollInFlight = false;
+    var memBankPollFail = 0;
+    var memBankPollCount = 0;
+    function setMemBankScanStatus(txt) {
+      var box = $('mem-cart-bank-scan');
+      var txtEl = $('mem-cart-bank-scan-txt');
+      if (box) box.style.display = txt ? '' : 'none';
+      if (txtEl) txtEl.textContent = txt || '';
+    }
+    function stopMemBankPoll() {
+      if (memBankPollIv) { clearInterval(memBankPollIv); memBankPollIv = null; }
+      memBankPollInFlight = false;
+      setMemBankScanStatus('');
+    }
+    function onMemBankPaid() {
+      stopMemBankPoll();
+      var qr = $('mem-cart-qr');
+      if (qr) qr.classList.add('mem-cart-qr-paid');
+      var h = $('mem-cart-qr-hint');
+      if (h) {
+        h.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#15803D;"></i> <strong>Thanh toán thành công!</strong> Đơn đã được xác nhận — hẹn gặp bạn tại quầy nhé.';
+      }
+      toast('✅ Thanh toán chuyển khoản thành công!');
+      syncSubmitButtonUi();
+    }
+    function memBankPollTick() {
+      if (!qrOrderLock || !qrOrderLock.memo || memBankPollInFlight) return;
+      var session = memBankPollSession;
+      memBankPollInFlight = true;
+      memBankPollCount++;
+      var orderId = qrOrderLock.memo;
+      var expAmt = Math.round(Number(qrOrderLock.amount) || 0);
+      setMemBankScanStatus('Đang quét giao dịch (lần ' + memBankPollCount + ') — tìm «' + orderId + '»…');
+      apiLong('checkBankTransferPayment', 55000, orderId, expAmt).then(function (result) {
+        memBankPollInFlight = false;
+        if (session !== memBankPollSession) return;
+        memBankPollFail = 0;
+        if (!result) return;
+        if (result.status === 'paid') { onMemBankPaid(); return; }
+        if (result.status === 'partial') {
+          var exp = Math.round(Number(result.expectedAmount) || expAmt);
+          var paid = Math.round(Number(result.amountPaid) || 0);
+          var rem = Math.max(0, exp - paid);
+          setMemBankScanStatus('Đã nhận một phần — còn thiếu ' + fmt(rem) + '. Tiếp tục quét…');
+          if (rem > 0 && rem !== qrOrderLock.amount) {
+            qrOrderLock.amount = rem;
+            updateCartQr();
+          }
+          return;
+        }
+        if (result.status === 'error') {
+          toast('⚠️ ' + (result.message === 'confirm_failed' ? 'Thấy giao dịch CK nhưng chưa chốt được đơn' : (result.message || 'Lỗi khớp CK')));
+        }
+      }).catch(function () {
+        memBankPollInFlight = false;
+        memBankPollFail++;
+        if (memBankPollFail >= 4) toast('⚠️ Đang khó kiểm tra CK tự động — kiểm tra mạng');
+      });
+    }
+    function startMemBankPoll() {
+      stopMemBankPoll();
+      memBankPollCount = 0;
+      memBankPollFail = 0;
+      memBankPollSession++;
+      memBankPollTick();
+      memBankPollIv = setInterval(memBankPollTick, 800);
+    }
     function cartFinalTotal() {
       var sub = cartSubtotal() + groupOthersSubtotal();
       return Math.max(0, sub - effectiveDiscount(sub));
@@ -7435,12 +7580,13 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       if (pay !== 'Chuyển khoản') {
         box.style.display = 'none';
         if (pre) pre.style.display = 'none';
+        stopMemBankPoll();
         return;
       }
       if (!qrOrderLock) {
-        // Chưa gửi đơn: chỉ nhắc, QR sẽ hiện kèm mã đơn sau khi Gửi đơn
         box.style.display = 'none';
         if (pre) pre.style.display = '';
+        stopMemBankPoll();
         return;
       }
       if (pre) pre.style.display = 'none';
@@ -7458,11 +7604,12 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       var ab = $('mem-cart-qr-amt-big'); if (ab) ab.textContent = fmt(amt);
       var m = $('mem-cart-qr-memo'); if (m) m.textContent = memo;
       var h = $('mem-cart-qr-hint');
-      if (h) {
-        h.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--green,#15803D);"></i> Đơn <strong>' + esc(memo) + '</strong> đã gửi cho quán - quét QR để hoàn tất chuyển khoản nhé.';
+      if (h && !box.classList.contains('mem-cart-qr-paid')) {
+        h.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--green,#15803D);"></i> Đơn <strong>' + esc(memo) + '</strong> đã đặt — quét QR để hoàn tất chuyển khoản. Hệ thống tự đối soát khi tiền về.';
       }
       var pb = $('mem-cart-qr-print');
       if (pb) pb.onclick = printMemberBill;
+      if (!box.classList.contains('mem-cart-qr-paid')) startMemBankPoll();
     }
     /** Snapshot món cho bill (chụp TRƯỚC khi dọn giỏ) - đơn nhóm gồm món mọi người. */
     function buildBillItemsSnapshot() {
@@ -7763,7 +7910,12 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         checkout.finalAmount = Math.max(0, subtotal - discount);
         return api('savePickupOnlineOrder', checkout);
       }).then(function (res) {
-        toast('✅ Đã gửi đơn ' + (res && res.orderId ? res.orderId : ''));
+        var oid = res && res.orderId ? String(res.orderId) : '';
+        if (pay === 'Chuyển khoản') {
+          toast('✅ Đã đặt đơn ' + oid + ' — quét QR bên dưới để chuyển khoản');
+        } else {
+          toast('✅ Đã đặt đơn ' + oid);
+        }
         if (pay === 'Chuyển khoản') {
           // Giữ QR + snapshot chi tiết đơn (để hiện số tiền và in bill sau khi giỏ đã dọn)
           // Ưu tiên số tiền server chốt - chính xác cả với đơn nhóm
@@ -7790,10 +7942,14 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         syncNavBadge();
         if (qrOrderLock) {
           var qb = $('mem-cart-qr');
-          if (qb) setTimeout(function () { qb.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
+          if (qb) {
+            qb.classList.remove('mem-cart-qr-paid');
+            setTimeout(function () { qb.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
+          }
         }
+        syncPayUi();
       }).catch(function (e) {
-        toast(e.message || 'Lỗi gửi đơn');
+        toast(e.message || 'Lỗi đặt đơn');
       }).finally(function () {
         if (btn) btn.disabled = false;
       });
@@ -7850,10 +8006,17 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       });
       document.querySelectorAll('#mem-cart-pay button').forEach(function (b) {
         b.onclick = function () {
-          document.querySelectorAll('#mem-cart-pay button').forEach(function (x) { x.classList.remove('on'); });
-          b.classList.add('on');
+          document.querySelectorAll('#mem-cart-pay button').forEach(function (x) {
+            x.classList.remove('selected');
+            x.classList.remove('on');
+          });
+          b.classList.add('selected');
           pay = b.getAttribute('data-p');
+          stopMemBankPoll();
           qrOrderLock = null;
+          var qrBox = $('mem-cart-qr');
+          if (qrBox) qrBox.classList.remove('mem-cart-qr-paid');
+          syncPayUi();
           updateCartQr();
         };
       });
