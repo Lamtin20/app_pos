@@ -3260,7 +3260,7 @@
       color: #db2777;
     }
 
-    .nav-btn#nav-ai i {
+    .nav-btn#nav-online i {
       color: #2563eb;
     }
 
@@ -3569,27 +3569,131 @@
     }
 
     /* ===== Đơn online: tab Đang xử lý / Hoàn tất + checklist bếp ===== */
-    .oo-tabs { display: flex; gap: 8px; margin: 0 0 14px; }
+    .oo-sheet {
+      max-width: 720px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+      background: #faf7f2;
+    }
+
+    .oo-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px 14px;
+      background: linear-gradient(135deg, #7c2d12, #b45309);
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .oo-head-icon {
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2);
+    }
+
+    .oo-head-text { flex: 1; min-width: 0; }
+    .oo-head-text h3 { margin: 0; font-size: 16.5px; font-weight: 900; letter-spacing: -.01em; }
+    .oo-head-text p { margin: 2px 0 0; font-size: 11px; color: rgba(255, 255, 255, .78); font-weight: 600; }
+
+    .oo-head-btn {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .14);
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s ease, transform .12s ease;
+    }
+
+    .oo-head-btn:hover { background: rgba(255, 255, 255, .26); }
+    .oo-head-btn:active { transform: scale(.94); }
+
+    .oo-toolbar {
+      padding: 14px 18px 0;
+      flex-shrink: 0;
+    }
+
+    .oo-list-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 18px 20px;
+      font-size: 13px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border2) transparent;
+    }
+
+    .oo-tabs { display: flex; gap: 8px; margin: 0 0 12px; }
     .oo-tab {
-      flex: 1; border: 1.5px solid var(--border); background: #faf7f2; border-radius: 12px;
-      padding: 10px; font-weight: 800; font-size: 12.5px; cursor: pointer; color: var(--text-2, #57534e);
+      flex: 1; border: 1.5px solid var(--border); background: #fff; border-radius: 14px;
+      padding: 11px 10px; font-weight: 800; font-size: 12.5px; cursor: pointer; color: var(--text-2, #57534e);
       font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 7px;
       transition: all .15s ease;
     }
-    .oo-tab.on { background: #7c2d12; border-color: #7c2d12; color: #fff; box-shadow: 0 4px 14px rgba(124, 45, 18, .28); }
+    .oo-tab.on { background: linear-gradient(135deg, #7c2d12, #9a3412); border-color: #7c2d12; color: #fff; box-shadow: 0 4px 14px rgba(124, 45, 18, .28); }
     .oo-tab-n { font-size: 11px; font-weight: 900; background: rgba(0, 0, 0, .08); border-radius: 999px; padding: 1px 8px; }
     .oo-tab.on .oo-tab-n { background: rgba(255, 255, 255, .24); }
-    .oo-empty { color: var(--text-3); text-align: center; padding: 26px 10px; font-size: 13px; }
-    .oo-card { border: 1px solid var(--border); border-radius: 14px; background: #fff; margin-bottom: 10px; overflow: hidden; transition: box-shadow .2s ease; }
-    .oo-card.open { box-shadow: 0 8px 24px rgba(60, 40, 25, .1); }
-    .oo-card-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
-    .oo-card-h:hover { background: #faf7f2; }
-    .oo-id { font-weight: 900; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-    .oo-meta { font-size: 11.5px; color: #78716c; margin-top: 3px; }
+    .oo-empty {
+      color: var(--text-3); text-align: center; padding: 40px 14px; font-size: 13.5px; font-weight: 600;
+      background: #fff; border: 1.5px dashed var(--border); border-radius: 16px;
+    }
+    .oo-card {
+      border: 1px solid var(--border); border-radius: 18px; background: #fff; margin-bottom: 12px;
+      overflow: hidden; transition: box-shadow .2s ease, border-color .2s ease;
+      box-shadow: 0 2px 10px rgba(60, 40, 25, .05);
+    }
+    .oo-card.open { box-shadow: 0 10px 28px rgba(60, 40, 25, .12); border-color: #eaddd0; }
+    .oo-card-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 15px; cursor: pointer; }
+    .oo-card-h:hover { background: #fdfaf6; }
+    .oo-id { font-weight: 900; font-size: 14.5px; display: flex; align-items: center; gap: 8px; color: #431407; }
+    .oo-meta { font-size: 11.5px; color: #78716c; margin-top: 4px; line-height: 1.45; }
     .oo-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-    .oo-total { font-weight: 900; color: #9a3412; font-size: 13.5px; white-space: nowrap; }
+    .oo-total { font-weight: 900; color: #9a3412; font-size: 14px; white-space: nowrap; }
     .oo-chev { transition: transform .2s ease; color: #a8a29e; font-size: 12px; }
     .oo-card.open .oo-chev { transform: rotate(180deg); }
+
+    /* ===== Đơn online: chế độ mở tab riêng (?online=1) — toàn màn hình ===== */
+    body.oo-page-mode #onlineOrdersModal.modal-overlay {
+      background: #f3ede4;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    body.oo-page-mode #onlineOrdersModal.modal-overlay.open {
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    body.oo-page-mode #onlineOrdersModal .oo-sheet {
+      max-width: 860px;
+      max-height: none;
+      height: 100dvh;
+      border-radius: 0;
+      animation: none;
+      box-shadow: 0 0 40px rgba(60, 40, 25, .1);
+    }
+
+    @media(min-width:900px) {
+      body.oo-page-mode #onlineOrdersModal .oo-head { padding: 20px 26px 16px; }
+      body.oo-page-mode #onlineOrdersModal .oo-toolbar { padding: 16px 26px 0; }
+      body.oo-page-mode #onlineOrdersModal .oo-list-wrap { padding: 14px 26px 28px; }
+    }
     .oo-group-banner {
       margin: 0 14px 8px; padding: 8px 12px; border-radius: 10px;
       background: linear-gradient(120deg, #fff7ed, #ffedd5); border: 1px solid #fdba74;
@@ -3713,10 +3817,7 @@
       <input type="text" id="search-input" placeholder="Tìm sản phẩm..." oninput="filterProducts()" autocomplete="off">
     </div>
     <div class="topbar-actions">
-      <button type="button" class="top-chip primary" id="btn-member-page" onclick="goToMemberPage()" title="Trang Hội viên — gói giao sữa &amp; thực đơn">
-        <i class="fa-solid fa-id-card-clip"></i><span class="top-chip-text-long"> Hội viên</span>
-      </button>
-      <button type="button" class="top-chip" id="btn-online-orders" onclick="openOnlineOrdersModal()" title="Đơn khách đặt qua Member / Pickup">
+      <button type="button" class="top-chip primary hide-mobile" id="btn-online-orders" onclick="openOnlineOrdersPage()" title="Đơn khách đặt qua Member / Pickup — mở tab riêng">
         <i class="fa-solid fa-globe"></i><span class="top-chip-text-long"> Đơn online</span>
         <span class="promo-count-badge" id="online-orders-badge" style="display:none;">0</span>
       </button>
@@ -3907,10 +4008,11 @@
         <i class="fa-solid fa-tags"></i>
         <span>Ưu đãi</span>
       </button>
-      <button class="nav-btn" id="nav-ai" onclick="openAI()">
+      <button class="nav-btn" id="nav-online" onclick="openOnlineOrdersPage()">
         <div class="nav-indicator"></div>
-        <i class="fa-solid fa-seedling"></i>
-        <span>AI</span>
+        <i class="fa-solid fa-globe"></i>
+        <span>Đơn online</span>
+        <span class="cart-badge" id="online-orders-badge-nav" style="display:none;"></span>
       </button>
       <button class="nav-btn" id="nav-admin" onclick="goToAdmin()">
         <div class="nav-indicator"></div>
@@ -4333,30 +4435,39 @@
 
   <!-- Đơn online (Member / Pickup) -->
   <div class="modal-overlay" id="onlineOrdersModal" onclick="if(event.target===this)closeOnlineOrdersModal()">
-    <div class="modal-sheet" style="max-width:680px;max-height:90vh;overflow:auto;" onclick="event.stopPropagation()">
-      <div class="pos-modal-h">
-        <h3><i class="fa-solid fa-globe"></i> Đơn online</h3>
-        <button type="button" class="btn btn-sec" onclick="closeOnlineOrdersModal()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="modal-sheet oo-sheet" onclick="event.stopPropagation()">
+      <div class="oo-head">
+        <div class="oo-head-icon"><i class="fa-solid fa-globe"></i></div>
+        <div class="oo-head-text">
+          <h3>Đơn online</h3>
+          <p>Đơn khách đặt qua trang Hội viên &amp; Pickup</p>
+        </div>
+        <button type="button" class="oo-head-btn" onclick="reloadOnlineOrders()" title="Tải lại danh sách đơn"><i class="fa-solid fa-rotate"></i></button>
+        <button type="button" class="oo-head-btn oo-head-close" onclick="closeOnlineOrdersModal()" title="Đóng"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="oo-tabs">
-        <button type="button" class="oo-tab on" id="oo-tab-active" onclick="switchOnlineTab('active')"><i class="fa-solid fa-fire"></i> Đang chờ làm <span class="oo-tab-n" id="oo-count-active">0</span></button>
-        <button type="button" class="oo-tab" id="oo-tab-done" onclick="switchOnlineTab('done')"><i class="fa-solid fa-circle-check"></i> Đã hoàn tất <span class="oo-tab-n" id="oo-count-done">0</span></button>
-      </div>
-      <div class="oo-printer-bar off" id="oo-printer-bar">
-        <div class="oo-printer-left">
-          <div class="oo-printer-status" id="oo-printer-status"><i class="fa-solid fa-circle"></i> Máy in tem chưa kết nối</div>
-          <div class="oo-printer-hint" id="oo-printer-hint">Bấm 🏷️ In tem → tự kết nối Bluetooth · CLABEL 221B · 30×40mm</div>
-          <div class="oo-printer-android-tip" id="oo-printer-android-tip">
-            <i class="fa-brands fa-android"></i> Android: bật <strong>Bluetooth + Vị trí</strong>, dùng <strong>Chrome</strong>.
-            Lần đầu chọn CLABEL 221B một lần — sau đó bấm In tem là tự kết nối và in. Tắt app Clabel Trade nếu máy không tìm thấy.
+      <div class="oo-toolbar">
+        <div class="oo-tabs">
+          <button type="button" class="oo-tab on" id="oo-tab-active" onclick="switchOnlineTab('active')"><i class="fa-solid fa-fire"></i> Đang chờ làm <span class="oo-tab-n" id="oo-count-active">0</span></button>
+          <button type="button" class="oo-tab" id="oo-tab-done" onclick="switchOnlineTab('done')"><i class="fa-solid fa-circle-check"></i> Đã hoàn tất <span class="oo-tab-n" id="oo-count-done">0</span></button>
+        </div>
+        <div class="oo-printer-bar off" id="oo-printer-bar">
+          <div class="oo-printer-left">
+            <div class="oo-printer-status" id="oo-printer-status"><i class="fa-solid fa-circle"></i> Máy in tem chưa kết nối</div>
+            <div class="oo-printer-hint" id="oo-printer-hint">Bấm 🏷️ In tem → tự kết nối Bluetooth · CLABEL 221B · 30×40mm</div>
+            <div class="oo-printer-android-tip" id="oo-printer-android-tip">
+              <i class="fa-brands fa-android"></i> Android: bật <strong>Bluetooth + Vị trí</strong>, dùng <strong>Chrome</strong>.
+              Lần đầu chọn CLABEL 221B một lần — sau đó bấm In tem là tự kết nối và in. Tắt app Clabel Trade nếu máy không tìm thấy.
+            </div>
+          </div>
+          <div class="oo-printer-actions">
+            <button type="button" class="oo-btn-connect" id="oo-btn-connect-printer" onclick="connectLabelPrinter('clabel')"><i class="fa-brands fa-bluetooth-b"></i> Kết nối CLABEL</button>
+            <button type="button" class="oo-btn-scan" id="oo-btn-scan-printer" onclick="connectLabelPrinter('scan')"><i class="fa-solid fa-radar"></i> Quét BT</button>
           </div>
         </div>
-        <div class="oo-printer-actions">
-          <button type="button" class="oo-btn-connect" id="oo-btn-connect-printer" onclick="connectLabelPrinter('clabel')"><i class="fa-brands fa-bluetooth-b"></i> Kết nối CLABEL</button>
-          <button type="button" class="oo-btn-scan" id="oo-btn-scan-printer" onclick="connectLabelPrinter('scan')"><i class="fa-solid fa-radar"></i> Quét BT</button>
-        </div>
       </div>
-      <div id="online-orders-list" style="font-size:13px;">Đang tải…</div>
+      <div class="oo-list-wrap">
+        <div id="online-orders-list">Đang tải…</div>
+      </div>
     </div>
   </div>
 
@@ -7394,11 +7505,12 @@
         var st = String(o.status || '');
         return st.indexOf('Hoàn') < 0 && st.indexOf('Hủy') < 0;
       });
-      var badge = document.getElementById('online-orders-badge');
-      if (badge) {
+      ['online-orders-badge', 'online-orders-badge-nav'].forEach(function (bid) {
+        var badge = document.getElementById(bid);
+        if (!badge) return;
         if (pending.length) { badge.style.display = 'inline-flex'; badge.textContent = String(pending.length); }
         else badge.style.display = 'none';
-      }
+      });
       list.forEach(function (o) {
         if (!__knownOnlineIds[o.id] && String(o.status || '').indexOf('Chờ') >= 0) {
           showToast('📱 Đơn online mới: ' + o.id);
@@ -7532,7 +7644,26 @@
     try { await loadOnlineOrdersModal(); } catch (e) { showToast('⚠️ Không tải đơn online'); }
     showLoading(false);
   };
+  // Mở màn hình Đơn online ở tab mới — chủ quán xem đơn & thao tác riêng, không vướng POS
+  window.openOnlineOrdersPage = function () {
+    window.open('/order?online=1', '_blank');
+  };
+  window.reloadOnlineOrders = async function () {
+    showLoading(true);
+    try {
+      await loadOnlineOrdersModal();
+      await refreshOnlineOrdersBadge();
+      showToast('🔄 Đã cập nhật danh sách đơn');
+    } catch (e) { showToast('⚠️ Không tải đơn online'); }
+    showLoading(false);
+  };
   window.closeOnlineOrdersModal = function () {
+    if (document.body.classList.contains('oo-page-mode')) {
+      // Tab riêng: đóng tab; nếu trình duyệt chặn thì quay về POS
+      window.close();
+      setTimeout(function () { window.location.href = '/order'; }, 250);
+      return;
+    }
     document.getElementById('onlineOrdersModal').classList.remove('open');
   };
 
@@ -7583,6 +7714,17 @@
     try { loadData(); } catch (e) { menuData = getFallbackMenu(); renderMenu(); renderCategories(); }
     refreshOnlineOrdersBadge();
     setInterval(refreshOnlineOrdersBadge, 45000);
+    // ?online=1 → mở màn hình Đơn online toàn trang (tab riêng cho chủ quán)
+    try {
+      if (/[?&]online=1/.test(window.location.search)) {
+        document.body.classList.add('oo-page-mode');
+        document.title = 'Đơn online — SUN Nut Milk';
+        openOnlineOrdersModal();
+        setInterval(function () {
+          loadOnlineOrdersModal().catch(function () { });
+        }, 30000);
+      }
+    } catch (eOo) { }
     updateLabelPrinterUi();
     if (navigator.bluetooth && navigator.bluetooth.getDevices) {
       tryReconnectLabelPrinter(true).then(function (ok) { if (ok) updateLabelPrinterUi(); });
