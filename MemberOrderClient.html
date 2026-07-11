@@ -1302,9 +1302,7 @@
           '<div class="mem-group-finalize-hint"><i class="fa-solid fa-circle-info"></i> Muốn <strong>chuyển khoản</strong>? Vào tab <strong>Giỏ hàng</strong> để chọn hình thức thanh toán trước khi chốt.</div>';
       }
       html += '<div id="mem-group-wait" class="mem-group-wait" style="display:none;">' +
-        '<i class="fa-solid fa-hourglass-half"></i> Món của bạn tự lưu vào nhóm - trưởng nhóm sẽ chốt đơn và thanh toán.' +
-        '<button type="button" class="btn btn-sm mem-group-done-btn" id="mem-group-done"><i class="fa-solid fa-check"></i> Hoàn tất chọn món</button>' +
-        '<button type="button" class="btn btn-sm btn-ghost mem-group-more-btn" id="mem-group-more"><i class="fa-solid fa-plus"></i> Thêm món mới</button>' +
+        '<i class="fa-solid fa-circle-info"></i> Món của bạn được thêm vào nhóm - trưởng nhóm sẽ chốt đơn và thanh toán.' +
         '</div>' +
         '</div>';
       blk.innerHTML = html;
@@ -1341,18 +1339,6 @@
       if (lk) lk.onclick = toggleGroupLock;
       var lv = $('mem-group-leave');
       if (lv) lv.onclick = leaveGroup;
-      var mr = $('mem-group-more');
-      if (mr) mr.onclick = function () {
-        if (global.SUN_MEM && global.SUN_MEM.goOrder) global.SUN_MEM.goOrder();
-      };
-      var dn = $('mem-group-done');
-      if (dn) dn.onclick = function () {
-        if (!cart.length) { toast('Bạn chưa chọn món nào - chọn tại tab Đặt hàng nhé'); return; }
-        dn.disabled = true;
-        groupSyncNow().then(function () {
-          showGroupAddedPopup(cart[cart.length - 1]);
-        }).finally(function () { dn.disabled = false; });
-      };
       applyGroupModeUi();
       renderGroupOrdersPanel();
     }

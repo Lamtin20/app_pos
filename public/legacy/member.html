@@ -154,6 +154,33 @@
       width: 100%; padding: 11px 12px; border-radius: 12px; border: 1.5px solid var(--border);
       font-size: 14px; font-family: var(--font); background: var(--surface2);
     }
+    input:focus, select:focus, textarea:focus,
+    input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: none;
+    }
+    /* Ô nhập nằm trong khung viền ngoài: không thêm viền/outline bên trong */
+    .mem-gate-input-wrap input,
+    .mem-gate-input-wrap select,
+    .mem-gate-input-wrap textarea,
+    .pk-search-bar input,
+    .mem-search-wrap input,
+    [class*="-input-wrap"] > input,
+    [class*="-input-wrap"] > select,
+    [class*="-input-wrap"] > textarea {
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .mem-gate-input-wrap input:-webkit-autofill,
+    .mem-gate-input-wrap input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px var(--surface2) inset !important;
+      box-shadow: 0 0 0 1000px var(--surface2) inset !important;
+      border: none !important;
+      outline: none !important;
+    }
     textarea { min-height: 72px; resize: vertical; }
     .pay-row label { display: inline-flex; align-items: center; gap: 8px; margin-right: 16px; cursor: pointer; font-weight: 600; color: var(--text2); }
     .reg-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
@@ -306,14 +333,17 @@
     body[data-sky-dark="1"] .mem-topbar-meta { color: rgba(255,255,255,.92); }
     .mem-write-name-wrap {
       display: inline-block; vertical-align: bottom; max-width: 100%;
+      overflow: visible;
     }
     .mem-write-name {
       font-family: 'Caveat', 'Be Vietnam Pro', cursive;
       font-weight: 700;
       font-size: 1.45em;
       letter-spacing: 0.01em;
+      line-height: 1.45;
       display: inline-block;
       white-space: nowrap;
+      padding-bottom: 3px;
       clip-path: inset(0 100% 0 0);
       animation: memWriteName 1.05s cubic-bezier(.35, 0, .2, 1) forwards;
     }
@@ -324,6 +354,9 @@
       font-weight: 700;
       font-size: 1.45em;
       letter-spacing: 0.01em;
+      line-height: 1.45;
+      display: inline-block;
+      padding-bottom: 3px;
       opacity: 0;
       animation: memGreetOi 0.45s ease 0.92s forwards;
     }
@@ -765,7 +798,7 @@
     @media (min-width: 900px) { .mem-offers-shell { max-width: none; } }
     .mem-offers-page .section-title { display: none; }
     body[data-mem-tab="offers"] .mem-topbar { display: none !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important; border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
-    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--bg) !important; }
+    body[data-mem-tab="offers"] { padding-top: 0 !important; background: var(--offers-page-bg, var(--bg)) !important; }
     body[data-mem-tab="offers"] #mem-portal-main { padding-left: 0; padding-right: 0; padding-top: 0 !important; margin-top: 0 !important; background: transparent; }
     body[data-mem-tab="offers"] #sec-offers { margin: 0; padding: 0; max-width: none; }
     body[data-mem-tab="offers"] #sec-offers.section { padding: 0; max-width: none; }
@@ -791,18 +824,18 @@
       body[data-mem-tab="offers"] .mem-offers-hero {
         max-width: none; margin: 0; border-radius: 0; padding-top: 12px;
       }
-      body[data-mem-tab="offers"] .mem-offers-hero .mem-offers-eyebrow { display: none; }
+      body[data-mem-tab="offers"] .mem-offers-hero .mem-offers-eyebrow { display: block; }
       body[data-mem-tab="offers"] .mem-offers-body {
         max-width: none; margin: 0; border-radius: 0; padding: 18px 16px 28px;
       }
       body[data-mem-tab="offers"] .mem-offers-card { margin-left: 14px; margin-right: 14px; }
     }
     .mem-offers-hero {
-      margin: 0; padding: env(safe-area-inset-top, 0px) 0 14px; position: relative; overflow: hidden;
+      margin: 0; padding: calc(env(safe-area-inset-top, 0px) + 8px) 0 14px; position: relative; overflow: hidden;
       background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 38%, #fde68a 72%, #fcd34d 100%);
-      color: #92400e; border-radius: 0 0 20px 20px;
+      color: #92400e; border-radius: 0;
     }
-    .mem-offers-hero-top, .mem-offers-card, .mem-offers-expiry { padding-left: 16px; padding-right: 16px; }
+    .mem-offers-hero-top, .mem-offers-card, .mem-offers-expiry { padding-left: 20px; padding-right: 20px; }
     .mem-offers-hero.tier-member {
       background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 38%, #fde68a 72%, #fcd34d 100%);
       color: #92400e;
@@ -859,18 +892,21 @@
         background: linear-gradient(180deg, #0a0a0a 0%, #262626 55%, #404040 100%);
         color: #fef3c7;
       }
-      .mem-offers-hero { border-radius: 0 0 22px 22px; padding-bottom: 18px; }
+      .mem-offers-hero { border-radius: 0; padding-bottom: 18px; }
       .mem-offers-hero-top {
         flex-direction: column; align-items: stretch; gap: 14px;
-        padding: 16px 16px 0;
+        padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0;
       }
       .mem-offers-hero-head {
-        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        display: flex; align-items: center; justify-content: flex-start; gap: 12px;
       }
       .mem-offers-eyebrow {
-        font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
-        opacity: .88; margin: 0;
+        font-family: var(--display);
+        font-size: clamp(1.35rem, 5.5vw, 1.65rem); font-weight: 900;
+        letter-spacing: .06em; text-transform: uppercase;
+        opacity: 1; margin: 0; line-height: 1.2;
       }
+      .mem-voucher-pill { display: none !important; }
       .mem-offers-tier-name,
       .mem-offers-cups-line { display: none !important; }
       .mem-offers-stat-row {
@@ -922,7 +958,11 @@
       display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
       padding: 10px 0 0;
     }
-    .mem-offers-eyebrow { font-size: 11px; font-weight: 700; opacity: .82; letter-spacing: .04em; margin: 0 0 4px; }
+    .mem-offers-eyebrow {
+      font-family: var(--display); font-size: 1.5rem; font-weight: 900;
+      letter-spacing: .06em; text-transform: uppercase; margin: 0 0 4px; line-height: 1.2;
+    }
+    .mem-voucher-pill { display: none !important; }
     .mem-offers-tier-badge {
       display: none;
     }
@@ -1137,6 +1177,9 @@
       text-decoration: none; color: var(--text); font-weight: 700; font-size: 13px; border-radius: 12px;
     }
     .mem-more-contact-card a i { width: 20px; text-align: center; color: var(--primary); }
+    .mem-more-contact-card a .mem-zalo-ico {
+      width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; border-radius: 5px;
+    }
     .mem-more-logout-wrap { margin-top: 20px; padding: 0 4px; }
     .mem-more-logout-wrap .btn { width: 100%; border-radius: 16px; padding: 14px; font-size: 14px; }
     /* Tier detail page */
@@ -1707,6 +1750,11 @@
     .mem-gate-input-wrap input {
       border: none !important; background: transparent !important; padding: 12px 4px !important;
       font-size: 20px !important; font-weight: 800; letter-spacing: .04em; box-shadow: none !important;
+      outline: none !important; -webkit-appearance: none; appearance: none;
+    }
+    .mem-gate-input-wrap input:focus,
+    .mem-gate-input-wrap input:focus-visible {
+      border: none !important; outline: none !important; box-shadow: none !important;
     }
     .mem-gate-hint { font-size: 11px; color: var(--text3); margin: 8px 0 14px; font-weight: 700; }
     .mem-gate-submit { width: 100%; }
@@ -1978,8 +2026,14 @@
         display: flex; align-items: center; gap: 14px;
         padding: 10px 24px; flex-wrap: nowrap;
       }
-      .mem-topbar-user { flex: 0 0 auto; max-width: 260px; }
-      .mem-topbar-greet strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+      .mem-topbar-user { flex: 0 0 auto; max-width: 280px; }
+      body[data-mem-tab="home"] .mem-topbar-greet strong,
+      body.mem-guest-mode .mem-topbar-greet strong {
+        overflow: visible; text-overflow: clip; max-width: 280px;
+      }
+      body:not([data-mem-tab="home"]):not(.mem-guest-mode) .mem-topbar-greet strong {
+        font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;
+      }
       #mem-nav-desktop {
         display: flex !important;
         flex: 1; justify-content: center; align-items: center;
@@ -2055,14 +2109,24 @@
       transition: transform .15s ease, box-shadow .15s ease;
     }
     .mem-avatar:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(124, 45, 18, .18); }
-    .mem-topbar-greet { min-width: 0; }
+    .mem-topbar-greet { min-width: 0; overflow: visible; }
     .mem-topbar-greet strong {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: flex-end; gap: 0;
       font-size: 15px; color: var(--primary-dk);
-      font-family: var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-family: var(--display); white-space: nowrap;
     }
-    .mem-topbar-greet strong i { font-size: 14px; flex-shrink: 0; opacity: 0.92; }
-    body[data-mem-tab="home"] .mem-topbar-greet strong { display: block; }
+    body[data-mem-tab="home"] .mem-topbar-greet strong,
+    body.mem-guest-mode .mem-topbar-greet strong {
+      display: block;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1.45;
+      max-width: min(100%, calc(100vw - 108px));
+    }
+    body:not([data-mem-tab="home"]):not(.mem-guest-mode) .mem-topbar-greet strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .mem-topbar-meta { font-size: 11px; color: var(--text3); font-weight: 700; line-height: 1.35; }
     @media (max-width: 899px) {
       body.mem-view-order #sec-order .mem-pk-head,
@@ -2092,23 +2156,23 @@
       scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none;
     }
     .mem-home-hot-belt-wrap {
-      overflow: hidden; margin: 0 -4px; padding: 2px 0 6px;
-      -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-      mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+      overflow-x: auto; overflow-y: hidden;
+      margin: 0 -14px; padding: 2px 14px 8px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; -ms-overflow-style: none;
+      -webkit-mask-image: none; mask-image: none;
+      touch-action: pan-x;
     }
+    .mem-home-hot-belt-wrap::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .mem-home-hot-belt {
-      display: flex; gap: 10px; width: max-content;
-      animation: memHotBelt 48s linear infinite;
-      will-change: transform;
+      display: flex; gap: 12px; width: max-content;
+      animation: none;
+      will-change: auto;
     }
-    .mem-home-hot-belt-wrap:hover .mem-home-hot-belt { animation-play-state: paused; }
     .mem-home-hot-belt .menu-card {
-      flex: 0 0 42%; max-width: 180px; scroll-snap-align: start;
-      width: 42%; min-width: 0; box-sizing: border-box;
-    }
-    @keyframes memHotBelt {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+      flex: 0 0 min(76vw, 240px); max-width: 240px; scroll-snap-align: start;
+      width: min(76vw, 240px); min-width: 0; box-sizing: border-box;
     }
     .mem-home-curated-scroll::-webkit-scrollbar { display: none; }
     .mem-home-curated-scroll .menu-card {
@@ -3880,7 +3944,7 @@
         </div>
         <div class="mem-more-contact-card" id="mem-more-contact-card">
           <a id="mem-support-phone" href="tel:0900000000"><i class="fa-solid fa-phone"></i><span id="mem-support-label">Gọi hotline</span></a>
-          <a id="mem-support-zalo" href="https://zalo.me/" target="_blank" rel="noopener"><i class="fa-brands fa-comment-dots"></i><span>Nhắn tin Zalo</span></a>
+          <a id="mem-support-zalo" href="https://zalo.me/" target="_blank" rel="noopener"><img class="mem-zalo-ico" src="/zalo-icon.png" alt="" width="20" height="20"><span>Nhắn tin Zalo</span></a>
         </div>
       </div>
       <h3 class="mem-more-section-title">Tài khoản</h3>
@@ -4317,9 +4381,6 @@
         <div class="mem-offers-hero-text">
           <div class="mem-offers-hero-head">
             <p class="mem-offers-eyebrow">Ưu đãi</p>
-            <button type="button" class="mem-voucher-pill" id="mem-voucher-pill" title="Voucher của tôi">
-              <i class="fa-solid fa-ticket"></i> Voucher của tôi
-            </button>
           </div>
           <span class="mem-offers-tier-badge" id="mem-offers-tier-badge"><i class="fa-solid fa-crown"></i> Hội viên SUN</span>
           <h1 class="mem-offers-tier-name" id="mem-offers-tier">Thành viên</h1>
@@ -4536,7 +4597,7 @@
       <p class="mem-group-added-lead" id="mem-group-added-lead"></p>
       <div class="mem-group-added-item" id="mem-group-added-item"></div>
       <div class="mem-register-actions">
-        <button type="button" class="btn btn-ghost" id="mem-group-added-close">Đóng</button>
+        <button type="button" class="btn btn-ghost" id="mem-group-added-close">Hoàn tất</button>
         <button type="button" class="btn" id="mem-group-added-more"><i class="fa-solid fa-plus"></i> Thêm món mới</button>
       </div>
     </div>
@@ -6209,9 +6270,7 @@ function applyMemberPortalFromSettings(raw) {
           '<div class="mem-group-finalize-hint"><i class="fa-solid fa-circle-info"></i> Muốn <strong>chuyển khoản</strong>? Vào tab <strong>Giỏ hàng</strong> để chọn hình thức thanh toán trước khi chốt.</div>';
       }
       html += '<div id="mem-group-wait" class="mem-group-wait" style="display:none;">' +
-        '<i class="fa-solid fa-hourglass-half"></i> Món của bạn tự lưu vào nhóm - trưởng nhóm sẽ chốt đơn và thanh toán.' +
-        '<button type="button" class="btn btn-sm mem-group-done-btn" id="mem-group-done"><i class="fa-solid fa-check"></i> Hoàn tất chọn món</button>' +
-        '<button type="button" class="btn btn-sm btn-ghost mem-group-more-btn" id="mem-group-more"><i class="fa-solid fa-plus"></i> Thêm món mới</button>' +
+        '<i class="fa-solid fa-circle-info"></i> Món của bạn được thêm vào nhóm - trưởng nhóm sẽ chốt đơn và thanh toán.' +
         '</div>' +
         '</div>';
       blk.innerHTML = html;
@@ -6248,18 +6307,6 @@ function applyMemberPortalFromSettings(raw) {
       if (lk) lk.onclick = toggleGroupLock;
       var lv = $('mem-group-leave');
       if (lv) lv.onclick = leaveGroup;
-      var mr = $('mem-group-more');
-      if (mr) mr.onclick = function () {
-        if (global.SUN_MEM && global.SUN_MEM.goOrder) global.SUN_MEM.goOrder();
-      };
-      var dn = $('mem-group-done');
-      if (dn) dn.onclick = function () {
-        if (!cart.length) { toast('Bạn chưa chọn món nào - chọn tại tab Đặt hàng nhé'); return; }
-        dn.disabled = true;
-        groupSyncNow().then(function () {
-          showGroupAddedPopup(cart[cart.length - 1]);
-        }).finally(function () { dn.disabled = false; });
-      };
       applyGroupModeUi();
       renderGroupOrdersPanel();
     }
@@ -7757,7 +7804,10 @@ function applyMemberPortalFromSettings(raw) {
           hero.id = 'mem-offers-hero';
         }
         document.body.style.setProperty('--offers-page-bg', offersPageBgForTier(tierCls));
-        document.body.style.backgroundColor = '';
+        document.body.setAttribute('data-offers-tier', tierCls);
+        if ((document.body.getAttribute('data-mem-tab') || '') === 'offers') {
+          document.body.style.backgroundColor = offersPageBgForTier(tierCls);
+        }
         paintOfferSparkles();
         if ($('mem-offers-tier')) $('mem-offers-tier').textContent = tierName;
         if ($('mem-offers-cups')) $('mem-offers-cups').textContent = String(cups);
@@ -8790,9 +8840,7 @@ function applyMemberPortalFromSettings(raw) {
         var beltCards = beltItems.map(function (m) {
           return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
         }).join('');
-        html += '<div class="mem-home-hot-belt-wrap"><div class="mem-home-hot-belt">' + beltCards;
-        if (!window.matchMedia || !window.matchMedia('(min-width: 900px)').matches) html += beltCards;
-        html += '</div></div></div>';
+        html += '<div class="mem-home-hot-belt-wrap"><div class="mem-home-hot-belt">' + beltCards + '</div></div></div>';
         box.innerHTML = html;
         wireHomeMenuCards(box);
       }
@@ -9073,7 +9121,7 @@ function applyMemberPortalFromSettings(raw) {
           titleEl.textContent = 'Xin chào!';
           return;
         }
-        titleEl.innerHTML = '<span class="mem-write-name-wrap"><span class="mem-write-name">' + esc(shortName) + ' ơi!</span></span>';
+        titleEl.innerHTML = '<span class="mem-write-name-wrap"><span class="mem-write-name">' + esc(shortName) + '</span></span><span class="mem-greet-oi"> ơi!</span>';
       }
       function syncTopbarActionButtons(tab) {
         var notifyBtn = $('btn-top-notify');
@@ -9098,6 +9146,7 @@ function applyMemberPortalFromSettings(raw) {
         if (s === 'register') s = 'packages';
         document.body.setAttribute('data-mem-tab', s);
         document.body.style.backgroundColor = '';
+        if (s !== 'offers') document.body.removeAttribute('data-offers-tier');
         renderSkyScene();
         var titleEl = $('home-welcome');
         var subEl = $('home-member-code');
@@ -9151,6 +9200,10 @@ function applyMemberPortalFromSettings(raw) {
         if (userWrap) {
           var hideOffersUser = s === 'offers' && window.innerWidth < 900;
           userWrap.classList.toggle('mem-hidden', hideOffersUser);
+        }
+        if (s === 'offers') {
+          var tierKey = document.body.getAttribute('data-offers-tier') || 'tier-member';
+          document.body.style.backgroundColor = offersPageBgForTier(tierKey);
         }
       }
       function applyTopbarAvatar(url) {
@@ -11023,8 +11076,6 @@ function applyMemberPortalFromSettings(raw) {
         switchSection('home');
         setupRegPayTiles();
         setupRegFulfillmentTiles();
-        var vp = $('mem-voucher-pill');
-        if (vp) vp.onclick = function () { showToast('Danh sách voucher đã lưu - sắp ra mắt'); };
         wireMemAiInput();
         wireScheduleWeekDelegates();
         menuPlaceSkeleton(6);
