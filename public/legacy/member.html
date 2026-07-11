@@ -414,14 +414,14 @@
     }
     @media (max-width: 640px) { .mem-carousel:not(.mem-carousel-dual) { aspect-ratio: 5 / 2; } }
     @media (min-width: 900px) {
-      .mem-carousel-wrap { max-width: 720px; width: calc(100% - 48px); }
+      .mem-carousel-wrap { max-width: 1100px; width: calc(100% - 48px); }
       .mem-carousel:not(.mem-carousel-dual) { border-radius: 18px; aspect-ratio: 5 / 2; }
       .mem-carousel.mem-carousel-dual {
         aspect-ratio: auto; height: auto; max-height: none;
         background: transparent; box-shadow: none; overflow: hidden;
       }
       .mem-carousel.mem-carousel-dual .mem-carousel-track {
-        display: flex; gap: 12px; height: auto; width: max-content;
+        display: flex; gap: 10px; height: auto; width: max-content;
         transition: transform 0.55s cubic-bezier(.4, 0, .2, 1);
         will-change: transform;
       }
@@ -3228,7 +3228,7 @@
     @media (min-width: 900px) {
       body.mem-logged-in #sec-home { padding: 8px 0 16px; }
       #mem-home-dashboard { max-width: 1100px; padding: 0 0 28px; margin: 0 auto; }
-      .mem-carousel-wrap { width: calc(100% - 48px); max-width: 720px; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 22px; }
+      .mem-carousel-wrap { width: calc(100% - 48px); max-width: 1100px; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 22px; }
       .mem-home-toolbar { width: 100%; max-width: 990px; margin: 0 auto; }
       .mem-home-menu-sections, .mem-home-curated { max-width: 990px; margin: 0 auto; }
       .mem-carousel:not(.mem-carousel-dual) { aspect-ratio: 5 / 2; }
@@ -4787,25 +4787,34 @@ function bannerSlideImage(b) {
   return String((b && (b.image || b.imageUrl)) || '').trim();
 }
 var MEM_BANNER_FALLBACK_IMG = 'https://images.unsplash.com/photo-1550583724-b2692b85bf19?w=1200&q=80';
-function memCarouselIsDual() {
+var memCarouselSourceLen = 0;
+var memCarouselLoopMulti = false;
+function memCarouselIsMulti() {
   return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(min-width: 900px)').matches && memCarouselList.length >= 2;
 }
+function memCarouselIsDual() { return memCarouselIsMulti(); }
 function memCarouselVisibleCount() {
-  return memCarouselIsDual() ? 2 : 1;
+  if (!memCarouselIsMulti()) return 1;
+  return Math.min(4, memCarouselList.length);
 }
 function memCarouselMaxIndex() {
   return Math.max(0, memCarouselList.length - memCarouselVisibleCount());
 }
 function memCarouselDotCount() {
   if (!memCarouselList.length) return 0;
-  if (memCarouselIsDual()) return memCarouselMaxIndex() + 1;
+  if (memCarouselIsMulti()) return memCarouselList.length;
   return memCarouselList.length;
 }
 function memCarouselDotToIndex(dotIx) {
-  return memCarouselIsDual() ? Math.min(dotIx, memCarouselMaxIndex()) : dotIx;
+  return memCarouselIsMulti() ? Math.min(dotIx, memCarouselMaxIndex()) : dotIx;
 }
 function memCarouselIndexToDot(ix) {
+  if (memCarouselLoopMulti && memCarouselSourceLen > 0) return ix % memCarouselSourceLen;
   return ix;
+}
+function memCarouselTrackMaxIndex() {
+  if (memCarouselLoopMulti && memCarouselSourceLen > 0) return memCarouselSourceLen - 1;
+  return memCarouselMaxIndex();
 }
 function rebuildMemCarouselDots() {
   var dots = document.getElementById('mem-carousel-dots');
@@ -4840,20 +4849,23 @@ function applyMemCarouselView() {
   if (!box || !memCarouselList.length) return;
   var dual = memCarouselIsDual();
   box.classList.toggle('mem-carousel-dual', dual);
-  memCarouselIndex = Math.max(0, Math.min(memCarouselIndex, memCarouselMaxIndex()));
+  memCarouselIndex = Math.max(0, Math.min(memCarouselIndex, memCarouselTrackMaxIndex()));
   var track = box.querySelector('.mem-carousel-track');
   var slides = box.querySelectorAll('.mem-slide');
   slides.forEach(function (sl, j) {
     sl.classList.toggle('on', !dual && j === memCarouselIndex);
   });
   if (dual && track && slides.length) {
-    var gap = 12;
-    var cardW = Math.max(120, Math.floor((box.offsetWidth - gap) / 2));
+    var visible = memCarouselVisibleCount();
+    var gap = 10;
+    var cardW = Math.max(72, Math.floor((box.offsetWidth - gap * (visible - 1)) / visible));
     box.style.setProperty('--mem-carousel-slide-w', cardW + 'px');
+    box.style.setProperty('--mem-carousel-gap', gap + 'px');
     slides.forEach(function (sl) {
       sl.style.flex = '0 0 ' + cardW + 'px';
       sl.style.width = cardW + 'px';
     });
+    track.style.gap = gap + 'px';
     var slideStep = cardW + gap;
     track.style.transform = 'translateX(-' + (memCarouselIndex * slideStep) + 'px)';
   } else if (track) {
@@ -4869,8 +4881,24 @@ function startMemCarouselTimer() {
   stopMemCarousel();
   if (memCarouselList.length < 2) return;
   memCarouselTimer = setInterval(function () {
+    var box = document.getElementById('mem-carousel');
+    var track = box && box.querySelector('.mem-carousel-track');
     var next = memCarouselIndex + 1;
-    if (next > memCarouselMaxIndex()) next = 0;
+    if (memCarouselLoopMulti && memCarouselSourceLen > 0) {
+      if (next >= memCarouselSourceLen) {
+        memCarouselIndex = next;
+        applyMemCarouselView();
+        if (track) track.style.transition = 'none';
+        memCarouselIndex = 0;
+        applyMemCarouselView();
+        requestAnimationFrame(function () {
+          if (track) track.style.transition = '';
+        });
+        return;
+      }
+    } else if (next > memCarouselMaxIndex()) {
+      next = 0;
+    }
     memCarouselIndex = next;
     applyMemCarouselView();
   }, 5200);
@@ -4885,6 +4913,9 @@ function buildMemCarouselSlides(banners) {
     return bannerSlideImage(b) || String(b.title || '').trim() || String(b.subtitle || '').trim();
   });
   memCarouselList = list;
+  memCarouselSourceLen = list.length;
+  memCarouselLoopMulti = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(min-width: 900px)').matches && list.length >= 2;
+  var renderList = memCarouselLoopMulti ? list.concat(list) : list;
   if (!list.length) {
     box.innerHTML = '';
     if (carWrap) {
@@ -4897,7 +4928,7 @@ function buildMemCarouselSlides(banners) {
     carWrap.classList.remove('mem-hidden');
     carWrap.setAttribute('aria-hidden', 'false');
   }
-  var slidesHtml = list.map(function (b, i) {
+  var slidesHtml = renderList.map(function (b, i) {
     var img = bannerSlideImage(b).replace(/\\/g, '/').replace(/'/g, '%27');
     if (!img) img = MEM_BANNER_FALLBACK_IMG;
     var bd = esc(b.badge || '');

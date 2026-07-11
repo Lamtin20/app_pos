@@ -400,14 +400,14 @@
     }
     @media (max-width: 640px) { .mem-carousel:not(.mem-carousel-dual) { aspect-ratio: 5 / 2; } }
     @media (min-width: 900px) {
-      .mem-carousel-wrap { max-width: 720px; width: calc(100% - 48px); }
+      .mem-carousel-wrap { max-width: 1100px; width: calc(100% - 48px); }
       .mem-carousel:not(.mem-carousel-dual) { border-radius: 18px; aspect-ratio: 5 / 2; }
       .mem-carousel.mem-carousel-dual {
         aspect-ratio: auto; height: auto; max-height: none;
         background: transparent; box-shadow: none; overflow: hidden;
       }
       .mem-carousel.mem-carousel-dual .mem-carousel-track {
-        display: flex; gap: 12px; height: auto; width: max-content;
+        display: flex; gap: 10px; height: auto; width: max-content;
         transition: transform 0.55s cubic-bezier(.4, 0, .2, 1);
         will-change: transform;
       }
@@ -3214,7 +3214,7 @@
     @media (min-width: 900px) {
       body.mem-logged-in #sec-home { padding: 8px 0 16px; }
       #mem-home-dashboard { max-width: 1100px; padding: 0 0 28px; margin: 0 auto; }
-      .mem-carousel-wrap { width: calc(100% - 48px); max-width: 720px; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 22px; }
+      .mem-carousel-wrap { width: calc(100% - 48px); max-width: 1100px; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 22px; }
       .mem-home-toolbar { width: 100%; max-width: 990px; margin: 0 auto; }
       .mem-home-menu-sections, .mem-home-curated { max-width: 990px; margin: 0 auto; }
       .mem-carousel:not(.mem-carousel-dual) { aspect-ratio: 5 / 2; }
