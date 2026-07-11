@@ -1204,7 +1204,7 @@
               '<span class="mem-group-mi-price">' + fmt(lineUnit(it) * it.quantity) + '</span></div>';
           }).join('') +
           '<div class="mem-group-my-actions">' +
-          '<button type="button" class="btn btn-sm" id="mem-group-add-more"><i class="fa-solid fa-plus"></i> Thêm món</button>' +
+          '<button type="button" class="btn btn-sm" id="mem-group-add-more"><i class="fa-solid fa-plus"></i> Thêm món mới</button>' +
           '<button type="button" class="btn btn-sm btn-ghost" id="mem-group-edit-toggle"><i class="fa-solid fa-pen"></i> ' +
           (editing ? 'Xong' : 'Chỉnh sửa') + '</button>' +
           '</div></div>';
@@ -1212,7 +1212,7 @@
         renderGroupOrdersPanel._editing = false;
         myHtml = '<p class="mem-group-members-empty"><i class="fa-solid fa-basket-shopping"></i> Bạn chưa chọn món — vào tab Đặt hàng để thêm</p>' +
           '<div class="mem-group-my-actions">' +
-          '<button type="button" class="btn btn-sm" id="mem-group-add-more"><i class="fa-solid fa-plus"></i> Thêm món</button>' +
+          '<button type="button" class="btn btn-sm" id="mem-group-add-more"><i class="fa-solid fa-plus"></i> Thêm món mới</button>' +
           '</div>';
       }
       var othersHtml = renderGroupMembersList();
@@ -1304,7 +1304,7 @@
       html += '<div id="mem-group-wait" class="mem-group-wait" style="display:none;">' +
         '<i class="fa-solid fa-hourglass-half"></i> Món của bạn tự lưu vào nhóm - trưởng nhóm sẽ chốt đơn và thanh toán.' +
         '<button type="button" class="btn btn-sm mem-group-done-btn" id="mem-group-done"><i class="fa-solid fa-check"></i> Hoàn tất chọn món</button>' +
-        '<button type="button" class="btn btn-sm btn-ghost mem-group-more-btn" id="mem-group-more"><i class="fa-solid fa-plus"></i> Chọn thêm món</button>' +
+        '<button type="button" class="btn btn-sm btn-ghost mem-group-more-btn" id="mem-group-more"><i class="fa-solid fa-plus"></i> Thêm món mới</button>' +
         '</div>' +
         '</div>';
       blk.innerHTML = html;
