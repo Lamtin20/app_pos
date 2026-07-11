@@ -3279,8 +3279,8 @@
     .mem-guest-note a { color: var(--primary); font-weight: 800; }
     /* Info box mời đăng nhập trong màn khách mời đơn nhóm */
     .mem-guest-login-box {
-      display: flex; gap: 12px; align-items: flex-start;
-      margin: 16px 0 0; padding: 14px;
+      display: flex; gap: 12px; align-items: center;
+      margin: 16px 0 0; padding: 14px 12px 14px 14px;
       background: linear-gradient(135deg, #fdf6ee 0%, #f6e8d8 100%);
       border: 1.5px solid rgba(194, 120, 60, .35); border-radius: 16px;
       position: relative; overflow: hidden;
@@ -3321,15 +3321,20 @@
     .mem-guest-login-body > span {
       display: block; font-size: 11.5px; color: #8a6242; line-height: 1.55;
     }
-    .mem-guest-login-cta-row { display: flex; justify-content: flex-end; margin-top: 8px; }
     .mem-guest-login-btn {
+      flex-shrink: 0; align-self: center;
       border: none; cursor: pointer; font-family: var(--font);
       background: linear-gradient(135deg, #a9683c, #c98a55); color: #fff;
-      font-size: 12px; font-weight: 800; padding: 8px 16px; border-radius: 10px;
+      font-size: 12px; font-weight: 800; padding: 9px 16px; border-radius: 10px;
       box-shadow: 0 4px 12px rgba(150, 90, 45, .3);
       transition: transform .15s, box-shadow .15s;
+      white-space: nowrap;
     }
     .mem-guest-login-btn:active { transform: scale(.96); }
+    @media (max-width: 360px) {
+      .mem-guest-login-box { flex-wrap: wrap; align-items: flex-start; }
+      .mem-guest-login-btn { margin-left: 54px; }
+    }
 
     /* ===== Khung thanh toán & QR chuyển khoản ===== */
     .mem-checkout-head {
@@ -3499,6 +3504,19 @@
     body.mem-group-invite #mem-guest-close,
     body.mem-group-invite .mem-guest-note { display: none !important; }
     body.mem-group-invite #mem-guest-modal { background: rgba(60, 40, 25, .35); }
+    body.mem-group-invite .mem-register-actions { margin-top: 14px; }
+    body.mem-group-invite .mem-register-actions .btn { width: 100%; flex: none; }
+    body.mem-group-invite .mem-register-sheet { max-width: 400px; }
+    .mem-group-invite-brand {
+      display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 510;
+      padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 10px;
+      text-align: center; pointer-events: none;
+    }
+    .mem-group-invite-brand strong {
+      font-family: var(--display); font-size: clamp(1.05rem, 4.8vw, 1.2rem);
+      font-weight: 900; color: #3d2b1f; letter-spacing: .01em;
+    }
+    body.mem-group-invite .mem-group-invite-brand { display: block; }
 
     /* Bottom nav: slot Ưu đãi → Giỏ khi đang đặt hàng có món */
     .mem-bottom-nav [data-nav-cart-swap="1"] { position: relative; }
@@ -4144,7 +4162,7 @@
       </div>
     </div>
     <div class="mem-topbar-inner">
-      <span class="mem-logo-txt mem-brand-gate" id="mem-disp-brand-title">SUN Nut Milk</span>
+      <span class="mem-logo-txt mem-brand-gate" id="mem-disp-brand-title">Tiệm Cafe Sun &amp; Matcha</span>
       <div class="mem-topbar-user mem-hidden" id="mem-topbar-user">
         <button type="button" class="mem-avatar mem-hidden" id="mem-avatar-btn" aria-label="Thông tin cá nhân"><i class="fa-solid fa-user"></i></button>
         <div class="mem-topbar-greet">
@@ -4961,6 +4979,9 @@
   </div>
 
   <!-- KHÁCH MỜI VÀO ĐƠN NHÓM: chỉ cần tên, không cần đăng nhập -->
+  <div class="mem-group-invite-brand" id="mem-group-invite-brand" aria-hidden="true">
+    <strong id="mem-group-invite-brand-txt">Tiệm Cafe Sun &amp; Matcha</strong>
+  </div>
   <div class="mem-register-modal mem-hidden" id="mem-guest-modal" role="dialog" aria-modal="true">
     <div class="mem-register-sheet">
       <button type="button" class="mem-register-close" id="mem-guest-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
@@ -4977,10 +4998,8 @@
         <div class="mem-guest-login-body">
           <strong>Tiết kiệm hơn khi đăng nhập!</strong>
           <span>Bạn sẽ hưởng thêm quyền lợi và khuyến mãi giảm giá nhiều hơn khi chọn đăng nhập bằng số điện thoại.</span>
-          <div class="mem-guest-login-cta-row">
-            <button type="button" class="mem-guest-login-btn" id="mem-guest-login-btn">Đăng nhập</button>
-          </div>
         </div>
+        <button type="button" class="mem-guest-login-btn" id="mem-guest-login-btn">Đăng nhập</button>
       </div>
     </div>
   </div>
@@ -9083,6 +9102,8 @@
         document.body.classList.remove('mem-group-invite');
         var gmModal = $('mem-guest-modal');
         if (gmModal) gmModal.classList.add('mem-hidden');
+        var brandWrap3 = $('mem-group-invite-brand');
+        if (brandWrap3) brandWrap3.setAttribute('aria-hidden', 'true');
         setPortalAuthState(false);
         switchSection('home');
         var gp = $('gate-phone');
@@ -9345,6 +9366,12 @@
       function openGuestGate(code) {
         pendingGuestGroupCode = String(code || '').trim().toUpperCase();
         document.body.classList.add('mem-group-invite');
+        var brandName = (window.memberPortalSettings && memberPortalSettings.brandTitle) || 'Tiệm Cafe Sun & Matcha';
+        document.title = brandName;
+        var brandEl = $('mem-group-invite-brand-txt');
+        if (brandEl) brandEl.textContent = brandName;
+        var brandWrap = $('mem-group-invite-brand');
+        if (brandWrap) brandWrap.setAttribute('aria-hidden', 'false');
         switchSection('home');
         var m = $('mem-guest-modal');
         var nm = $('mem-guest-name');
@@ -9359,6 +9386,8 @@
         if (document.body.classList.contains('mem-group-invite')) return;
         var m = $('mem-guest-modal');
         if (m) m.classList.add('mem-hidden');
+        var brandWrap = $('mem-group-invite-brand');
+        if (brandWrap) brandWrap.setAttribute('aria-hidden', 'true');
       }
       async function confirmGuestJoin() {
         var nmEl = $('mem-guest-name');
@@ -9372,6 +9401,8 @@
           var r = await MemOrder.joinGroup(code, name);
           if (r === true) {
             document.body.classList.remove('mem-group-invite');
+            var brandWrap2 = $('mem-group-invite-brand');
+            if (brandWrap2) brandWrap2.setAttribute('aria-hidden', 'true');
             closeGuestGate();
             enterGuestMode(name);
             goOrder();

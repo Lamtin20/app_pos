@@ -135,7 +135,7 @@ function build() {
   const pages = [
     { src: 'Admin.html', out: 'admin.html', title: 'Admin | SUN Nut Milk' },
     { src: 'Order.html', out: 'order.html', title: 'POS | SUN Sữa Hạt' },
-    { src: 'MemberPortal.html', out: 'member.html', title: 'Hội viên | SUN Nut Milk' },
+    { src: 'MemberPortal.html', out: 'member.html', title: 'Tiệm Cafe Sun & Matcha' },
     { src: 'Pickup.html', out: 'pickup.html', title: 'Đặt hàng | SUN Nut Milk' },
   ];
 
