@@ -137,13 +137,14 @@ function memCarouselMaxIndex() {
 }
 function memCarouselDotCount() {
   if (!memCarouselList.length) return 0;
-  return memCarouselIsDual() ? Math.ceil(memCarouselList.length / 2) : memCarouselList.length;
+  if (memCarouselIsDual()) return memCarouselMaxIndex() + 1;
+  return memCarouselList.length;
 }
 function memCarouselDotToIndex(dotIx) {
-  return memCarouselIsDual() ? Math.min(dotIx * 2, memCarouselMaxIndex()) : dotIx;
+  return memCarouselIsDual() ? Math.min(dotIx, memCarouselMaxIndex()) : dotIx;
 }
 function memCarouselIndexToDot(ix) {
-  return memCarouselIsDual() ? Math.floor(ix / 2) : ix;
+  return ix;
 }
 function rebuildMemCarouselDots() {
   var dots = document.getElementById('mem-carousel-dots');
@@ -184,10 +185,16 @@ function applyMemCarouselView() {
   slides.forEach(function (sl, j) {
     sl.classList.toggle('on', !dual && j === memCarouselIndex);
   });
-  if (dual && track && slides[0]) {
+  if (dual && track && slides.length) {
     var gap = 12;
-    var w = slides[0].offsetWidth + gap;
-    track.style.transform = 'translateX(-' + (memCarouselIndex * w) + 'px)';
+    var cardW = Math.max(120, Math.floor((box.offsetWidth - gap) / 2));
+    box.style.setProperty('--mem-carousel-slide-w', cardW + 'px');
+    slides.forEach(function (sl) {
+      sl.style.flex = '0 0 ' + cardW + 'px';
+      sl.style.width = cardW + 'px';
+    });
+    var slideStep = cardW + gap;
+    track.style.transform = 'translateX(-' + (memCarouselIndex * slideStep) + 'px)';
   } else if (track) {
     track.style.transform = '';
   }
@@ -201,8 +208,7 @@ function startMemCarouselTimer() {
   stopMemCarousel();
   if (memCarouselList.length < 2) return;
   memCarouselTimer = setInterval(function () {
-    var step = memCarouselIsDual() ? 2 : 1;
-    var next = memCarouselIndex + step;
+    var next = memCarouselIndex + 1;
     if (next > memCarouselMaxIndex()) next = 0;
     memCarouselIndex = next;
     applyMemCarouselView();

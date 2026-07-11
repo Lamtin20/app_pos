@@ -418,15 +418,17 @@
       .mem-carousel { max-height: 132px; border-radius: 18px; }
       .mem-carousel.mem-carousel-dual {
         aspect-ratio: auto; height: 132px; max-height: 132px;
-        background: transparent; box-shadow: none; overflow: visible;
+        background: transparent; box-shadow: none; overflow: hidden;
       }
       .mem-carousel.mem-carousel-dual .mem-carousel-track {
-        display: flex; gap: 12px; height: 100%;
+        display: flex; gap: 12px; height: 100%; width: max-content;
         transition: transform 0.55s cubic-bezier(.4, 0, .2, 1);
         will-change: transform;
       }
       .mem-carousel.mem-carousel-dual .mem-slide {
-        position: relative; flex: 0 0 calc(50% - 6px); opacity: 1 !important;
+        position: relative; flex: 0 0 var(--mem-carousel-slide-w, 280px);
+        width: var(--mem-carousel-slide-w, 280px);
+        opacity: 1 !important; visibility: visible !important;
         border-radius: 16px; overflow: hidden; height: 100%; min-width: 0;
         box-shadow: 0 8px 28px rgba(40, 25, 15, .12);
         background: #1a1410;
@@ -2217,6 +2219,38 @@
         max-width: 180px !important;
         width: 180px !important;
         min-width: 180px;
+        display: flex !important;
+        flex-direction: column !important;
+        align-self: stretch;
+      }
+      #mem-home-dashboard .mem-home-hot-belt .menu-card .bd {
+        flex: 1; display: flex; flex-direction: column;
+      }
+      #mem-home-dashboard .mem-home-hot-belt .menu-card .mem-pk-footer {
+        margin-top: auto;
+      }
+      #mem-home-dashboard .mem-home-menu-grid .menu-card,
+      #mem-home-dashboard .mem-home-curated-scroll .menu-card,
+      #mem-home-dashboard .mem-home-spotlight .menu-card {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100%;
+      }
+      #mem-home-dashboard .mem-home-menu-grid .menu-card .bd,
+      #mem-home-dashboard .mem-home-curated-scroll .menu-card .bd,
+      #mem-home-dashboard .mem-home-spotlight .menu-card .bd {
+        flex: 1; display: flex; flex-direction: column;
+      }
+      #mem-home-dashboard .mem-home-menu-grid .menu-card .mem-pk-footer,
+      #mem-home-dashboard .mem-home-curated-scroll .menu-card .mem-pk-footer,
+      #mem-home-dashboard .mem-home-spotlight .menu-card .mem-pk-footer {
+        margin-top: auto;
+      }
+      #mem-home-dashboard .menu-card .bd .nm {
+        min-height: 2.6em;
+      }
+      .mem-home-hot-belt {
+        align-items: stretch !important;
       }
       .mem-home-curated-scroll,
       .mem-home-fav-block .mem-home-curated-scroll {
@@ -4755,13 +4789,14 @@ function memCarouselMaxIndex() {
 }
 function memCarouselDotCount() {
   if (!memCarouselList.length) return 0;
-  return memCarouselIsDual() ? Math.ceil(memCarouselList.length / 2) : memCarouselList.length;
+  if (memCarouselIsDual()) return memCarouselMaxIndex() + 1;
+  return memCarouselList.length;
 }
 function memCarouselDotToIndex(dotIx) {
-  return memCarouselIsDual() ? Math.min(dotIx * 2, memCarouselMaxIndex()) : dotIx;
+  return memCarouselIsDual() ? Math.min(dotIx, memCarouselMaxIndex()) : dotIx;
 }
 function memCarouselIndexToDot(ix) {
-  return memCarouselIsDual() ? Math.floor(ix / 2) : ix;
+  return ix;
 }
 function rebuildMemCarouselDots() {
   var dots = document.getElementById('mem-carousel-dots');
@@ -4802,10 +4837,16 @@ function applyMemCarouselView() {
   slides.forEach(function (sl, j) {
     sl.classList.toggle('on', !dual && j === memCarouselIndex);
   });
-  if (dual && track && slides[0]) {
+  if (dual && track && slides.length) {
     var gap = 12;
-    var w = slides[0].offsetWidth + gap;
-    track.style.transform = 'translateX(-' + (memCarouselIndex * w) + 'px)';
+    var cardW = Math.max(120, Math.floor((box.offsetWidth - gap) / 2));
+    box.style.setProperty('--mem-carousel-slide-w', cardW + 'px');
+    slides.forEach(function (sl) {
+      sl.style.flex = '0 0 ' + cardW + 'px';
+      sl.style.width = cardW + 'px';
+    });
+    var slideStep = cardW + gap;
+    track.style.transform = 'translateX(-' + (memCarouselIndex * slideStep) + 'px)';
   } else if (track) {
     track.style.transform = '';
   }
@@ -4819,8 +4860,7 @@ function startMemCarouselTimer() {
   stopMemCarousel();
   if (memCarouselList.length < 2) return;
   memCarouselTimer = setInterval(function () {
-    var step = memCarouselIsDual() ? 2 : 1;
-    var next = memCarouselIndex + step;
+    var next = memCarouselIndex + 1;
     if (next > memCarouselMaxIndex()) next = 0;
     memCarouselIndex = next;
     applyMemCarouselView();
