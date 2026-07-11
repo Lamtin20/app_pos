@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Hội viên | SUN Nut Milk</title>
+  <title>Tiệm Cafe Sun &amp; Matcha</title>
   <script>
   (function () {
     var SUN_FAVICON_URL = '__SUN_FAVICON_URL__';
@@ -3277,6 +3277,59 @@
     }
     .mem-guest-note { font-size: 12px; color: var(--text3); margin: 14px 0 0; text-align: center; }
     .mem-guest-note a { color: var(--primary); font-weight: 800; }
+    /* Info box mời đăng nhập trong màn khách mời đơn nhóm */
+    .mem-guest-login-box {
+      display: flex; gap: 12px; align-items: flex-start;
+      margin: 16px 0 0; padding: 14px;
+      background: linear-gradient(135deg, #fdf6ee 0%, #f6e8d8 100%);
+      border: 1.5px solid rgba(194, 120, 60, .35); border-radius: 16px;
+      position: relative; overflow: hidden;
+      animation: memGuestBoxGlow 2.6s ease-in-out infinite;
+    }
+    @keyframes memGuestBoxGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(194, 120, 60, 0); }
+      50% { box-shadow: 0 0 0 4px rgba(194, 120, 60, .16); }
+    }
+    .mem-guest-login-box::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .55) 50%, transparent 60%);
+      transform: translateX(-100%);
+      animation: memGuestBoxShine 3.2s ease-in-out infinite;
+    }
+    @keyframes memGuestBoxShine {
+      0%, 55% { transform: translateX(-100%); }
+      85%, 100% { transform: translateX(100%); }
+    }
+    .mem-guest-login-ico {
+      width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      color: #b45309; font-size: 19px;
+      box-shadow: 0 3px 10px rgba(120, 70, 30, .14);
+      animation: memGuestGiftWiggle 2.6s ease-in-out infinite;
+    }
+    @keyframes memGuestGiftWiggle {
+      0%, 72%, 100% { transform: rotate(0deg); }
+      78% { transform: rotate(-10deg) scale(1.06); }
+      84% { transform: rotate(9deg) scale(1.06); }
+      90% { transform: rotate(-6deg); }
+      96% { transform: rotate(4deg); }
+    }
+    .mem-guest-login-body { flex: 1; min-width: 0; position: relative; z-index: 1; }
+    .mem-guest-login-body strong {
+      display: block; font-size: 13px; font-weight: 900; color: #7c4a1e; margin-bottom: 3px;
+    }
+    .mem-guest-login-body > span {
+      display: block; font-size: 11.5px; color: #8a6242; line-height: 1.55;
+    }
+    .mem-guest-login-cta-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .mem-guest-login-btn {
+      border: none; cursor: pointer; font-family: var(--font);
+      background: linear-gradient(135deg, #a9683c, #c98a55); color: #fff;
+      font-size: 12px; font-weight: 800; padding: 8px 16px; border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(150, 90, 45, .3);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .mem-guest-login-btn:active { transform: scale(.96); }
 
     /* ===== Khung thanh toán & QR chuyển khoản ===== */
     .mem-checkout-head {
@@ -4919,7 +4972,16 @@
         <button type="button" class="btn btn-ghost" id="mem-guest-cancel">Để sau</button>
         <button type="button" class="btn" id="mem-guest-join"><i class="fa-solid fa-arrow-right"></i> Vào nhóm &amp; chọn món</button>
       </div>
-      <p class="mem-guest-note">Bạn là hội viên SUN? <a href="#" id="mem-guest-login-link">Đăng nhập bằng SĐT để tích điểm</a></p>
+      <div class="mem-guest-login-box" id="mem-guest-login-box">
+        <span class="mem-guest-login-ico" aria-hidden="true"><i class="fa-solid fa-gift"></i></span>
+        <div class="mem-guest-login-body">
+          <strong>Tiết kiệm hơn khi đăng nhập!</strong>
+          <span>Bạn sẽ hưởng thêm quyền lợi và khuyến mãi giảm giá nhiều hơn khi chọn đăng nhập bằng số điện thoại.</span>
+          <div class="mem-guest-login-cta-row">
+            <button type="button" class="mem-guest-login-btn" id="mem-guest-login-btn">Đăng nhập</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -8979,7 +9041,7 @@
       var gmx = $('mem-guest-cancel');
       var gmj = $('mem-guest-join');
       var gmm = $('mem-guest-modal');
-      var gml = $('mem-guest-login-link');
+      var gml = $('mem-guest-login-btn');
       if (gmc) gmc.onclick = closeGuestGate;
       if (gmx) gmx.onclick = closeGuestGate;
       if (gmj) gmj.onclick = function () { confirmGuestJoin(); };
@@ -9017,10 +9079,15 @@
       });
       if (gml) gml.onclick = function (ev) {
         ev.preventDefault();
-        closeGuestGate();
+        // Ở chế độ mời nhóm closeGuestGate() không đóng modal → gỡ class và đóng trực tiếp
+        document.body.classList.remove('mem-group-invite');
+        var gmModal = $('mem-guest-modal');
+        if (gmModal) gmModal.classList.add('mem-hidden');
+        setPortalAuthState(false);
         switchSection('home');
         var gp = $('gate-phone');
         if (gp) gp.focus();
+        showToast('Đăng nhập bằng SĐT để tích Sun và nhận ưu đãi nhé!');
       };
       var bto = $('btn-top-offers');
       if (bto) bto.onclick = function () { goOffers(); };
