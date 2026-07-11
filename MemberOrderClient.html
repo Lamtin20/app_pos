@@ -723,8 +723,8 @@
           return;
         }
         var msg = st.status === 'ordered'
-          ? ('🎉 Trưởng nhóm đã đặt đơn ' + (st.orderId || '') + ' - cảm ơn bạn!')
-          : (st.status === 'cancelled' ? 'Nhóm đã bị hủy' : 'Nhóm đã hết hạn');
+          ? ('🎉 Đơn nhóm đã chốt ' + (st.orderId || '') + ' - cảm ơn bạn!')
+          : (st.status === 'cancelled' ? 'Nhóm đã bị hủy' : 'Nhóm đã hết hạn sau 48 giờ');
         exitGroupLocal();
         if (!opts.silent) toast(msg);
         renderGroupCard();
@@ -1238,7 +1238,7 @@
         blk.innerHTML =
           '<div class="card mem-group-card">' +
           '<div class="mem-group-head"><i class="fa-solid fa-user-group"></i> Đơn nhóm</div>' +
-          '<p class="mem-group-hint">Rủ bạn bè cùng đặt: mỗi người tự chọn món, trưởng nhóm chốt đơn một lần.</p>' +
+          '<p class="mem-group-hint">Rủ bạn bè cùng đặt: mỗi người tự chọn món, trưởng nhóm chốt đơn một lần. <strong>Nhóm có hiệu lực 48 giờ</strong> — hết hạn sẽ khóa chọn món và <strong>tự chốt đơn</strong>.</p>' +
           (canCreate
             ? ('<div class="mem-group-create-row">' +
               '<input type="text" id="mem-group-name-input" placeholder="Tên đơn nhóm (VD: Team Văn phòng) - bỏ trống dùng tên bạn" maxlength="60" autocomplete="off">' +
@@ -1279,6 +1279,7 @@
         '<div class="mem-group-head"><i class="fa-solid fa-user-group"></i> ' + esc(group.groupName || ('Đơn nhóm của ' + (group.hostName || 'bạn'))) + '</div>' +
         '<div class="mem-group-substatus">' + statusTxt + '<span class="mem-group-badge">' + members.length + ' người</span><span class="mem-group-total-badge">' + fmt(group.total || 0) + '</span>' +
         (groupDiscPct() > 0 ? '<span class="mem-group-disc-badge">🎁 Ưu đãi nhóm −' + groupDiscPct() + '%</span>' : '') + '</div>' +
+        '<div class="mem-group-ttl-hint"><i class="fa-regular fa-clock"></i> Hiệu lực 48 giờ · hết hạn tự chốt đơn</div>' +
         (meLabel ? ('<div class="mem-group-me">' + meLabel + '</div>') : '') +
         '</div>' +
         '<div class="mem-group-code-box"><span>Mã nhóm</span><strong class="mem-group-code">' + esc(group.groupId) + '</strong></div>' +
