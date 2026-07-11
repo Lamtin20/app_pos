@@ -1993,6 +1993,9 @@
 
     /* Gate-first: SĐT 10 số → trang chủ */
     body.mem-gate-mode { padding-bottom: 24px; }
+    @media (max-width: 899px) {
+      body.mem-gate-mode { padding-bottom: 0 !important; }
+    }
     body.mem-gate-mode .mem-bottom-nav,
     body.mem-gate-mode .mem-nav-desktop { display: none !important; }
     body.mem-logged-in .mem-gate-screen { display: none !important; }
@@ -2124,6 +2127,10 @@
       width: 100%; height: 100%; object-fit: contain; display: block;
     }
     .mem-gate-eyebrow.gate-hide { display: none !important; }
+    .mem-gate-bottom-deco { display: none; }
+    .mem-gate-content { display: contents; }
+    .mem-gate-wave { display: none; }
+    .mem-gate-leaf { display: none; }
     .mem-gate-mobile-brand { display: none; }
     .mem-gate-eyebrow {
       font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
@@ -2300,7 +2307,6 @@
       color: var(--primary-dk); background: rgba(234,88,12,.12); font-weight: 900;
     }
     .mem-bottom-nav button.on i { transform: scale(1.05); }
-    body.mem-gate-mode { padding-bottom: 24px !important; }
 
     .mem-topbar-inner { max-width: 1200px; margin: 0 auto; width: 100%; }
     @media (min-width: 900px) {
@@ -2386,9 +2392,17 @@
       .mem-gate-foot { text-align: left; margin-top: 18px; font-size: 12px; }
     }
     @media (max-width: 899px) {
-      body.mem-gate-mode { background: #faf6f0; overflow: hidden; }
+      body.mem-gate-mode {
+        background: #faf6f0 !important; overflow: hidden;
+        padding: 0 !important; margin: 0;
+      }
+      body.mem-gate-mode .mem-portal-main { padding: 0 !important; max-width: none; }
+      body.mem-gate-mode #sec-home { padding: 0 !important; margin: 0; min-height: 100dvh; }
       .mem-gate-screen {
-        min-height: 100dvh; height: 100dvh; padding: 0; align-items: stretch;
+        min-height: 100dvh !important; height: 100dvh !important;
+        max-width: none !important; margin: 0 !important;
+        padding: 0 !important; gap: 0 !important;
+        justify-content: flex-start !important; align-items: stretch !important;
         overflow: hidden;
       }
       .mem-gate-shell {
@@ -2398,67 +2412,132 @@
       .mem-gate-hero-bg { display: none; }
       .mem-gate-panel {
         flex: 1; border-radius: 0; border: none; box-shadow: none;
-        padding: 0; display: flex; flex-direction: column; min-height: 100dvh;
+        padding: 0; display: flex; flex-direction: column;
+        min-height: 100dvh; height: 100dvh;
         overflow: hidden; background: #faf6f0;
+        position: relative;
       }
       .mem-gate-panel::before { display: none; }
       .mem-gate-mobile-brand {
-        display: block; flex-shrink: 0;
-        padding: calc(env(safe-area-inset-top, 0px) + 36px) 24px 52px;
-        background: linear-gradient(165deg, #7c2d12 0%, #b45309 42%, #d97706 100%);
-        text-align: center; position: relative; overflow: visible;
+        display: block; flex-shrink: 0; position: relative;
+        min-height: clamp(200px, 30dvh, 260px);
+        padding: calc(env(safe-area-inset-top, 0px) + 44px) 24px 0;
+        background:
+          radial-gradient(ellipse 120% 80% at 50% -10%, rgba(251, 191, 36, .35) 0%, transparent 55%),
+          radial-gradient(ellipse 80% 60% at 0% 50%, rgba(60, 20, 8, .45) 0%, transparent 50%),
+          radial-gradient(ellipse 80% 60% at 100% 50%, rgba(60, 20, 8, .45) 0%, transparent 50%),
+          linear-gradient(165deg, #6b2b0f 0%, #a34e1a 38%, #c96a2e 68%, #d4883f 100%);
+        text-align: center; overflow: visible;
       }
-      .mem-gate-mobile-brand::before {
-        content: '🍃'; position: absolute; top: calc(env(safe-area-inset-top, 0px) + 18px);
-        right: 18%; font-size: 14px; opacity: .75; transform: rotate(18deg);
+      .mem-gate-leaf {
+        position: absolute; z-index: 2; font-size: 15px; opacity: .8;
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,.15));
+        pointer-events: none;
       }
-      .mem-gate-mobile-brand::after {
-        content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 28px;
-        background: #faf6f0;
-        border-radius: 28px 28px 0 0;
-        box-shadow: 0 -6px 20px rgba(124, 45, 18, .08);
+      .mem-gate-leaf-1 { top: calc(env(safe-area-inset-top, 0px) + 22px); left: 14%; transform: rotate(-25deg); }
+      .mem-gate-leaf-2 { top: calc(env(safe-area-inset-top, 0px) + 38px); right: 12%; transform: rotate(32deg) scale(1.1); }
+      .mem-gate-leaf-3 { top: calc(env(safe-area-inset-top, 0px) + 68px); left: 8%; transform: rotate(12deg) scale(.85); opacity: .65; }
+      .mem-gate-wave {
+        position: absolute; left: 0; right: 0; bottom: -1px; width: 100%;
+        height: clamp(48px, 8vw, 72px); z-index: 3; display: block;
       }
       .mem-gate-mobile-brand strong {
-        position: relative; z-index: 1; display: flex; flex-direction: column; gap: 2px;
+        position: relative; z-index: 4; display: flex; flex-direction: column; gap: 4px;
         font-family: var(--display); color: #fff; letter-spacing: .01em;
-        text-shadow: 0 2px 14px rgba(0, 0, 0, .2);
+        text-shadow: 0 2px 16px rgba(0, 0, 0, .22);
+        padding-bottom: clamp(36px, 7vw, 52px);
       }
       .mem-gate-brand-line1 {
-        font-size: clamp(.82rem, 3.6vw, .95rem); font-weight: 700; opacity: .92;
+        font-size: clamp(.88rem, 3.8vw, 1rem); font-weight: 600; opacity: .95;
       }
       .mem-gate-brand-line2 {
-        font-size: clamp(1.28rem, 6vw, 1.55rem); font-weight: 900; line-height: 1.15;
+        font-size: clamp(1.45rem, 7vw, 1.85rem); font-weight: 900; line-height: 1.12;
+      }
+      .mem-gate-content {
+        flex: 1; display: flex; flex-direction: column; align-items: center;
+        padding: 0 22px; margin-top: -52px; position: relative; z-index: 5;
+        min-height: 0; overflow-y: auto;
       }
       .mem-gate-brand {
-        flex: 1; flex-shrink: 0; padding: 0 22px 0; background: #faf6f0;
-        border-radius: 0; margin-top: -34px; position: relative; z-index: 2;
-        display: flex; flex-direction: column; align-items: center;
+        flex-shrink: 0; padding: 0; background: transparent;
+        border-radius: 0; margin-top: 0; position: relative; z-index: 2;
+        display: flex; flex-direction: column; align-items: center; width: 100%;
       }
       .mem-gate-logo-wrap {
-        width: 88px; height: 88px; margin: 0 auto 14px; border-radius: 50%;
-        background: #fff; border: 4px solid #faf6f0;
-        box-shadow: 0 8px 28px rgba(124, 45, 18, .14);
+        width: 96px; height: 96px; margin: 0 auto 12px; border-radius: 50%;
+        background: #fff; border: 5px solid #faf6f0;
+        box-shadow: 0 10px 32px rgba(124, 45, 18, .16);
       }
+      .mem-gate-logo-fallback { font-size: 40px; }
       .mem-gate-brand .mem-gate-eyebrow { display: none !important; }
       .mem-gate-brand .mem-gate-title {
-        font-size: clamp(1.35rem, 6vw, 1.55rem); text-align: center; margin-bottom: 6px;
-        color: #3d2b1f;
+        font-size: clamp(1.5rem, 6.8vw, 1.75rem); text-align: center;
+        margin: 0 0 6px; color: #3d2b1f; font-weight: 900;
+        font-family: var(--display);
       }
       .mem-gate-brand .mem-gate-sub {
-        text-align: center; font-size: 13px; margin-bottom: 18px; max-width: 320px;
+        text-align: center; font-size: 13px; margin: 0 0 16px;
+        max-width: 300px; color: #8b7355; line-height: 1.5;
       }
       .mem-gate-card {
-        margin: 0 22px; flex-shrink: 0;
-        background: #fff; border: 1px solid rgba(214, 196, 176, .65);
-        box-shadow: 0 10px 32px rgba(60, 40, 25, .06);
+        width: 100%; max-width: 360px; margin: 0 auto; flex-shrink: 0;
+        background: #fff; border: none; border-radius: 20px;
+        padding: 18px 18px 16px;
+        box-shadow: 0 12px 40px rgba(60, 40, 25, .08), 0 2px 8px rgba(60, 40, 25, .04);
+      }
+      .mem-gate-label {
+        font-size: 13px; font-weight: 800; color: #5c4030;
+        margin-bottom: 10px; gap: 8px;
+      }
+      .mem-gate-label i { color: #9a5c38; font-size: 14px; }
+      .mem-gate-input-wrap {
+        border: 1.5px solid #e7ddd2; border-radius: 14px;
+        padding: 2px 14px; background: #fff;
+      }
+      .mem-gate-input-wrap:focus-within {
+        border-color: #d4883f; box-shadow: 0 0 0 3px rgba(217, 138, 95, .15);
+      }
+      .mem-gate-input-wrap input {
+        font-size: 16px !important; font-weight: 600; text-align: left !important;
+        padding: 13px 0 !important;
+      }
+      .mem-gate-input-wrap input::placeholder {
+        font-size: 14px; font-weight: 500; color: #b8a99a;
+      }
+      .mem-gate-hint-row { margin: 8px 0 14px; }
+      .mem-gate-secure { font-size: 11px; }
+      .mem-gate-submit.btn {
+        width: 100%; border-radius: 999px; border: none;
+        background: linear-gradient(90deg, #9a5c38 0%, #c4784a 45%, #d98a5f 100%) !important;
+        color: #fff !important; font-weight: 800; font-size: 15px;
+        padding: 14px 20px; gap: 8px;
+        box-shadow: 0 8px 24px rgba(154, 92, 56, .32);
+      }
+      .mem-gate-submit.btn i { font-size: 14px; }
+      .mem-gate-submit.ready {
+        box-shadow: 0 10px 28px rgba(154, 92, 56, .4) !important;
       }
       .mem-gate-foot {
-        padding: 16px 28px calc(20px + env(safe-area-inset-bottom, 0px));
-        margin-top: auto; text-align: center; font-size: 12px; color: #8b7355;
-        position: relative;
+        width: 100%; max-width: 340px; margin: 16px auto 0;
+        padding: 0 8px calc(12px + env(safe-area-inset-bottom, 0px));
+        text-align: center; font-size: 12px; color: #9a8575; line-height: 1.55;
+        flex-shrink: 0;
       }
-      .mem-gate-foot::after {
-        content: '☕ 🍃'; display: block; margin-top: 10px; font-size: 16px; opacity: .55;
+      .mem-gate-foot::after { content: none; }
+      .mem-gate-bottom-deco {
+        flex-shrink: 0; position: relative; height: clamp(56px, 10vw, 80px);
+        margin-top: auto; pointer-events: none;
+      }
+      .mem-gate-wave-bottom {
+        position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
+      }
+      .mem-gate-beans {
+        position: absolute; bottom: 14px; left: 50%; transform: translateX(-18px);
+        font-size: 18px; opacity: .7; z-index: 2;
+      }
+      .mem-gate-leaf-bottom {
+        position: absolute; bottom: 16px; left: 50%; transform: translateX(14px) rotate(20deg);
+        font-size: 14px; opacity: .65; z-index: 2;
       }
     }
     .mem-topbar-user {
@@ -4390,32 +4469,48 @@
           </div>
         </aside>
         <div class="mem-gate-panel">
-          <div class="mem-gate-mobile-brand" id="mem-gate-mobile-brand">
+          <div class="mem-gate-mobile-brand" id="mem-gate-mobile-brand" aria-hidden="false">
+            <span class="mem-gate-leaf mem-gate-leaf-1" aria-hidden="true">🍃</span>
+            <span class="mem-gate-leaf mem-gate-leaf-2" aria-hidden="true">🍃</span>
+            <span class="mem-gate-leaf mem-gate-leaf-3" aria-hidden="true">🍃</span>
             <strong id="mem-gate-mobile-brand-txt">
               <span class="mem-gate-brand-line1">Tiệm Cafe</span>
               <span class="mem-gate-brand-line2">Sun &amp; Matcha</span>
             </strong>
+            <svg class="mem-gate-wave" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0,52 C240,100 480,8 720,52 C960,96 1200,20 1440,52 L1440,100 L0,100 Z" fill="#faf6f0"/>
+            </svg>
           </div>
-          <div class="mem-gate-brand">
-            <div class="mem-gate-logo-wrap">
-              <img id="mem-gate-logo-img" class="mem-gate-logo-img" alt="" style="display:none">
-              <span class="mem-gate-logo-fallback">🥛</span>
+          <div class="mem-gate-content">
+            <div class="mem-gate-brand">
+              <div class="mem-gate-logo-wrap">
+                <img id="mem-gate-logo-img" class="mem-gate-logo-img" alt="" style="display:none">
+                <span class="mem-gate-logo-fallback">🥛</span>
+              </div>
+              <h1 class="mem-gate-title" id="mem-disp-login-title">Đăng Nhập</h1>
+              <p class="mem-gate-sub" id="mem-disp-login-sub">Đăng nhập bằng số điện thoại để xem chi tiết.</p>
             </div>
-            <h1 class="mem-gate-title" id="mem-disp-login-title">Đăng Nhập</h1>
-            <p class="mem-gate-sub" id="mem-disp-login-sub">Đăng nhập bằng số điện thoại để xem chi tiết.</p>
+            <div class="mem-gate-card" id="gate-card">
+              <label class="mem-gate-label" for="gate-phone"><i class="fa-solid fa-mobile-screen-button"></i> Số điện thoại (10 số)</label>
+              <div class="mem-gate-input-wrap">
+                <input type="tel" id="gate-phone" placeholder="Nhập số điện thoại của bạn!" maxlength="10" autocomplete="tel" inputmode="numeric" oninput="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onkeyup="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onchange="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onpaste="setTimeout(function(){window.sunSyncGatePhone&&window.sunSyncGatePhone()},0)">
+              </div>
+              <div class="mem-gate-hint-row">
+                <span class="mem-gate-secure"><i class="fa-solid fa-shield-halved"></i> Bảo mật</span>
+              </div>
+              <button type="button" class="btn mem-gate-submit" id="btn-gate-go" disabled onclick="return window.sunGateTryLogin&&window.sunGateTryLogin(event)"><i class="fa-solid fa-arrow-right"></i> Đăng nhập</button>
+              <div id="gate-msg" class="mem-gate-msg"></div>
+            </div>
+            <p class="mem-gate-foot">Chưa có tài khoản? Đăng nhập bằng SĐT - hệ thống sẽ hướng dẫn đăng ký nhanh.</p>
           </div>
-          <div class="mem-gate-card" id="gate-card">
-            <label class="mem-gate-label" for="gate-phone"><i class="fa-solid fa-mobile-screen-button"></i> Số điện thoại (10 số)</label>
-            <div class="mem-gate-input-wrap">
-              <input type="tel" id="gate-phone" placeholder="Nhập số điện thoại của bạn!" maxlength="10" autocomplete="tel" inputmode="numeric" oninput="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onkeyup="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onchange="window.sunSyncGatePhone&&window.sunSyncGatePhone()" onpaste="setTimeout(function(){window.sunSyncGatePhone&&window.sunSyncGatePhone()},0)">
-            </div>
-            <div class="mem-gate-hint-row">
-              <span class="mem-gate-secure"><i class="fa-solid fa-shield-halved"></i> Bảo mật</span>
-            </div>
-            <button type="button" class="btn mem-gate-submit" id="btn-gate-go" disabled onclick="return window.sunGateTryLogin&&window.sunGateTryLogin(event)"><i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập</button>
-            <div id="gate-msg" class="mem-gate-msg"></div>
+          <div class="mem-gate-bottom-deco" aria-hidden="true">
+            <svg class="mem-gate-wave-bottom" viewBox="0 0 1440 80" preserveAspectRatio="none">
+              <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z" fill="#f0e6d8" opacity=".55"/>
+              <path d="M0,50 C300,70 600,30 900,50 C1100,62 1300,55 1440,50 L1440,80 L0,80 Z" fill="#e8dccf" opacity=".4"/>
+            </svg>
+            <span class="mem-gate-beans">☕</span>
+            <span class="mem-gate-leaf-bottom">🍃</span>
           </div>
-          <p class="mem-gate-foot">Chưa có tài khoản? Đăng nhập bằng SĐT - hệ thống sẽ hướng dẫn đăng ký nhanh.</p>
         </div>
       </div>
     </div>
