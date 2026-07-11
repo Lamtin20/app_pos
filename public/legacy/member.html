@@ -7964,6 +7964,18 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         document.body.style.overflow = '';
         registerPhonePending = '';
       }
+      function applyRegisteredMemberIdentity(ph, name) {
+        var nm = String(name || '').trim();
+        if (!nm || isGenericCustomerName(nm)) return;
+        state.phone = ph;
+        state.memDisplayName = nm;
+        state.profile = Object.assign({}, state.profile || {}, { name: nm, phone: ph });
+        if (!state.portal) state.portal = {};
+        state.portal.profile = Object.assign({}, state.portal.profile || {}, { name: nm, phone: ph });
+        var cartNm = $('mem-cart-name');
+        if (cartNm && !String(cartNm.value || '').trim()) cartNm.value = nm;
+        applyTopbarGreeting(nm);
+      }
       async function confirmRegister() {
         var ph = registerPhonePending || normPhone($('gate-phone') && $('gate-phone').value);
         if (!isPhone10(ph)) { showToast('SĐT không hợp lệ'); return; }
@@ -7972,17 +7984,19 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         if (!terms || !terms.checked) { showToast('Vui lòng đồng ý điều khoản và điều kiện'); return; }
         if (!privacy || !privacy.checked) { showToast('Vui lòng đồng ý cho phép dùng dữ liệu cá nhân'); return; }
         var nmEl = $('mem-register-name');
+        var regName = nmEl ? String(nmEl.value || '').trim() : '';
         var btn = $('mem-register-confirm');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang đăng ký…'; }
         try {
           var reg = await api('registerMemberPortalCustomer', {
             phone: ph,
-            name: nmEl ? String(nmEl.value || '').trim() : '',
+            name: regName,
             acceptTerms: true,
             acceptPrivacy: true,
             acceptMarketing: $('mem-reg-marketing') && $('mem-reg-marketing').checked
           });
           closeRegisterModal();
+          applyRegisteredMemberIdentity(ph, regName || (reg && reg.name) || '');
           if (reg && reg.voucher && reg.voucher.code) {
             showToast('🎁 Chúc mừng! Bạn nhận voucher ' + reg.voucher.code + ' giảm ' + (reg.voucher.percent || 5) + '%');
           } else {
@@ -11863,6 +11877,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           ]);
           var cust = pair[0];
           var r = pair[1];
+          if (cust && cust.found) applyRegisteredMemberIdentity(ph, cust.name || '');
           if (cust && cust.found === false) {
             // SĐT chưa có trên hệ thống → mời đăng ký (chỉ trường hợp chắc chắn)
             setPortalAuthState(false);
