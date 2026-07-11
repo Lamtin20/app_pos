@@ -2153,10 +2153,10 @@
     .mem-home-cat-block .mem-section-head h2 { font-size: 1.05rem; }
     .mem-home-cat-banner {
       width: 100%; border-radius: 14px; overflow: hidden; margin-bottom: 12px;
-      aspect-ratio: 5 / 1; min-height: 72px;
-      background: #faf7f2; border: 1px solid var(--border);
+      aspect-ratio: 24/5; min-height: 72px; max-height: 120px;
+      background: linear-gradient(135deg, #ffedd5, #fed7aa); border: 1px solid var(--border);
     }
-    .mem-home-cat-banner img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; background: #faf7f2; }
+    .mem-home-cat-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .mem-home-curated { padding: 0 12px 20px; }
     .mem-home-curated-block { margin-bottom: 22px; }
     .mem-home-curated-block .mem-section-head h2 { font-size: 1.05rem; }
@@ -8905,28 +8905,11 @@ function applyMemberPortalFromSettings(raw) {
         var norm = window.MemOrder && MemOrder.normalizeCategory ? MemOrder.normalizeCategory.bind(MemOrder) : function (c) { return String(c || '').trim(); };
         var want = norm(cat);
         for (var i = 0; i < banners.length; i++) {
-          var b = banners[i];
-          if (norm(b.category) !== want) continue;
-          if (b.imageUrlMobile || b.imageUrlDesktop || b.imageUrl) return b;
+          if (norm(banners[i].category) !== want) continue;
+          var url = String(banners[i].imageUrl || banners[i].imageUrlDesktop || banners[i].imageUrlMobile || '').trim();
+          if (url) return { category: banners[i].category, imageUrl: url, linkUrl: banners[i].linkUrl };
         }
         return null;
-      }
-      function buildCategoryBannerHtml(banner, catLabel) {
-        if (!banner) return '';
-        var mob = String(banner.imageUrlMobile || banner.imageUrl || '').trim();
-        var desk = String(banner.imageUrlDesktop || banner.imageUrl || '').trim();
-        if (!mob && !desk) return '';
-        var alt = esc(catLabel || banner.category || '');
-        var inner = '';
-        if (mob && desk && mob !== desk) {
-          inner = '<picture><source media="(min-width: 900px)" srcset="' + escAttr(desk) + '">' +
-            '<img src="' + esc(mob) + '" alt="' + alt + '" loading="lazy"></picture>';
-        } else {
-          inner = '<img src="' + esc(desk || mob) + '" alt="' + alt + '" loading="lazy">';
-        }
-        return '<div class="mem-home-cat-banner">' +
-          (banner.linkUrl ? '<a href="' + escAttr(banner.linkUrl) + '" target="_blank" rel="noopener">' : '') +
-          inner + (banner.linkUrl ? '</a>' : '') + '</div>';
       }
       function wireHomeMenuCards(container) {
         if (!container) return;
@@ -8996,7 +8979,12 @@ function applyMemberPortalFromSettings(raw) {
           html += '<div class="mem-home-cat-shell">';
           html += '<div class="mem-section-head"><h2><i class="fa-solid fa-mug-hot"></i> ' + esc(cat) + '</h2>';
           html += '<button type="button" class="mem-link-btn mem-home-cat-more" data-cat="' + escAttr(cat) + '">Xem thêm</button></div>';
-          if (banner) html += buildCategoryBannerHtml(banner, cat);
+          if (banner && banner.imageUrl) {
+            html += '<div class="mem-home-cat-banner">' +
+              (banner.linkUrl ? '<a href="' + escAttr(banner.linkUrl) + '" target="_blank" rel="noopener">' : '') +
+              '<img src="' + esc(banner.imageUrl) + '" alt="' + esc(cat) + '" loading="lazy">' +
+              (banner.linkUrl ? '</a>' : '') + '</div>';
+          }
           html += '<div class="mem-home-menu-grid menu-grid portal-menu-pro">';
           html += catItems.slice(0, 4).map(function (m) {
             return '<div class="menu-card" data-home-menu-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, false) + '</div>';
