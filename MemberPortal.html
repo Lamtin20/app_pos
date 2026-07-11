@@ -28,7 +28,7 @@
     setFaviconUrl(SUN_FAVICON_URL);
   })();
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Inter:wght@400;500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Inter:wght@400;500;600;700;800&family=Mali:ital,wght@0,400;0,500;0,600&display=swap&subset=vietnamese" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!--MEMBER_STYLES_BEGIN-->
 <style>
@@ -311,7 +311,7 @@
       box-shadow: none;
     }
     body.mem-logged-in {
-      --mem-greet-font: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif;
+      --mem-greet-font: 'Mali', 'Be Vietnam Pro', sans-serif;
       --mem-greet-color: #c2410c;
       --mem-greet-sub-color: rgba(67, 20, 7, 0.88);
       --mem-greet-shadow: none;
@@ -323,8 +323,8 @@
     body.mem-guest-mode .mem-topbar-meta {
       color: var(--mem-greet-sub-color);
       text-shadow: var(--mem-greet-shadow);
-      font-weight: 800;
-      font-size: 12px;
+      font-weight: 600;
+      font-size: 11px;
       letter-spacing: 0.01em;
     }
     .mem-write-name-wrap {
@@ -333,14 +333,14 @@
     }
     .mem-write-name {
       font-family: var(--mem-greet-font);
-      font-weight: 800;
+      font-weight: 600;
       font-style: normal;
-      font-size: 1.32em;
-      letter-spacing: -0.01em;
-      line-height: 1.4;
+      font-size: 1.1em;
+      letter-spacing: 0.02em;
+      line-height: 1.35;
       display: inline-block;
       white-space: nowrap;
-      padding-bottom: 2px;
+      padding-bottom: 1px;
       color: var(--mem-greet-color);
       text-shadow: var(--mem-greet-shadow);
       clip-path: inset(0 100% 0 0);
@@ -348,25 +348,25 @@
     }
     .mem-greet-hi {
       font-family: var(--mem-greet-font);
-      font-weight: 800;
+      font-weight: 600;
       font-style: normal;
-      font-size: 1.32em;
-      letter-spacing: -0.01em;
-      line-height: 1.4;
+      font-size: 1.1em;
+      letter-spacing: 0.02em;
+      line-height: 1.35;
       display: inline-block;
-      padding-bottom: 2px;
+      padding-bottom: 1px;
       color: var(--mem-greet-color);
       text-shadow: var(--mem-greet-shadow);
     }
     .mem-greet-tail {
       font-family: var(--mem-greet-font);
-      font-weight: 800;
+      font-weight: 600;
       font-style: normal;
-      font-size: 1.32em;
-      letter-spacing: -0.01em;
-      line-height: 1.4;
+      font-size: 1.1em;
+      letter-spacing: 0.02em;
+      line-height: 1.35;
       display: inline-block;
-      padding-bottom: 2px;
+      padding-bottom: 1px;
       color: var(--mem-greet-color);
       text-shadow: var(--mem-greet-shadow);
       opacity: 0;
@@ -2128,7 +2128,8 @@
       display: block;
       overflow: visible;
       text-overflow: clip;
-      line-height: 1.45;
+      line-height: 1.35;
+      font-size: 14px;
       max-width: min(100%, calc(100vw - 108px));
     }
     body:not([data-mem-tab="home"]):not(.mem-guest-mode) .mem-topbar-greet strong {
@@ -3211,12 +3212,12 @@
 
     /* ===== Trang chủ: bố cục gọn gàng, menu 2 cột trên mobile ===== */
     body.mem-logged-in #sec-home { padding: 0; }
-    #mem-home-dashboard { padding: 0; max-width: none; width: 100%; margin-top: -1px; }
-    body[data-mem-tab="home"] .mem-topbar { margin-bottom: -10px; z-index: 5; }
-    body[data-mem-tab="home"] .mem-topbar-sky-bg { margin-bottom: -2px; }
+    #mem-home-dashboard { padding: 0; max-width: none; width: 100%; margin-top: 0; }
+    body[data-mem-tab="home"] .mem-topbar { margin-bottom: 0; z-index: 5; }
+    body[data-mem-tab="home"] .mem-topbar-sky-bg { margin-bottom: 0; }
     body[data-mem-tab="home"] .mem-carousel-wrap {
       width: calc(100% - 24px); max-width: 480px;
-      margin: 6px auto 0; padding: 0 !important;
+      margin: 16px auto 10px; padding: 0 !important;
       position: relative; z-index: 2;
     }
     .mem-carousel-wrap { width: calc(100% - 24px); max-width: 480px; margin: 0 auto; padding: 0 !important; }
@@ -3231,7 +3232,7 @@
       .mem-carousel-wrap {
         width: 100%; max-width: 1100px;
         padding-left: 0 !important; padding-right: 0 !important;
-        margin: 12px auto 22px;
+        margin: 18px auto 24px;
       }
       .mem-home-toolbar { width: 100%; max-width: 990px; margin: 0 auto; }
       .mem-home-menu-sections, .mem-home-curated { max-width: 990px; margin: 0 auto; }
