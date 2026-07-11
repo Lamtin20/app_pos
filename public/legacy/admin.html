@@ -957,6 +957,7 @@
             <select class="form-control" id="promo-type">
               <option value="percent">% Giảm giá</option>
               <option value="fixed">Giảm cố định (₫)</option>
+              <option value="info">Ghi chú / hệ thống tự xử lý (info)</option>
             </select>
           </div>
           <div class="form-group"><label>Giá trị</label><input type="number" class="form-control" id="promo-value" placeholder="20"></div>
@@ -965,7 +966,7 @@
           <div class="form-group"><label>Ngày kết thúc</label><input type="date" class="form-control" id="promo-end"></div>
           <div class="form-group" style="grid-column:span 2;">
             <label>Quy tắc áp dụng (POS gợi ý sau khi nhập SĐT)</label>
-            <select class="form-control" id="promo-rule-type">
+            <select class="form-control" id="promo-rule-type" onchange="syncPromoRuleTypeUi()">
               <option value="">Thủ công (chỉ khi nhập mã)</option>
               <option value="new_customer">Khách hàng mới (chưa có đơn Hoàn thành)</option>
               <option value="repeat_2nd_cup">Khách quay lại + đủ số ly trong giỏ</option>
@@ -5272,16 +5273,28 @@ async function deletePromoCampaignRowByIdx(idx) {
   }
 }
 
+function syncPromoRuleTypeUi() {
+  var ruleType = (document.getElementById('promo-rule-type') || {}).value || '';
+  var typeEl = document.getElementById('promo-type');
+  var valueEl = document.getElementById('promo-value');
+  if (!typeEl) return;
+  if (ruleType === 'holiday_note' || ruleType === 'playbook_note' || ruleType === 'office_week_streak') {
+    typeEl.value = 'info';
+    if (valueEl) valueEl.value = '0';
+  }
+}
+
 async function addPromotion() {
   const code = document.getElementById('promo-code').value.trim().toUpperCase();
   let type = document.getElementById('promo-type').value;
   const ruleType = document.getElementById('promo-rule-type').value;
   let ruleConfigJson = document.getElementById('promo-rule-json').value.trim() || '{}';
-  if (ruleType === 'holiday_note' || ruleType === 'playbook_note') type = 'info';
+  if (ruleType === 'holiday_note' || ruleType === 'playbook_note' || ruleType === 'office_week_streak') type = 'info';
   const value = parseFloat(document.getElementById('promo-value').value);
   const allowZeroValue = type === 'info' ||
     ruleType === 'combo_qty_tiers' ||
-    ruleType === 'points_redeem_hint';
+    ruleType === 'points_redeem_hint' ||
+    ruleType === 'office_week_streak';
   if (!code) { showToast('⚠️ Nhập mã KM!', 'error'); return; }
   if (type !== 'info' && !allowZeroValue && (value === undefined || isNaN(value) || value <= 0)) {
     showToast('⚠️ Điền giá trị > 0 (hoặc chọn playbook / combo bậc / info)', 'error');

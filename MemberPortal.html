@@ -1501,6 +1501,16 @@
       font-size: 10px; font-weight: 900; color: #15803d;
       background: #dcfce7; padding: 3px 9px; border-radius: 999px;
     }
+    .mem-redeem-card-action { margin-top: 8px; }
+    .mem-redeem-card-btn {
+      width: 100%; border: none; border-radius: 12px; padding: 10px 12px;
+      font-size: 12px; font-weight: 900; font-family: var(--font); cursor: pointer;
+      background: linear-gradient(135deg, var(--primary-dk), var(--primary-lt));
+      color: #fff; box-shadow: 0 4px 12px rgba(154, 52, 18, .22);
+      transition: transform .15s ease, opacity .15s ease;
+    }
+    .mem-redeem-card-btn:disabled { opacity: .65; cursor: default; box-shadow: none; }
+    .mem-redeem-card-btn:active:not(:disabled) { transform: scale(0.98); }
     .mem-redeem-note {
       display: flex; gap: 10px; align-items: flex-start; padding: 13px 14px;
       background: rgba(234, 88, 12, .06); border: 1px dashed rgba(234, 88, 12, .3);
@@ -5104,7 +5114,7 @@
           <p class="mem-tier-hint" id="mem-tier-hint">Tích ly để nâng hạng và nhận thêm quyền lợi.</p>
         </div>
       </div>
-      <p class="mem-offers-expiry" id="mem-offers-expiry">1 ly hoàn tất = 1 Sun · Đổi 10 Sun = 1 ly Cà phê / Cà phê sữa / Bạc sỉu</p>
+      <p class="mem-offers-expiry" id="mem-offers-expiry">1 ly hoàn tất = 1 Sun · Đổi 10 Sun = 1 ly nước bất kỳ (voucher 30 ngày)</p>
     </div>
     <div class="mem-offers-body">
       <div class="mem-offers-quick" id="mem-offers-quick">
@@ -5175,7 +5185,7 @@
           <div class="mem-tier-page-sun"><strong id="mem-tier-page-sun">0</strong> SUN</div>
         </div>
         <div class="mem-tier-page-track"><div class="mem-tier-page-fill" id="mem-tier-page-fill"></div></div>
-        <p class="mem-tier-page-note" id="mem-tier-page-note">1 ly hoàn tất = 1 Sun · Đổi 10 Sun = 1 ly Cà phê / Cà phê sữa / Bạc sỉu</p>
+        <p class="mem-tier-page-note" id="mem-tier-page-note">1 ly hoàn tất = 1 Sun · Đổi 10 Sun = 1 ly nước bất kỳ (voucher 30 ngày)</p>
       </div>
       <div class="mem-tier-tabs" id="mem-tier-tabs" role="tablist"></div>
       <div class="mem-tier-benefits" id="mem-tier-benefits"></div>
@@ -5200,7 +5210,7 @@
         <div id="mem-redeem-list"></div>
         <div class="mem-redeem-note">
           <i class="fa-solid fa-circle-info"></i>
-          <span>Đưa <strong>mã hội viên</strong> (tab Ưu đãi) cho nhân viên tại quầy để đổi quà. Sun sẽ được trừ sau khi đổi thành công.</span>
+          <span>Bấm <strong>Đổi ngay</strong> để nhận mã voucher — dùng trong giỏ hàng hoặc tại quầy. Voucher có hiệu lực <strong>30 ngày</strong> từ ngày đổi; Sun được trừ ngay khi đổi thành công.</span>
         </div>
       </div>
     </div>
@@ -6109,7 +6119,7 @@
         if (!benefits.length) {
           benefits = [
             { icon: 'fa-sun', text: 'Tích ' + (tier.sunPerCup || 1) + ' Sun mỗi ly hoàn tất' },
-            { icon: 'fa-gift', text: 'Đổi ' + (tier.redeemSun || 10) + ' Sun = ' + (tier.redeemDesc || '1 ly Cà phê / Cà phê sữa / Bạc sỉu') }
+            { icon: 'fa-gift', text: 'Đổi ' + (tier.redeemSun || 10) + ' Sun = ' + (tier.redeemDesc || '1 ly nước bất kỳ') }
           ];
         }
         var msg = achieved ? '' : ('<p class="mem-tier-benefits-locked-msg">Đạt hạng <strong>' + esc(tier.name) + '</strong> để mở quyền lợi này</p>');
@@ -6157,7 +6167,7 @@
         var tierDef = getMemberTiers().find(function (t) { return t.name === tierName; });
         var note = tp.tierHint || '';
         if (tierDef && tierDef.redeemSun) {
-          note = (tierDef.sunPerCup || 1) + ' ly hoàn tất = ' + (tierDef.sunPerCup || 1) + ' Sun · Đổi ' + tierDef.redeemSun + ' Sun = ' + (tierDef.redeemDesc || '1 ly Cà phê / Cà phê sữa / Bạc sỉu');
+          note = (tierDef.sunPerCup || 1) + ' ly hoàn tất = ' + (tierDef.sunPerCup || 1) + ' Sun · Đổi ' + tierDef.redeemSun + ' Sun = ' + (tierDef.redeemDesc || '1 ly nước bất kỳ');
         }
         if ($('mem-tier-page-note')) $('mem-tier-page-note').textContent = note;
         paintTierPageCardAppearance(tierPageSelectedId || tierIdFromName(tierName));
@@ -6198,7 +6208,7 @@
         var list = (Array.isArray(fromOffers) && fromOffers.length) ? fromOffers
           : ((Array.isArray(fromSettings) && fromSettings.length) ? fromSettings : null);
         if (!list) {
-          list = [{ sun: 10, title: '1 ly nước bất kỳ', desc: 'Đổi 10 Sun lấy 1 ly nước bất kỳ trên menu — thoải mái chọn món yêu thích.', icon: 'fa-mug-hot', featured: true }];
+          list = [{ sun: 10, title: '1 ly nước bất kỳ', desc: 'Đổi 10 Sun lấy 1 ly nước bất kỳ — voucher 30 ngày.', icon: 'fa-mug-hot', featured: true, validDays: 30 }];
         }
         return list.slice().sort(function (a, b) {
           if (!!b.featured !== !!a.featured) return b.featured ? 1 : -1;
@@ -6210,12 +6220,12 @@
         if (!box) return;
         var sun = getMemberSunBalance();
         if ($('mem-redeem-balance')) $('mem-redeem-balance').textContent = String(sun);
-        box.innerHTML = getRedeemPrograms().map(function (p) {
+        box.innerHTML = getRedeemPrograms().map(function (p, idx) {
           var need = parseInt(p.sun, 10) || 0;
           var ready = sun >= need;
           var pct = need > 0 ? Math.min(100, Math.round(sun / need * 100)) : 0;
           var status = ready
-            ? '<span class="mem-redeem-ready-tag"><i class="fa-solid fa-circle-check"></i> Đủ Sun — đổi ngay tại quầy</span>'
+            ? '<div class="mem-redeem-card-action"><button type="button" class="mem-redeem-card-btn" data-redeem-idx="' + idx + '" data-redeem-sun="' + need + '"><i class="fa-solid fa-gift"></i> Đổi ngay</button></div>'
             : '<div class="mem-redeem-card-progress"><div class="mem-redeem-card-bar"><i style="width:' + pct + '%;"></i></div><span>' + sun + '/' + need + ' Sun</span></div>';
           return '<div class="mem-redeem-card' + (p.featured ? ' featured' : '') + (ready ? ' ready' : '') + '">' +
             (p.featured ? '<span class="mem-redeem-card-badge">NỔI BẬT</span>' : '') +
@@ -6227,6 +6237,77 @@
             '<div class="mem-redeem-card-cost"><strong>' + need + '</strong><span>SUN</span></div>' +
             '</div>';
         }).join('');
+        box.querySelectorAll('[data-redeem-sun]').forEach(function (btn) {
+          btn.onclick = function () {
+            var need = parseInt(btn.getAttribute('data-redeem-sun'), 10) || 0;
+            var programs = getRedeemPrograms();
+            var idx = parseInt(btn.getAttribute('data-redeem-idx'), 10) || 0;
+            var prog = programs[idx];
+            if (!prog || !need) return;
+            redeemSunProgram(need, prog.title || 'quà tặng');
+          };
+        });
+      }
+      var sunRedeemBusy = false;
+      function showSunRedeemSuccess(voucher, sunLeft) {
+        var v = voucher || {};
+        var m = $('mem-voucher-modal');
+        var d = $('mem-voucher-detail');
+        var applyBtn = $('mem-voucher-apply');
+        if (!m || !d) return;
+        stateVoucherPromo = { code: v.code, description: 'Voucher đổi Sun — 1 ly nước bất kỳ', conditions: 'HSD ' + (v.expires || '') + ' · Còn ' + (sunLeft != null ? sunLeft : getMemberSunBalance()) + ' Sun' };
+        d.innerHTML =
+          '<div class="mem-voucher-preview">' +
+          '<div class="mem-voucher-stub type-info"><div class="mem-voucher-badge">DS<small>Đổi Sun</small></div></div>' +
+          '<h3 style="margin:12px 0 6px;">Đổi Sun thành công!</h3>' +
+          '<p style="font-size:13px;font-weight:900;color:var(--primary);letter-spacing:.04em;">' + esc(v.code || '') + '</p>' +
+          '<p style="font-size:12px;color:var(--text3);line-height:1.5;">1 ly nước bất kỳ · HSD <strong>' + esc(v.expires || '') + '</strong></p>' +
+          '<p style="font-size:11px;color:var(--text3);margin-top:8px;">Nhập mã vào ô Khuyến mãi khi đặt hàng hoặc đưa mã cho nhân viên tại quầy.</p>' +
+          '</div>';
+        if (applyBtn) {
+          applyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy mã voucher';
+          applyBtn.onclick = function () {
+            var code = String(v.code || '');
+            var done = function () { showToast('📋 Đã copy ' + code); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done).catch(done);
+            else { prompt('Copy mã voucher:', code); }
+          };
+        }
+        m.classList.remove('mem-hidden');
+        memNavOpen(closeVoucherDetail);
+      }
+      function redeemSunProgram(sunCost, title) {
+        if (sunRedeemBusy) return;
+        if (!state.phone || state.phone.length < 9) { showToast('Đăng nhập SĐT trước'); return; }
+        var need = parseInt(sunCost, 10) || 0;
+        if (getMemberSunBalance() < need) { showToast('Chưa đủ Sun để đổi'); renderRedeemList(); return; }
+        var ok = window.confirm('Đổi ' + need + ' Sun lấy «' + (title || 'quà tặng') + '»?\n\nSun sẽ bị trừ ngay. Bạn nhận voucher dùng trong 30 ngày.');
+        if (!ok) return;
+        sunRedeemBusy = true;
+        var btn = document.querySelector('.mem-redeem-card-btn[data-redeem-sun="' + need + '"]');
+        if (btn) btn.disabled = true;
+        var p = (typeof apiLong === 'function')
+          ? apiLong('redeemMemberSunProgram', 45000, state.phone, need)
+          : api('redeemMemberSunProgram', state.phone, need);
+        Promise.resolve(p).then(function (r) {
+          if (!r || !r.ok) throw new Error((r && r.message) || 'Không đổi được Sun');
+          if (state.portal && state.portal.offers) {
+            state.portal.offers.cups = r.pointsRemaining;
+            state.portal.offers.points = r.pointsRemaining;
+            if (state.portal.offers.tierProgress) state.portal.offers.tierProgress.cups = r.pointsRemaining;
+          }
+          if (state.profile) state.profile.points = r.pointsRemaining;
+          renderOffers();
+          renderRedeemList();
+          showSunRedeemSuccess(r.voucher, r.pointsRemaining);
+          showToast('✅ ' + (r.message || 'Đã đổi Sun'));
+          refreshPortalStatus().catch(function () { });
+        }).catch(function (e) {
+          showToast('❌ ' + (e.message || 'Lỗi đổi Sun'));
+          renderRedeemList();
+        }).finally(function () {
+          sunRedeemBusy = false;
+        });
       }
       function closeRedeemPage() {
         var ov = $('mem-redeem-overlay');
@@ -6338,6 +6419,11 @@
         var m = $('mem-voucher-modal');
         if (m) m.classList.add('mem-hidden');
         stateVoucherPromo = null;
+        var applyBtn = $('mem-voucher-apply');
+        if (applyBtn) {
+          applyBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Áp dụng ngay';
+          applyBtn.onclick = goPickupWithPromo;
+        }
       }
       function closeNotifPop() {
         var pop = $('mem-notif-pop');

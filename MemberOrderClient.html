@@ -2013,7 +2013,7 @@
         api('getCheckoutPromoOptions', phone(), cartSummaryJson(), cartSubtotal()).then(function (res) {
           var list = $('mem-cart-promo-list');
           if (!list) return;
-          var opts = (res && res.options) ? res.options.filter(function (o) { return o && o.kind === 'promo' && o.code; }) : [];
+          var opts = (res && res.options) ? res.options.filter(function (o) { return o && (o.kind === 'promo' || o.kind === 'voucher') && o.code; }) : [];
           if (!opts.length) {
             list.innerHTML = '<p class="mem-cart-promo-hint">Chưa có khuyến mãi phù hợp - nhập mã bên dưới</p>';
             return;
