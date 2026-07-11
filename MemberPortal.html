@@ -1020,6 +1020,18 @@
       height: 100%; border-radius: 999px; width: 0%;
       background: linear-gradient(90deg, #ea580c, #f59e0b);
       transition: width .45s ease;
+      position: relative; overflow: hidden;
+    }
+    /* Hiệu ứng dòng chảy trên thanh tiến độ */
+    .mem-tier-fill::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, .55) 50%, transparent 100%);
+      transform: translateX(-100%);
+      animation: memTierFlow 2s ease-in-out infinite;
+    }
+    @keyframes memTierFlow {
+      0% { transform: translateX(-100%); }
+      60%, 100% { transform: translateX(100%); }
     }
     .mem-tier-marker {
       position: absolute; top: 50%; transform: translate(-50%, -50%);
@@ -1028,6 +1040,22 @@
       display: flex; align-items: center; justify-content: center; font-size: 11px;
       box-shadow: 0 2px 8px rgba(234,88,12,.25);
       transition: left .45s ease;
+    }
+    /* Mặt trời trong chốt tiến độ xoay tròn */
+    .mem-tier-marker i { animation: memSunSpin 7s linear infinite; transform-origin: center; }
+    @keyframes memSunSpin { to { transform: rotate(360deg); } }
+    /* Vương miện hạng: sao lấp lánh */
+    .mem-stat-crown { position: relative; overflow: visible; }
+    .mem-stat-crown::before, .mem-stat-crown::after {
+      content: '✦'; position: absolute; line-height: 1; pointer-events: none;
+      color: #fde68a; text-shadow: 0 0 6px rgba(253, 230, 138, .95);
+      animation: memCrownTwinkle 1.7s ease-in-out infinite;
+    }
+    .mem-stat-crown::before { top: 1px; right: 2px; font-size: 9px; }
+    .mem-stat-crown::after { bottom: 2px; left: 2px; font-size: 7px; animation-delay: .85s; }
+    @keyframes memCrownTwinkle {
+      0%, 100% { opacity: 0; transform: scale(.35) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.05) rotate(25deg); }
     }
     .mem-tier-hint { margin: 10px 0 0; font-size: 11px; color: #78716c; line-height: 1.45; text-align: center; }
     .mem-tier-maxed .mem-tier-to { color: #16a34a; }
@@ -1072,6 +1100,25 @@
       font-size: 11px; font-weight: 800; color: var(--primary);
       padding: 5px 10px; border-radius: 999px; background: rgba(234,88,12,.08);
       border: none; cursor: pointer; font-family: var(--font);
+    }
+    /* Màu chữ heading + nút "Xem tất cả" thích ứng nền tối của hạng Bạc / Vàng / Kim cương */
+    body[data-offers-tier="tier-silver"] .mem-offers-section-head h2,
+    body[data-offers-tier="tier-gold"] .mem-offers-section-head h2,
+    body[data-offers-tier="tier-diamond"] .mem-offers-section-head h2 {
+      color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .35);
+    }
+    body[data-offers-tier="tier-silver"] .mem-promo-see-all,
+    body[data-offers-tier="tier-gold"] .mem-promo-see-all,
+    body[data-offers-tier="tier-diamond"] .mem-promo-see-all {
+      color: #fff; background: rgba(255, 255, 255, .16);
+      border: 1px solid rgba(255, 255, 255, .32);
+      backdrop-filter: blur(4px);
+    }
+    body[data-offers-tier="tier-silver"] .mem-promo-empty,
+    body[data-offers-tier="tier-gold"] .mem-promo-empty,
+    body[data-offers-tier="tier-diamond"] .mem-promo-empty {
+      color: rgba(255, 255, 255, .85); background: rgba(255, 255, 255, .08);
+      border-color: rgba(255, 255, 255, .3);
     }
     .mem-promo-list { display: flex; flex-direction: column; gap: 10px; }
     .mem-promo-empty {
@@ -1288,6 +1335,164 @@
       background: rgba(234, 88, 12, .08); border: 1px dashed rgba(234, 88, 12, .25);
       font-size: 12px; font-weight: 700; color: var(--primary-dk); text-align: center;
     }
+    /* ===== Gói Sun (panel Khác) ===== */
+    .mem-pkgmgr-intro {
+      display: flex; gap: 12px; align-items: flex-start; padding: 14px;
+      background: linear-gradient(135deg, #fff7ed, #ffedd5); border: 1px solid rgba(234, 88, 12, .18);
+      border-radius: 16px; margin-bottom: 14px;
+    }
+    .mem-pkgmgr-intro > i {
+      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      color: #ea580c; font-size: 17px; box-shadow: 0 2px 8px rgba(234, 88, 12, .15);
+      animation: memSunSpin 10s linear infinite;
+    }
+    .mem-pkgmgr-intro strong { display: block; font-size: 13.5px; font-weight: 900; color: #7c2d12; margin-bottom: 2px; }
+    .mem-pkgmgr-intro span { display: block; font-size: 11.5px; color: #9a3412; line-height: 1.5; }
+    .mem-pkgmgr-card {
+      background: #fff; border: 1px solid rgba(120, 82, 48, .1); border-radius: 20px;
+      padding: 16px 15px; margin-bottom: 14px; box-shadow: 0 4px 16px rgba(40, 25, 15, .06);
+    }
+    .mem-pkgmgr-top { display: flex; gap: 13px; align-items: center; margin-bottom: 14px; }
+    .mem-pkgmgr-img {
+      width: 64px; height: 64px; border-radius: 16px; object-fit: cover; flex-shrink: 0;
+      box-shadow: 0 3px 10px rgba(40, 25, 15, .12);
+    }
+    .mem-pkgmgr-img-ph {
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
+      background: linear-gradient(145deg, #fff7ed, #ffedd5);
+    }
+    .mem-pkgmgr-info { flex: 1; min-width: 0; }
+    .mem-pkgmgr-chip {
+      display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 900;
+      color: #15803d; background: #dcfce7; padding: 3px 10px; border-radius: 999px; margin-bottom: 5px;
+    }
+    .mem-pkgmgr-name { margin: 0; font-size: 15.5px; font-weight: 900; color: var(--text); line-height: 1.3; font-family: var(--display); }
+    .mem-pkgmgr-meta { margin: 3px 0 0; font-size: 11px; color: var(--text3); font-weight: 600; }
+    .mem-pkgmgr-progress { margin-bottom: 12px; }
+    .mem-pkgmgr-progress-head {
+      display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;
+      font-size: 10px; font-weight: 700; color: var(--text3);
+    }
+    .mem-pkgmgr-progress-head strong { font-size: 12px; font-weight: 900; color: #ea580c; }
+    .mem-pkgmgr-bar { height: 7px; border-radius: 999px; background: #f0e9e0; overflow: hidden; position: relative; }
+    .mem-pkgmgr-bar i {
+      display: block; height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, #ea580c, #f59e0b);
+      position: relative; overflow: hidden;
+    }
+    .mem-pkgmgr-bar i::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+      transform: translateX(-100%); animation: memTierFlow 2.2s ease-in-out infinite;
+    }
+    .mem-pkgmgr-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .mem-pkgmgr-stat {
+      display: flex; align-items: center; gap: 10px; padding: 11px 12px;
+      background: var(--surface2, #faf6f0); border-radius: 14px;
+    }
+    .mem-pkgmgr-stat > i {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      color: #ea580c; font-size: 14px;
+    }
+    .mem-pkgmgr-stat strong { display: block; font-size: 16px; font-weight: 900; color: var(--text); line-height: 1.1; }
+    .mem-pkgmgr-stat span { display: block; font-size: 10px; color: var(--text3); font-weight: 700; }
+    .mem-pkgmgr-actions { display: flex; gap: 10px; }
+    .mem-pkgmgr-btn-main {
+      flex: 1; justify-content: center; border-radius: 14px; padding: 13px; font-size: 13.5px; font-weight: 900;
+    }
+    .mem-pkgmgr-more-btn {
+      display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px; border-radius: 16px; border: 1.5px dashed rgba(234, 88, 12, .4);
+      background: rgba(234, 88, 12, .05); color: #c2410c; font-size: 13px; font-weight: 800;
+      cursor: pointer; font-family: var(--font); transition: background .15s;
+    }
+    .mem-pkgmgr-more-btn:active { background: rgba(234, 88, 12, .12); }
+    .mem-pkgmgr-grid { margin-top: 2px; }
+
+    /* ===== Trang Đổi Sun ===== */
+    .mem-redeem-overlay {
+      position: fixed; inset: 0; z-index: 200; background: #faf6f0;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .mem-redeem-hero {
+      margin: 14px 14px 0; padding: 26px 18px 22px; border-radius: 22px; text-align: center;
+      background: linear-gradient(150deg, #7c2d12 0%, #b45309 55%, #ea580c 100%);
+      color: #fff; position: relative; overflow: hidden;
+    }
+    .mem-redeem-hero::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.16) 50%, transparent 58%);
+      animation: memTierShine 4.5s ease-in-out infinite;
+    }
+    .mem-redeem-hero-sun {
+      width: 64px; height: 64px; margin: 0 auto 10px; border-radius: 50%;
+      background: rgba(255, 255, 255, .16); display: flex; align-items: center; justify-content: center;
+      font-size: 30px; color: #fde68a;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 6px 20px rgba(0,0,0,.18);
+    }
+    .mem-redeem-hero-sun i { animation: memSunSpin 9s linear infinite; }
+    .mem-redeem-hero-label {
+      margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .82;
+    }
+    .mem-redeem-hero-balance { margin: 2px 0 8px; }
+    .mem-redeem-hero-balance strong { font-size: 44px; font-weight: 900; font-family: var(--display); line-height: 1; }
+    .mem-redeem-hero-balance span { font-size: 15px; font-weight: 800; opacity: .9; }
+    .mem-redeem-hero-hint { margin: 0; font-size: 11px; opacity: .85; line-height: 1.5; }
+    .mem-redeem-list-wrap { padding: 18px 14px 8px; }
+    .mem-redeem-list-title { margin: 0 0 12px; font-size: 14px; font-weight: 900; color: var(--primary-dk); font-family: var(--display); }
+    .mem-redeem-card {
+      display: flex; align-items: center; gap: 14px; padding: 15px 14px;
+      background: #fff; border: 1px solid rgba(120, 82, 48, .1); border-radius: 18px;
+      margin-bottom: 12px; box-shadow: 0 3px 12px rgba(40, 25, 15, .05);
+      position: relative; overflow: hidden;
+    }
+    .mem-redeem-card.featured {
+      border: 1.5px solid rgba(234, 88, 12, .4);
+      background: linear-gradient(135deg, #fff 55%, #fff7ed 100%);
+      box-shadow: 0 6px 20px rgba(234, 88, 12, .14);
+    }
+    .mem-redeem-card-badge {
+      position: absolute; top: 0; right: 0; font-size: 9px; font-weight: 900; letter-spacing: .05em;
+      background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff;
+      padding: 4px 12px; border-radius: 0 0 0 12px;
+    }
+    .mem-redeem-card-ico {
+      width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+      background: linear-gradient(145deg, #fff7ed, #ffedd5);
+      display: flex; align-items: center; justify-content: center;
+      color: #ea580c; font-size: 21px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+    }
+    .mem-redeem-card-body { flex: 1; min-width: 0; }
+    .mem-redeem-card-title { margin: 0; font-size: 14px; font-weight: 900; color: var(--text); line-height: 1.3; }
+    .mem-redeem-card-desc { margin: 3px 0 0; font-size: 11px; color: var(--text3); line-height: 1.45; }
+    .mem-redeem-card-progress { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+    .mem-redeem-card-bar { flex: 1; height: 5px; border-radius: 999px; background: #f0e9e0; overflow: hidden; }
+    .mem-redeem-card-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ea580c, #f59e0b); }
+    .mem-redeem-card-progress span { font-size: 10px; font-weight: 800; color: var(--text3); white-space: nowrap; }
+    .mem-redeem-card-cost {
+      flex-shrink: 0; text-align: center; padding: 8px 12px; border-radius: 14px;
+      background: rgba(234, 88, 12, .08); min-width: 62px;
+    }
+    .mem-redeem-card-cost strong { display: block; font-size: 19px; font-weight: 900; color: #ea580c; line-height: 1.1; }
+    .mem-redeem-card-cost span { font-size: 9px; font-weight: 800; color: #b45309; letter-spacing: .06em; }
+    .mem-redeem-card.ready .mem-redeem-card-cost { background: #dcfce7; }
+    .mem-redeem-card.ready .mem-redeem-card-cost strong { color: #15803d; }
+    .mem-redeem-card.ready .mem-redeem-card-cost span { color: #166534; }
+    .mem-redeem-ready-tag {
+      display: inline-flex; align-items: center; gap: 4px; margin-top: 6px;
+      font-size: 10px; font-weight: 900; color: #15803d;
+      background: #dcfce7; padding: 3px 9px; border-radius: 999px;
+    }
+    .mem-redeem-note {
+      display: flex; gap: 10px; align-items: flex-start; padding: 13px 14px;
+      background: rgba(234, 88, 12, .06); border: 1px dashed rgba(234, 88, 12, .3);
+      border-radius: 14px; font-size: 11.5px; color: var(--primary-dk); line-height: 1.55; margin-top: 4px;
+    }
+    .mem-redeem-note i { margin-top: 2px; flex-shrink: 0; }
     .mem-wind-layer {
       position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden;
     }
@@ -4487,15 +4692,12 @@
       <div class="mem-offers-sparkles" id="mem-offers-sparkles" aria-hidden="true"></div>
       <div class="mem-offers-hero-top">
         <div class="mem-offers-hero-text">
-          <div class="mem-offers-hero-head">
-            <p class="mem-offers-eyebrow">Ưu đãi</p>
-          </div>
           <span class="mem-offers-tier-badge" id="mem-offers-tier-badge"><i class="fa-solid fa-crown"></i> Hội viên SUN</span>
           <h1 class="mem-offers-tier-name" id="mem-offers-tier">Thành viên</h1>
           <p class="mem-offers-cups-line"><strong id="mem-offers-cups">0</strong> SUN</p>
           <div class="mem-offers-stat-row" aria-label="Hạng và Sun">
             <div class="mem-offers-stat">
-              <span class="mem-offers-stat-ico" aria-hidden="true"><i class="fa-solid fa-crown"></i></span>
+              <span class="mem-offers-stat-ico mem-stat-crown" aria-hidden="true"><i class="fa-solid fa-crown"></i></span>
               <div class="mem-offers-stat-copy">
                 <span class="mem-offers-stat-label">Hạng</span>
                 <strong class="mem-offers-stat-val" id="mem-offers-tier-stat">Thành viên</strong>
@@ -4603,6 +4805,30 @@
       </div>
       <div class="mem-tier-tabs" id="mem-tier-tabs" role="tablist"></div>
       <div class="mem-tier-benefits" id="mem-tier-benefits"></div>
+    </div>
+  </div>
+
+  <!-- REDEEM SUN PAGE -->
+  <div class="mem-redeem-overlay mem-hidden" id="mem-redeem-overlay" aria-hidden="true">
+    <div class="mem-redeem-page">
+      <div class="mem-tier-page-head">
+        <button type="button" class="mem-tier-back" id="mem-redeem-back" aria-label="Quay lại"><i class="fa-solid fa-chevron-left"></i></button>
+        <h1>Đổi Sun</h1>
+      </div>
+      <div class="mem-redeem-hero">
+        <div class="mem-redeem-hero-sun" aria-hidden="true"><i class="fa-solid fa-sun"></i></div>
+        <p class="mem-redeem-hero-label">Sun đang có</p>
+        <p class="mem-redeem-hero-balance"><strong id="mem-redeem-balance">0</strong> <span>Sun</span></p>
+        <p class="mem-redeem-hero-hint">Tích 1 Sun cho mỗi ly hoàn tất — dùng Sun đổi quà bên dưới</p>
+      </div>
+      <div class="mem-redeem-list-wrap">
+        <h3 class="mem-redeem-list-title">Chương trình đổi quà</h3>
+        <div id="mem-redeem-list"></div>
+        <div class="mem-redeem-note">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Đưa <strong>mã hội viên</strong> (tab Ưu đãi) cho nhân viên tại quầy để đổi quà. Sun sẽ được trừ sau khi đổi thành công.</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -5558,6 +5784,61 @@
       function openBenefitsPage() {
         openTierPage(tierIdFromName(getMemberCurrentTierName()), 'Quyền lợi của bạn');
       }
+      function getRedeemPrograms() {
+        var fromOffers = state.portal && state.portal.offers && state.portal.offers.redeemPrograms;
+        var fromSettings = (window.memberPortalSettings && window.memberPortalSettings.redeemPrograms) ||
+          (state.settings && state.settings.redeemPrograms);
+        var list = (Array.isArray(fromOffers) && fromOffers.length) ? fromOffers
+          : ((Array.isArray(fromSettings) && fromSettings.length) ? fromSettings : null);
+        if (!list) {
+          list = [{ sun: 10, title: '1 ly nước bất kỳ', desc: 'Đổi 10 Sun lấy 1 ly nước bất kỳ trên menu — thoải mái chọn món yêu thích.', icon: 'fa-mug-hot', featured: true }];
+        }
+        return list.slice().sort(function (a, b) {
+          if (!!b.featured !== !!a.featured) return b.featured ? 1 : -1;
+          return (parseInt(a.sun, 10) || 0) - (parseInt(b.sun, 10) || 0);
+        });
+      }
+      function renderRedeemList() {
+        var box = $('mem-redeem-list');
+        if (!box) return;
+        var sun = getMemberSunBalance();
+        if ($('mem-redeem-balance')) $('mem-redeem-balance').textContent = String(sun);
+        box.innerHTML = getRedeemPrograms().map(function (p) {
+          var need = parseInt(p.sun, 10) || 0;
+          var ready = sun >= need;
+          var pct = need > 0 ? Math.min(100, Math.round(sun / need * 100)) : 0;
+          var status = ready
+            ? '<span class="mem-redeem-ready-tag"><i class="fa-solid fa-circle-check"></i> Đủ Sun — đổi ngay tại quầy</span>'
+            : '<div class="mem-redeem-card-progress"><div class="mem-redeem-card-bar"><i style="width:' + pct + '%;"></i></div><span>' + sun + '/' + need + ' Sun</span></div>';
+          return '<div class="mem-redeem-card' + (p.featured ? ' featured' : '') + (ready ? ' ready' : '') + '">' +
+            (p.featured ? '<span class="mem-redeem-card-badge">NỔI BẬT</span>' : '') +
+            '<span class="mem-redeem-card-ico"><i class="fa-solid ' + escAttr(p.icon || 'fa-gift') + '"></i></span>' +
+            '<div class="mem-redeem-card-body">' +
+            '<p class="mem-redeem-card-title">' + esc(p.title || '') + '</p>' +
+            (p.desc ? '<p class="mem-redeem-card-desc">' + esc(p.desc) + '</p>' : '') +
+            status + '</div>' +
+            '<div class="mem-redeem-card-cost"><strong>' + need + '</strong><span>SUN</span></div>' +
+            '</div>';
+        }).join('');
+      }
+      function closeRedeemPage() {
+        var ov = $('mem-redeem-overlay');
+        if (ov) {
+          ov.classList.add('mem-hidden');
+          ov.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
+      }
+      function openRedeemPage() {
+        renderRedeemList();
+        var ov = $('mem-redeem-overlay');
+        if (ov) {
+          ov.classList.remove('mem-hidden');
+          ov.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+          memNavOpen(closeRedeemPage);
+        }
+      }
       function paintOfferSparkles() {
         var el = $('mem-offers-sparkles');
         if (!el) return;
@@ -5923,7 +6204,7 @@
           pop.classList.add('mem-hidden');
           pop.dataset.campaignId = '';
         }
-        if (!(document.querySelector('#mem-tier-overlay:not(.mem-hidden), #mem-voucher-modal:not(.mem-hidden), #mem-order-detail-modal:not(.mem-hidden), #mem-register-modal:not(.mem-hidden)'))) {
+        if (!(document.querySelector('#mem-tier-overlay:not(.mem-hidden), #mem-redeem-overlay:not(.mem-hidden), #mem-voucher-modal:not(.mem-hidden), #mem-order-detail-modal:not(.mem-hidden), #mem-register-modal:not(.mem-hidden)'))) {
           document.body.style.overflow = '';
         }
       }
@@ -6314,9 +6595,10 @@
         var modal = $('mem-order-detail-modal');
         if (modal) modal.classList.add('mem-hidden');
         var tierOpen = $('mem-tier-overlay') && !$('mem-tier-overlay').classList.contains('mem-hidden');
+        var redeemOpen = $('mem-redeem-overlay') && !$('mem-redeem-overlay').classList.contains('mem-hidden');
         var voucherOpen = $('mem-voucher-modal') && !$('mem-voucher-modal').classList.contains('mem-hidden');
         var regOpen = $('mem-register-modal') && !$('mem-register-modal').classList.contains('mem-hidden');
-        if (!tierOpen && !voucherOpen && !regOpen) document.body.style.overflow = '';
+        if (!tierOpen && !redeemOpen && !voucherOpen && !regOpen) document.body.style.overflow = '';
       }
       function fmtOrderTime(t) {
         if (!t) return '';
@@ -6545,14 +6827,78 @@
         box.innerHTML = '<div class="mem-orders-page-head"><h2>Điều khoản</h2></div>' +
           '<div class="card" style="border-radius:16px;padding:16px 14px;">' + css + doc + '</div>';
       }
+      function pkgPanelFmtDate(d) {
+        if (!d) return '';
+        try {
+          var dt = new Date(d);
+          if (isNaN(dt.getTime())) return String(d);
+          return ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + '/' + dt.getFullYear();
+        } catch (e) { return String(d); }
+      }
       function renderPackagesPanel() {
         var box = $('more-panel-packages');
         if (!box) return;
         var head = '<div class="mem-orders-page-head"><h2>Gói Sun</h2></div>';
-        if (state.portal && state.portal.hasPortalAccess) {
-          box.innerHTML = head + '<p>Gói đang chạy - mở lịch uống.</p><button type="button" class="btn" onclick="SUN_MEM.goSchedule()">Xem lịch uống</button>';
+        var subs = (state.portal && state.portal.activeSubscriptions) || [];
+        if (state.portal && state.portal.hasPortalAccess && subs.length) {
+          // Đã có gói: màn quản lý gói trực quan
+          var cards = subs.map(function (sub) {
+            var pkg = (state.packages || []).find(function (p) { return p.id === sub.packageId; }) || {};
+            var pkgName = pkg.name || sub.packageId || 'Gói Sun';
+            var isMonth = String(sub.type || pkg.type || '').indexOf('Tháng') >= 0;
+            var sd = new Date(sub.start); var ed = new Date(sub.end);
+            var now = Date.now();
+            var totalMs = (ed.getTime() || 0) - (sd.getTime() || 0);
+            var usedMs = Math.max(0, Math.min(totalMs, now - (sd.getTime() || 0)));
+            var pct = totalMs > 0 ? Math.round(usedMs / totalMs * 100) : 0;
+            var daysLeft = Math.max(0, Math.ceil(((ed.getTime() || 0) - now) / 86400000));
+            var imgUrl = String(pkg.imageUrl || pkg.coverImageUrl || pkg.image || '').trim();
+            var visual = imgUrl
+              ? '<img class="mem-pkgmgr-img" src="' + escAttr(imgUrl) + '" alt="">'
+              : '<span class="mem-pkgmgr-img mem-pkgmgr-img-ph">' + (isMonth ? '🌰' : '🥛') + '</span>';
+            return '<div class="mem-pkgmgr-card">' +
+              '<div class="mem-pkgmgr-top">' + visual +
+              '<div class="mem-pkgmgr-info">' +
+              '<span class="mem-pkgmgr-chip"><i class="fa-solid fa-circle-check"></i> Đang hoạt động</span>' +
+              '<h3 class="mem-pkgmgr-name">' + esc(pkgName) + '</h3>' +
+              '<p class="mem-pkgmgr-meta">' + esc(sub.type || pkg.type || 'Gói') + ' · Mã ' + esc(sub.subId || '') + '</p>' +
+              '</div></div>' +
+              '<div class="mem-pkgmgr-progress">' +
+              '<div class="mem-pkgmgr-progress-head"><span>' + pkgPanelFmtDate(sub.start) + '</span><strong>Còn ' + daysLeft + ' ngày</strong><span>' + pkgPanelFmtDate(sub.end) + '</span></div>' +
+              '<div class="mem-pkgmgr-bar"><i style="width:' + pct + '%;"></i></div>' +
+              '</div>' +
+              '<div class="mem-pkgmgr-stats">' +
+              '<div class="mem-pkgmgr-stat"><i class="fa-solid fa-truck-fast"></i><div><strong>' + (parseInt(sub.sessionsDelivered, 10) || 0) + '</strong><span>Buổi đã giao</span></div></div>' +
+              '<div class="mem-pkgmgr-stat"><i class="fa-regular fa-calendar"></i><div><strong>' + daysLeft + '</strong><span>Ngày còn lại</span></div></div>' +
+              '</div>' +
+              '<div class="mem-pkgmgr-actions">' +
+              '<button type="button" class="btn mem-pkgmgr-btn-main" onclick="SUN_MEM.goSchedule()"><i class="fa-solid fa-calendar-days"></i> Mở lịch uống</button>' +
+              '</div></div>';
+          }).join('');
+          box.innerHTML = head + cards +
+            '<button type="button" class="mem-pkgmgr-more-btn" onclick="SUN_MEM.goRegister()"><i class="fa-solid fa-plus"></i> Đăng ký thêm gói mới</button>';
+        } else if ((state.packages || []).length) {
+          // Chưa có gói: show gói + lợi ích, bấm đăng ký
+          var systemPkgs = state.packages.filter(function (p) { return !isPkgCustom(p); });
+          var customPkgs = state.packages.filter(function (p) { return isPkgCustom(p); });
+          var week = systemPkgs.find(function (p) { return String(p.type || '').indexOf('Tuần') >= 0; }) || systemPkgs[0];
+          var month = systemPkgs.find(function (p) { return String(p.type || '').indexOf('Tháng') >= 0; }) || null;
+          var pkgCards = '';
+          if (week) pkgCards += buildPkgCardHtml(week, 'week', null, {});
+          if (month) pkgCards += buildPkgCardHtml(month, 'month', null, {});
+          customPkgs.forEach(function (p) { pkgCards += buildPkgCardHtml(p, 'custom', null, {}); });
+          box.innerHTML = head +
+            '<div class="mem-pkgmgr-intro"><i class="fa-solid fa-sun"></i><div><strong>Gói giao sữa định kỳ</strong><span>Chọn gói phù hợp — sữa hạt tươi giao tận nơi mỗi ngày, kèm nhiều ưu đãi riêng.</span></div></div>' +
+            '<div class="mem-sun-cards-grid mem-pkgmgr-grid">' + pkgCards + '</div>';
+          bindPkgCards(box, function (id, fromBtn) {
+            state.selectedPkgId = id || '';
+            goRegister();
+            selectPkg(id, !!fromBtn);
+          });
         } else {
-          box.innerHTML = head + '<p>Chưa có gói - xem gói và đăng ký.</p><button type="button" class="btn" onclick="SUN_MEM.goRegister()">Xem gói thành viên</button>';
+          box.innerHTML = head +
+            '<div class="mem-pkgmgr-intro"><i class="fa-solid fa-sun"></i><div><strong>Gói giao sữa định kỳ</strong><span>Chưa có gói hiển thị — quay lại sau nhé.</span></div></div>' +
+            '<button type="button" class="mem-pkgmgr-more-btn" onclick="SUN_MEM.goRegister()"><i class="fa-solid fa-arrow-right"></i> Xem trang gói thành viên</button>';
         }
       }
       function setGateMsg(html, isErr) {
@@ -8760,9 +9106,7 @@
           if (key === 'tier') {
             openTierPage();
           } else if (key === 'redeem') {
-            var cups = parseInt(($('mem-offers-cups') && $('mem-offers-cups').textContent) || '0', 10) || 0;
-            if (cups >= 10) showToast('Bạn đủ 10 Sun — liên hệ quầy để đổi 1 ly Cà phê / Cà phê sữa / Bạc sỉu');
-            else showToast('Cần 10 Sun để đổi 1 ly Cà phê / Cà phê sữa / Bạc sỉu (hiện có ' + cups + ' Sun)');
+            openRedeemPage();
           } else if (key === 'history') { openMoreSub('orders'); switchSection('more'); setTab('more'); }
           else if (key === 'benefits') { openBenefitsPage(); }
         };
@@ -8786,6 +9130,8 @@
       };
       var tierBack = $('mem-tier-back');
       if (tierBack) tierBack.onclick = function () { memNavBack(); };
+      var redeemBack = $('mem-redeem-back');
+      if (redeemBack) redeemBack.onclick = function () { memNavBack(); };
       (function initTeaLeafWind() {
         var layer = document.createElement('div');
         layer.className = 'mem-wind-layer';

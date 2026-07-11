@@ -1608,6 +1608,11 @@
           <div class="form-group"><label>SĐT hỗ trợ (Cổng hội viên)</label><input type="text" class="form-control" id="mem-cms-support-phone" placeholder="090…"></div>
           <div class="form-group"><label>Zalo hỗ trợ (link hoặc SĐT)</label><input type="text" class="form-control" id="mem-cms-support-zalo" placeholder="https://zalo.me/…"></div>
           <div class="form-group" style="grid-column:1/-1;"><label>Điều khoản (Cổng hội viên)</label><textarea class="form-control" id="mem-cms-terms" rows="3"></textarea></div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label>Chương trình đổi Sun (mỗi dòng 1 chương trình: <code>Số Sun | Tên quà | Mô tả | hot</code>)</label>
+            <textarea class="form-control" id="mem-cms-redeem" rows="3" placeholder="10 | 1 ly nước bất kỳ | Đổi 10 Sun lấy 1 ly nước bất kỳ trên menu | hot&#10;20 | 1 phần bánh ngọt | Đổi 20 Sun lấy 1 phần bánh"></textarea>
+            <small style="display:block;margin-top:4px;color:var(--text-3,#78716c);">Thêm chữ <strong>hot</strong> ở cuối dòng để đánh dấu chương trình nổi bật trên Cổng hội viên.</small>
+          </div>
           <div class="form-group" style="grid-column:1/-1;"><label>Khu vực giao gói (JSON)</label><textarea class="form-control" id="mem-cms-delivery-zones" rows="3" placeholder='[{"province":"Tây Ninh","wards":["Xã Dương Minh Châu"]}]'></textarea></div>
         </div>
         <div style="margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border);">
@@ -3580,6 +3585,12 @@ async function hydrateMemberPortalCmsForm() {
   set('mem-cms-support-phone', s.supportPhone);
   set('mem-cms-support-zalo', s.supportZalo);
   set('mem-cms-terms', s.termsHtml);
+  var redeemEl = document.getElementById('mem-cms-redeem');
+  if (redeemEl) {
+    redeemEl.value = (Array.isArray(s.redeemPrograms) ? s.redeemPrograms : []).map(function (p) {
+      return [p.sun, p.title, p.desc || '', p.featured ? 'hot' : ''].join(' | ').replace(/ \| $/, '');
+    }).join('\n');
+  }
   try {
     var dz = await api.call('getMemberDeliveryZones');
     var elz = document.getElementById('mem-cms-delivery-zones');
@@ -3591,6 +3602,26 @@ async function hydrateMemberPortalCmsForm() {
   renderMemCmsCatalogEditors(s.menuLabelCatalog, s.menuTagCatalog);
   var specEl = document.getElementById('mem-cms-cat-banner-spec');
   if (specEl && s.mediaSpecs && s.mediaSpecs.categoryBanner) specEl.textContent = s.mediaSpecs.categoryBanner.split('(')[0].trim();
+}
+
+function collectRedeemProgramsFromForm_() {
+  var el = document.getElementById('mem-cms-redeem');
+  if (!el) return [];
+  return String(el.value || '').split('\n').map(function (line) {
+    var parts = line.split('|').map(function (x) { return x.trim(); });
+    if (parts.length < 2 || !parts[0]) return null;
+    var sun = parseInt(parts[0], 10) || 0;
+    if (!sun || !parts[1]) return null;
+    var last = String(parts[parts.length - 1] || '').toLowerCase();
+    var featured = last === 'hot' || last === 'nổi bật';
+    return {
+      sun: sun,
+      title: parts[1],
+      desc: (featured ? parts.slice(2, -1) : parts.slice(2)).join(' | ').trim(),
+      icon: 'fa-gift',
+      featured: featured
+    };
+  }).filter(Boolean);
 }
 
 function collectMemberPortalCmsFromForm() {
@@ -3618,6 +3649,7 @@ function collectMemberPortalCmsFromForm() {
     supportPhone: gv('mem-cms-support-phone'),
     supportZalo: gv('mem-cms-support-zalo'),
     termsHtml: gv('mem-cms-terms'),
+    redeemPrograms: collectRedeemProgramsFromForm_(),
     menuLabelCatalog: collectMemCatCatalogFromList_('mem-cms-label-catalog-list'),
     menuTagCatalog: collectMemCatCatalogFromList_('mem-cms-tag-catalog-list'),
     categoryBanners: collectMemCatBannersFromForm(),
