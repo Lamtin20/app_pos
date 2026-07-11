@@ -709,8 +709,8 @@
   function shareGroupMessage() {
     var url = shareGroupUrl();
     if (!url) return '';
-    var name = group.groupName || 'đơn nhóm SUN Nut Milk';
-    return 'Vào «' + name + '» đặt nước cùng mình nhé!\n' + url;
+    var name = String(group.groupName || 'đơn nhóm SUN Nut Milk').trim();
+    return 'Tham gia đặt đơn nhóm từ ' + name + ' nào cả nhà! Thoải mái chọn món yêu thích và sẵn sàng nhập tiệc thôi! ' + url;
   }
     function applyGroupState(st, opts) {
       opts = opts || {};

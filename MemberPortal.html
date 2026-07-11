@@ -28,7 +28,7 @@
     setFaviconUrl(SUN_FAVICON_URL);
   })();
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Inter:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap&subset=vietnamese" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Inter:wght@400;500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!--MEMBER_STYLES_BEGIN-->
 <style>
@@ -310,55 +310,68 @@
       border-color: transparent;
       box-shadow: none;
     }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-logo-txt,
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-greet strong {
+    body.mem-logged-in {
+      --mem-greet-font: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif;
+      --mem-greet-color: #c2410c;
+      --mem-greet-sub-color: rgba(67, 20, 7, 0.88);
+      --mem-greet-shadow: none;
+    }
+    body.mem-logged-in:not([data-sky-dark="1"]) .mem-logo-txt {
       color: #431407;
     }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-topbar-meta { color: rgba(67,20,7,.82); }
-    body[data-sky-dark="1"] .mem-topbar-greet strong { color: #fff; }
-    body[data-sky-dark="1"] .mem-topbar-meta { color: rgba(255,255,255,.92); }
+    body[data-mem-tab="home"] .mem-topbar-meta,
+    body.mem-guest-mode .mem-topbar-meta {
+      color: var(--mem-greet-sub-color);
+      text-shadow: var(--mem-greet-shadow);
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.01em;
+    }
     .mem-write-name-wrap {
       display: inline-block; vertical-align: bottom; max-width: 100%;
       overflow: visible;
     }
     .mem-write-name {
-      font-family: 'Caveat', 'Be Vietnam Pro', cursive;
-      font-weight: 700;
-      font-size: 1.45em;
-      letter-spacing: 0.01em;
-      line-height: 1.45;
+      font-family: var(--mem-greet-font);
+      font-weight: 800;
+      font-style: normal;
+      font-size: 1.32em;
+      letter-spacing: -0.01em;
+      line-height: 1.4;
       display: inline-block;
       white-space: nowrap;
-      padding-bottom: 3px;
+      padding-bottom: 2px;
+      color: var(--mem-greet-color);
+      text-shadow: var(--mem-greet-shadow);
       clip-path: inset(0 100% 0 0);
       animation: memWriteName 1.05s cubic-bezier(.35, 0, .2, 1) forwards;
     }
-    body[data-sky-dark="1"] .mem-write-name { color: #fef9c3; }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-write-name { color: #c2410c; }
     .mem-greet-hi {
-      font-family: 'Caveat', 'Be Vietnam Pro', cursive;
-      font-weight: 700;
-      font-size: 1.45em;
-      letter-spacing: 0.01em;
-      line-height: 1.45;
+      font-family: var(--mem-greet-font);
+      font-weight: 800;
+      font-style: normal;
+      font-size: 1.32em;
+      letter-spacing: -0.01em;
+      line-height: 1.4;
       display: inline-block;
-      padding-bottom: 3px;
+      padding-bottom: 2px;
+      color: var(--mem-greet-color);
+      text-shadow: var(--mem-greet-shadow);
     }
-    body[data-sky-dark="1"] .mem-greet-hi { color: #fef9c3; }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-greet-hi { color: #c2410c; }
     .mem-greet-tail {
-      font-family: 'Caveat', 'Be Vietnam Pro', cursive;
-      font-weight: 700;
-      font-size: 1.45em;
-      letter-spacing: 0.01em;
-      line-height: 1.45;
+      font-family: var(--mem-greet-font);
+      font-weight: 800;
+      font-style: normal;
+      font-size: 1.32em;
+      letter-spacing: -0.01em;
+      line-height: 1.4;
       display: inline-block;
-      padding-bottom: 3px;
+      padding-bottom: 2px;
+      color: var(--mem-greet-color);
+      text-shadow: var(--mem-greet-shadow);
       opacity: 0;
       animation: memGreetOi 0.45s ease 0.92s forwards;
     }
-    body[data-sky-dark="1"] .mem-greet-tail { color: #fef9c3; }
-    body.mem-logged-in:not([data-sky-dark="1"]) .mem-greet-tail { color: #c2410c; }
     @keyframes memWriteName {
       to { clip-path: inset(0 0 0 0); }
     }
@@ -6703,6 +6716,29 @@
         }
         return MEM_SKY_THEMES[0];
       }
+      function getMemGreetColors(theme) {
+        var id = theme && theme.id ? theme.id : '';
+        var morningIds = ['early-morning', 'morning', 'late-morning', 'noon'];
+        if (morningIds.indexOf(id) >= 0) {
+          return { hi: '#c2410c', sub: 'rgba(67, 20, 7, 0.9)', shadow: 'none' };
+        }
+        if (['sunrise', 'late-afternoon', 'sunset'].indexOf(id) >= 0) {
+          return { hi: '#7c2d12', sub: 'rgba(67, 20, 7, 0.88)', shadow: '0 1px 6px rgba(255,255,255,.55)' };
+        }
+        if (id === 'afternoon') {
+          return { hi: '#ffffff', sub: 'rgba(255,255,255,.95)', shadow: '0 1px 10px rgba(15,60,120,.42)' };
+        }
+        if (theme && theme.dark) {
+          return { hi: '#ffffff', sub: 'rgba(255,255,255,.92)', shadow: '0 1px 8px rgba(0,0,0,.45)' };
+        }
+        return { hi: '#ffffff', sub: 'rgba(255,255,255,.94)', shadow: '0 1px 8px rgba(0,0,0,.38)' };
+      }
+      function applyMemGreetColors(theme) {
+        var c = getMemGreetColors(theme);
+        document.body.style.setProperty('--mem-greet-color', c.hi);
+        document.body.style.setProperty('--mem-greet-sub-color', c.sub);
+        document.body.style.setProperty('--mem-greet-shadow', c.shadow);
+      }
       function initMemSkyStars() {
         var box = $('mem-sky-stars');
         if (!box || box.dataset.ready === '1') return;
@@ -6750,6 +6786,7 @@
         scene.setAttribute('data-period', theme.id);
         document.body.setAttribute('data-sky-period', theme.id);
         document.body.setAttribute('data-sky-dark', theme.dark ? '1' : '0');
+        applyMemGreetColors(theme);
         updateMemSkyCelestial(hour);
       }
       function renderSkyScene() { updateMemSky(); }
