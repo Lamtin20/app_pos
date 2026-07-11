@@ -1635,8 +1635,34 @@
       var elPkTot = $('pk-total'); if (elPkTot) elPkTot.textContent = fmt(total);
       updateCartQr();
     }
-    // ----- QR chuyển khoản (VietQR - MB Bank): chỉ hiện SAU khi gửi đơn thành công -----
+    // ----- QR chuyển khoản (VietQR): chỉ hiện SAU khi gửi đơn thành công — TK lấy từ Cấu hình máy in (Admin) -----
     var BANK_QR = { bin: '970422', acc: '8511585115', name: 'LAM VAN TIN', label: 'MB Bank' };
+    function syncBankQrDom() {
+      var pre = $('mem-cart-qr-pre');
+      if (pre) {
+        pre.innerHTML = '<i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Gửi đơn</strong>, mã QR chuyển khoản (' +
+          esc(BANK_QR.label) + ' · ' + esc(BANK_QR.name) + ') sẽ hiện ra kèm mã đơn để bạn quét.';
+      }
+      var bankEl = $('mem-cart-qr-bank');
+      var accEl = $('mem-cart-qr-acc');
+      var nameEl = $('mem-cart-qr-accname');
+      if (bankEl) bankEl.textContent = BANK_QR.label;
+      if (accEl) accEl.textContent = BANK_QR.acc;
+      if (nameEl) nameEl.textContent = BANK_QR.name;
+      try { global.__SUN_BANK_QR__ = BANK_QR; } catch (eBk) { }
+    }
+    function loadBankQrSettings() {
+      return api('getInvoicePrintSettings').then(function (s) {
+        if (!s || typeof s !== 'object') return;
+        BANK_QR = {
+          bin: String(s.vietQrBankBin || BANK_QR.bin).trim(),
+          acc: String(s.bankAccountNo || BANK_QR.acc).trim(),
+          name: String(s.bankAccountName || BANK_QR.name).trim(),
+          label: String(s.bankName || BANK_QR.label).trim()
+        };
+        syncBankQrDom();
+      }).catch(function () { syncBankQrDom(); });
+    }
     var qrOrderLock = null; // {amount, memo} - set khi đơn đã gửi thành công
     function cartFinalTotal() {
       var sub = cartSubtotal() + groupOthersSubtotal();
@@ -2088,6 +2114,7 @@
   
     function bootstrap() {
       wireOnce();
+      loadBankQrSettings();
       api('getMixHats').then(function (list) {
         mixHatList = Array.isArray(list) ? list : [];
       }).catch(function () { mixHatList = []; });

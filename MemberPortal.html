@@ -4786,7 +4786,7 @@
         <button type="button" class="mem-choice-btn on" data-p="Thanh toán khi nhận"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i><span>Khi nhận</span></button>
         <button type="button" class="mem-choice-btn" data-p="Chuyển khoản"><i class="fa-solid fa-building-columns" aria-hidden="true"></i><span>Chuyển khoản</span></button>
       </div>
-      <p class="mem-cart-qr-pre" id="mem-cart-qr-pre" style="display:none;"><i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Gửi đơn</strong>, mã QR chuyển khoản (MB Bank · Lâm Văn Tín) sẽ hiện ra kèm mã đơn để bạn quét.</p>
+      <p class="mem-cart-qr-pre" id="mem-cart-qr-pre" style="display:none;"><i class="fa-solid fa-qrcode"></i> Sau khi bấm <strong>Gửi đơn</strong>, mã QR chuyển khoản sẽ hiện ra kèm mã đơn để bạn quét.</p>
       </div>
       <!-- QR chuyển khoản: hiện SAU khi gửi đơn thành công -->
       <div class="mem-cart-qr" id="mem-cart-qr" style="display:none;">
@@ -4797,11 +4797,11 @@
             <div class="mem-cart-qr-amt-big" id="mem-cart-qr-amt-big">0đ</div>
           </div>
           <div class="mem-cart-qr-info">
-            <div class="mem-cart-qr-row"><span>Ngân hàng</span><strong>MB Bank</strong></div>
-            <div class="mem-cart-qr-row"><span>Số TK</span><strong>8511585115</strong>
+            <div class="mem-cart-qr-row"><span>Ngân hàng</span><strong id="mem-cart-qr-bank">MB Bank</strong></div>
+            <div class="mem-cart-qr-row"><span>Số TK</span><strong id="mem-cart-qr-acc">—</strong>
               <button type="button" class="mem-cart-qr-copy" id="mem-cart-qr-copy" title="Copy số tài khoản"><i class="fa-regular fa-copy"></i></button>
             </div>
-            <div class="mem-cart-qr-row"><span>Chủ TK</span><strong>Lâm Văn Tín</strong></div>
+            <div class="mem-cart-qr-row"><span>Chủ TK</span><strong id="mem-cart-qr-accname">—</strong></div>
             <div class="mem-cart-qr-row"><span>Số tiền</span><strong id="mem-cart-qr-amt" class="mem-cart-qr-amt">0đ</strong></div>
             <div class="mem-cart-qr-row"><span>Nội dung</span><strong id="mem-cart-qr-memo"></strong></div>
           </div>
@@ -8969,7 +8969,10 @@
 
       function updateMemQr(amount, subId) {
         var amt = Math.round(Number(amount) || 0);
-        var url = 'https://img.vietqr.io/image/970422-0825825485-compact2.png?amount=' + amt + '&addInfo=' + encodeURIComponent(String(subId || '')) + '&accountName=' + encodeURIComponent('LAM THI HONG NHU');
+        var b = (typeof global !== 'undefined' && global.__SUN_BANK_QR__) ? global.__SUN_BANK_QR__
+          : { bin: '970422', acc: '8511585115', name: 'LAM VAN TIN' };
+        var url = 'https://img.vietqr.io/image/' + b.bin + '-' + b.acc + '-compact2.png?amount=' + amt +
+          '&addInfo=' + encodeURIComponent(String(subId || '')) + '&accountName=' + encodeURIComponent(b.name);
         var img = $('mem-qr-img');
         if (img) img.src = url;
         var a = $('mem-qr-amt');

@@ -139,6 +139,7 @@
   let currentOrderData = null, currentOrderId = null, currentFinalAmount = 0;
   /** Đơn đang chờ CK — khi thành công chỉ phát ting, không đọc số tiền. */
   var lastPaymentWasTransfer = false;
+  var bankPollSession = 0;
   var invoiceSettings = {};
   var printInvoiceWhenPaid = false;
   // Pickup đã được gỡ bỏ theo yêu cầu
@@ -1997,20 +1998,45 @@
       if (hint) hint.textContent = 'Bạn có thể Hủy hoặc Xác nhận giao dịch.';
     }, 15000);
   }
+  function bankQrFromSettings() {
+    var s = invoiceSettings || {};
+    return {
+      bin: String(s.vietQrBankBin || '970422').trim(),
+      acc: String(s.bankAccountNo || '8511585115').trim(),
+      name: String(s.bankAccountName || 'LAM VAN TIN').trim(),
+      label: String(s.bankName || 'MB Bank').trim()
+    };
+  }
+  function updateQrBankInfo() {
+    var el = document.getElementById('qr-bank-info');
+    if (!el) return;
+    var b = bankQrFromSettings();
+    el.innerHTML = esc(b.label) + ' · STK <strong>' + esc(b.acc) + '</strong> · ' + esc(b.name);
+  }
   function updateQR(amount, orderId) {
     var amt = Math.round(Number(amount) || 0);
-    const url = 'https://img.vietqr.io/image/970422-0825825485-compact2.png?amount=' + amt + '&addInfo=' + encodeURIComponent(String(orderId || '')) + '&accountName=' + encodeURIComponent('LAM THI HONG NHU');
+    var b = bankQrFromSettings();
+    var url = 'https://img.vietqr.io/image/' + b.bin + '-' + b.acc + '-compact2.png?amount=' + amt +
+      '&addInfo=' + encodeURIComponent(String(orderId || '')) + '&accountName=' + encodeURIComponent(b.name);
     document.getElementById('qr-img').src = url;
     document.getElementById('qr-memo').textContent = orderId;
+    updateQrBankInfo();
   }
   function bankPollTick() {
     if (!currentOrderId || bankPollInFlight) return;
+    var session = bankPollSession;
     bankPollInFlight = true;
     var expAmt = Math.round(Number(currentFinalAmount) || 0);
     api.callLong('checkBankTransferPayment', 55000, currentOrderId, expAmt).then(function (result) {
       bankPollInFlight = false;
+      if (session !== bankPollSession) return;
       bankPollFailCount = 0;
       if (!result) return;
+      if (result.status === 'cancelled') {
+        stopPolling();
+        closeQrOverlay();
+        return;
+      }
       if (result.status === 'paid') onPaySuccess();
       else if (result.status === 'partial') {
         var exp = Math.round(Number(result.expectedAmount) || expAmt);
@@ -2034,9 +2060,9 @@
     stopPolling();
     bankPollInFlight = false;
     bankPollFailCount = 0;
+    bankPollSession++;
     bankPollTick();
-    // theo yêu cầu: dò Bank transfer mỗi 1 giây
-    pollingInterval = setInterval(bankPollTick, 450);
+    pollingInterval = setInterval(bankPollTick, 1000);
   }
   function stopPolling() { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } bankPollInFlight = false; }
   async function cancelQrTransfer() {
@@ -2050,9 +2076,10 @@
     try {
       var r = await api.callLong('cancelAwaitingBankOrder', 45000, currentOrderId);
       if (r && r.ok) {
+        bankPollSession++;
         stopPolling();
         closeQrOverlay();
-        showToast('✅ Đã hủy đơn chuyển khoản.');
+        showTransferCancelledNotice(currentOrderId);
         resetState();
       } else {
         showToast('❌ Không hủy được: ' + (r && r.message ? r.message : 'Lỗi'));
@@ -2108,18 +2135,39 @@
     }
   }
 
-  function showPaySuccessCelebration(orderId) {
+  function showPaySuccessCelebration(orderId, mode) {
     var ov = document.getElementById('pay-success-overlay');
     var sub = document.getElementById('pay-success-sub');
-    if (sub) sub.textContent = orderId ? ('Đơn ' + orderId + ' đã thanh toán') : 'Cảm ơn quý khách';
+    var title = document.getElementById('pay-success-title');
+    var icon = document.getElementById('pay-success-icon');
+    var cancelled = mode === 'cancelled';
+    if (title) title.textContent = cancelled ? 'Đã hủy chuyển khoản' : 'Thanh toán thành công';
+    if (icon) {
+      icon.innerHTML = cancelled
+        ? '<i class="fa-solid fa-circle-xmark"></i>'
+        : '<i class="fa-solid fa-circle-check"></i>';
+      icon.classList.toggle('cancelled', cancelled);
+    }
+    if (sub) {
+      sub.textContent = cancelled
+        ? (orderId ? ('Đơn ' + orderId + ' đã hủy chuyển khoản thành công') : 'Đơn chuyển khoản đã được hủy')
+        : (orderId ? ('Đơn ' + orderId + ' đã thanh toán') : 'Cảm ơn quý khách');
+    }
     if (ov) {
       ov.classList.add('show');
+      if (cancelled) ov.classList.add('cancelled');
+      else ov.classList.remove('cancelled');
       ov.setAttribute('aria-hidden', 'false');
       setTimeout(function () {
-        ov.classList.remove('show');
+        ov.classList.remove('show', 'cancelled');
         ov.setAttribute('aria-hidden', 'true');
       }, 2400);
     }
+  }
+
+  function showTransferCancelledNotice(orderId) {
+    showToast('✅ Đơn hàng đã hủy chuyển khoản thành công.');
+    showPaySuccessCelebration(orderId, 'cancelled');
   }
 
   function onPaySuccess() {
@@ -2248,8 +2296,8 @@
     }
     var n = function (v) { return Math.round(Number(v) || 0).toLocaleString('vi-VN'); };
     var bin = String(s.vietQrBankBin || '970422');
-    var acc = String(s.bankAccountNo || '0825825485');
-    var accName = String(s.bankAccountName || 'LAM THI HONG NHU');
+    var acc = String(s.bankAccountNo || '8511585115');
+    var accName = String(s.bankAccountName || 'LAM VAN TIN');
     var amt = Math.round(Number(data.finalAmount) || 0);
     var qrSrc = 'https://img.vietqr.io/image/' + bin + '-' + acc + '-compact2.png?amount=' + amt + '&addInfo=' + encodeURIComponent(String(orderId || '')) + '&accountName=' + encodeURIComponent(accName);
     var payLab = String(data.paymentMethod || 'Tiền mặt').trim().toUpperCase();

@@ -249,6 +249,15 @@
       animation: paySuccessIcon 0.72s ease;
     }
 
+    .pay-success-icon.cancelled,
+    .pay-success-overlay.cancelled .pay-success-icon {
+      color: #b45309;
+    }
+
+    .pay-success-overlay.cancelled .pay-success-card {
+      border-color: rgba(180, 83, 9, 0.22);
+    }
+
     @keyframes paySuccessIcon {
       0%, 100% { transform: scale(1); }
       35% { transform: scale(1.1); }
@@ -1824,6 +1833,8 @@
       flex-shrink: 0;
       background: var(--surface);
       border-top: 1px solid var(--border);
+      position: relative;
+      z-index: 12;
     }
 
     .checkout-btn {
@@ -3387,10 +3398,17 @@
 
     @media (max-width: 768px) {
       body {
-        padding-bottom: var(--bottomnav-h);
+        padding-bottom: 0;
         overflow: hidden;
         height: 100dvh;
         max-height: 100dvh;
+      }
+
+      .legacy-page-root .pos-layout {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: calc(100dvh - var(--topbar-h) - var(--bottomnav-h));
+        height: calc(100dvh - var(--topbar-h) - var(--bottomnav-h));
       }
 
       .pos-layout {
@@ -3423,6 +3441,15 @@
         display: flex;
         flex-direction: column;
         box-shadow: none;
+      }
+
+      .order-panel.active .checkout-area {
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -8px 24px rgba(60, 40, 25, 0.1);
+      }
+
+      .checkout-btn {
+        min-height: 52px;
       }
 
       .topbar-search {
@@ -4321,6 +4348,7 @@
       </div>
       <div class="qr-memo-label">Nội dung chuyển khoản (bắt buộc)</div>
       <div class="qr-memo" id="qr-memo">--</div>
+      <div class="qr-bank-info" id="qr-bank-info" style="font-size:11px;color:var(--text-3);margin:8px 0 12px;line-height:1.5;text-align:center;"></div>
       <div class="qr-waiting"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang quét giao dịch ngân hàng tự động…</div>
       <div class="qr-actions">
         <button type="button" class="qr-action-btn danger" id="qr-cancel-btn" disabled onclick="cancelQrTransfer()">
@@ -4489,8 +4517,8 @@
   </div>
   <div id="pay-success-overlay" class="pay-success-overlay" aria-hidden="true">
     <div class="pay-success-card">
-      <div class="pay-success-icon"><i class="fa-solid fa-circle-check"></i></div>
-      <div class="pay-success-title">Thanh toán thành công</div>
+      <div class="pay-success-icon" id="pay-success-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="pay-success-title" id="pay-success-title">Thanh toán thành công</div>
       <div class="pay-success-sub" id="pay-success-sub"></div>
     </div>
   </div>
