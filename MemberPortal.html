@@ -8118,9 +8118,9 @@
             if (res && res.status === 'paid') onMembershipBankPaid();
           }).catch(function () { });
         };
-        if (waitEl) waitEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang đối soát giao dịch (mỗi 1 giây)…';
+        if (waitEl) waitEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang đối soát giao dịch (mỗi 3 giây)…';
         tick();
-        state.memPollTimer = setInterval(tick, 1000);
+        state.memPollTimer = setInterval(tick, 3000);
       }
       function armMemQrUnlock() {
         var bd = $('mem-bank-done');

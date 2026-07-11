@@ -3,7 +3,9 @@ import { jsonError, jsonOk, parseJsonBody } from '../../../lib/apiResponse.js';
 
 export async function GET() {
   const menu = await getMenu();
-  return jsonOk({ menu });
+  return jsonOk({ menu }, 200, {
+    'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+  });
 }
 
 export async function POST(request) {
