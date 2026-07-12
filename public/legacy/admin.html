@@ -66,6 +66,13 @@
       min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
       background: radial-gradient(ellipse at 20% 50%, #1a2a1a 0%, #0b0f1a 60%);
     }
+    #login-screen.is-hidden,
+    #login-screen[style*="display: none"],
+    #login-screen[style*="display:none"] {
+      display: none !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
     .login-box { background:var(--bg2); border:1px solid var(--border); border-radius:24px; padding:48px; max-width:400px; width:100%; box-shadow:0 24px 80px rgba(0,0,0,0.6); }
     .login-logo { text-align:center; margin-bottom:32px; }
     .login-logo .icon { font-size:52px; display:block; margin-bottom:12px; }
@@ -444,33 +451,33 @@
       <div class="live-badge"></div>
       <span class="live-text">LIVE</span>
       <span id="current-time" style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;"></span>
-      <button class="order-btn" onclick="goToOrder()"><i class="fa-solid fa-store"></i> Bán hàng</button>
-      <button class="refresh-btn" onclick="refreshAll()"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
-      <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+      <button type="button" class="order-btn" data-admin-action="order"><i class="fa-solid fa-store"></i> Bán hàng</button>
+      <button type="button" class="refresh-btn" data-admin-action="refresh"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
+      <button type="button" class="logout-btn" data-admin-action="logout"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
 
   <div class="admin-tabs">
     <div class="tabs-inner">
-      <div class="admin-tab active" onclick="switchAdminTab('dashboard',this)"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
-      <div class="admin-tab" onclick="switchAdminTab('orders',this)"><i class="fa-solid fa-receipt"></i> Đơn hàng</div>
-      <div class="admin-tab" onclick="switchAdminTab('inventory',this)"><i class="fa-solid fa-boxes-stacked"></i> Tồn kho</div>
-      <div class="admin-tab" onclick="switchAdminTab('menu',this)"><i class="fa-solid fa-utensils"></i> Menu</div>
-      <div class="admin-tab" onclick="switchAdminTab('mixhats',this)"><i class="fa-solid fa-seedling"></i> Mix Hạt</div>
-      <div class="admin-tab" onclick="switchAdminTab('cost',this)"><i class="fa-solid fa-calculator"></i> Giá Cost</div>
-      <div class="admin-tab" onclick="switchAdminTab('customers',this)"><i class="fa-solid fa-users"></i> Khách hàng</div>
-      <div class="admin-tab" onclick="switchAdminTab('promotions',this)"><i class="fa-solid fa-tag"></i> Khuyến mãi</div>
-      <div class="admin-tab" onclick="switchAdminTab('promo-campaigns',this)"><i class="fa-solid fa-bullhorn"></i> TB &amp; Popup KM</div>
-      <div class="admin-tab" onclick="switchAdminTab('cashflow',this)"><i class="fa-solid fa-money-bill-trend-up"></i> Dòng tiền</div>
-      <div class="admin-tab" onclick="switchAdminTab('capital',this)"><i class="fa-solid fa-handshake"></i> Vốn lưu động</div>
-      <div class="admin-tab" onclick="switchAdminTab('fixedassets',this)"><i class="fa-solid fa-chair"></i> Tài sản cố định</div>
-      <div class="admin-tab" onclick="switchAdminTab('taxdecl',this)"><i class="fa-solid fa-file-invoice"></i> Kê khai thuế</div>
-      <div class="admin-tab" onclick="switchAdminTab('config',this)"><i class="fa-solid fa-gear"></i> Danh mục</div>
-      <div class="admin-tab" onclick="switchAdminTab('apikeys',this)"><i class="fa-solid fa-key"></i> API &amp; Drive</div>
-      <div class="admin-tab" onclick="switchAdminTab('printers',this)"><i class="fa-solid fa-print"></i> Cấu hình máy in</div>
-      <div class="admin-tab" onclick="switchAdminTab('shift',this)"><i class="fa-solid fa-cash-register"></i> Giao Ca</div>
-      <div class="admin-tab" onclick="switchAdminTab('suppliers',this)"><i class="fa-solid fa-truck-field"></i> Nhà cung cấp</div>
-      <div class="admin-tab" onclick="switchAdminTab('membership',this)"><i class="fa-solid fa-truck-fast"></i> Gói thành viên</div>
+      <div class="admin-tab active" data-admin-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
+      <div class="admin-tab" data-admin-tab="orders"><i class="fa-solid fa-receipt"></i> Đơn hàng</div>
+      <div class="admin-tab" data-admin-tab="inventory"><i class="fa-solid fa-boxes-stacked"></i> Tồn kho</div>
+      <div class="admin-tab" data-admin-tab="menu"><i class="fa-solid fa-utensils"></i> Menu</div>
+      <div class="admin-tab" data-admin-tab="mixhats"><i class="fa-solid fa-seedling"></i> Mix Hạt</div>
+      <div class="admin-tab" data-admin-tab="cost"><i class="fa-solid fa-calculator"></i> Giá Cost</div>
+      <div class="admin-tab" data-admin-tab="customers"><i class="fa-solid fa-users"></i> Khách hàng</div>
+      <div class="admin-tab" data-admin-tab="promotions"><i class="fa-solid fa-tag"></i> Khuyến mãi</div>
+      <div class="admin-tab" data-admin-tab="promo-campaigns"><i class="fa-solid fa-bullhorn"></i> TB &amp; Popup KM</div>
+      <div class="admin-tab" data-admin-tab="cashflow"><i class="fa-solid fa-money-bill-trend-up"></i> Dòng tiền</div>
+      <div class="admin-tab" data-admin-tab="capital"><i class="fa-solid fa-handshake"></i> Vốn lưu động</div>
+      <div class="admin-tab" data-admin-tab="fixedassets"><i class="fa-solid fa-chair"></i> Tài sản cố định</div>
+      <div class="admin-tab" data-admin-tab="taxdecl"><i class="fa-solid fa-file-invoice"></i> Kê khai thuế</div>
+      <div class="admin-tab" data-admin-tab="config"><i class="fa-solid fa-gear"></i> Danh mục</div>
+      <div class="admin-tab" data-admin-tab="apikeys"><i class="fa-solid fa-key"></i> API &amp; Drive</div>
+      <div class="admin-tab" data-admin-tab="printers"><i class="fa-solid fa-print"></i> Cấu hình máy in</div>
+      <div class="admin-tab" data-admin-tab="shift"><i class="fa-solid fa-cash-register"></i> Giao Ca</div>
+      <div class="admin-tab" data-admin-tab="suppliers"><i class="fa-solid fa-truck-field"></i> Nhà cung cấp</div>
+      <div class="admin-tab" data-admin-tab="membership"><i class="fa-solid fa-truck-fast"></i> Gói thành viên</div>
     </div>
   </div>
 
@@ -1979,8 +1986,6 @@
 <script>try { var SCRIPT_URL = ""; } catch (e) { var SCRIPT_URL = ''; }</script>
 <script>
 if(typeof SCRIPT_URL==='undefined')var SCRIPT_URL='';
-if (!window.__SUN_ADMIN_CORE__) {
-window.__SUN_ADMIN_CORE__ = 1;
 (function () {
   var U = 'https://i.ibb.co/8LV0snn8/logo-sun-web.png';
   if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
@@ -2109,7 +2114,7 @@ function sunFormatUploadOk_(res) {
   return '✅ Upload xong.';
 }
 
-let _adminConfirmResolver = null;
+var _adminConfirmResolver = null;
 function adminConfirmFinish(v) {
   const ov = document.getElementById('admin-confirm-overlay');
   if (ov) ov.style.display = 'none';
@@ -2237,7 +2242,9 @@ function loadSiteBrandForAdmin() {
 }
 function submitPin() {
   if (pinInput === ADMIN_PIN) {
-    document.getElementById('login-screen').style.display = 'none';
+    if (typeof initAdmin !== 'function') return;
+    var login = document.getElementById('login-screen');
+    if (login) { login.style.display = 'none'; login.classList.add('is-hidden'); }
     document.getElementById('admin-screen').style.display = 'flex';
     initAdmin();
   } else {
@@ -2249,7 +2256,8 @@ function submitPin() {
 }
 function logout() {
   document.getElementById('admin-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
+  var login = document.getElementById('login-screen');
+  if (login) { login.style.display = 'flex'; login.classList.remove('is-hidden'); }
   pinInput = '';
   updatePinDots();
 }
@@ -2264,28 +2272,33 @@ function goToOrder() {
 // ========================
 // INIT & TIME
 // ========================
-let inventoryData = [];
-let menuDataAdmin = [];
-let currentOrderPeriod = 'today';
-let currentDashPeriod = 'today';
-let currentCashPeriod = 'month';
+var inventoryData = [];
+var menuDataAdmin = [];
+var currentOrderPeriod = 'today';
+var currentDashPeriod = 'today';
+var currentCashPeriod = 'month';
 
 function initStockTxDateDefault() {
   const el = document.getElementById('stock-tx-date');
   if (el && !el.value) el.value = new Date().toISOString().slice(0, 10);
 }
 
+var _adminUiBound = false;
 function initAdmin() {
   loadSiteBrandForAdmin();
   if (typeof window.setFaviconUrl === 'function') window.setFaviconUrl(window.SUN_FAVICON_URL);
-  setInterval(() => {
-    document.getElementById('current-time').textContent = new Date().toLocaleTimeString('vi-VN');
-  }, 1000);
-  bindMenuImageUpload();
-  bindMenuCoverUpload();
-  bindMixHatImageUpload();
-  bindMemberPortalCmsHeroUpload();
-  bindBrandLogoLocal();
+  if (!window._adminUiBound) {
+    window._adminUiBound = true;
+    setInterval(() => {
+      var t = document.getElementById('current-time');
+      if (t) t.textContent = new Date().toLocaleTimeString('vi-VN');
+    }, 1000);
+    bindMenuImageUpload();
+    bindMenuCoverUpload();
+    bindMixHatImageUpload();
+    bindMemberPortalCmsHeroUpload();
+    bindBrandLogoLocal();
+  }
   initStockTxDateDefault();
 
   /* Tải nhẹ lúc vào: không chặn màn hình bằng báo cáo tồn (getStockReportAdvanced rất nặng) */
@@ -3088,9 +3101,9 @@ async function saveInvoicePrintAdmin() {
 // ========================
 // INVENTORY
 // ========================
-let stockData = [];
-let stockStatusFilter = 'all';
-let stockPeriod = 'month';
+var stockData = [];
+var stockStatusFilter = 'all';
+var stockPeriod = 'month';
 
 async function loadStockReportOnly(silent = false) {
   try {
@@ -3199,7 +3212,7 @@ async function submitStockTx() {
   } catch(e) {}
 }
 
-let stockLedgerItemName = '';
+var stockLedgerItemName = '';
 function viewStockLog(name) {
   stockLedgerItemName = name;
   const t = document.getElementById('stock-ledger-title');
@@ -3246,9 +3259,9 @@ async function reloadStockLedger() {
   }
 }
 
-let memSubsCache = [];
-let memPkgsCache = [];
-let memPkgEditingId = '';
+var memSubsCache = [];
+var memPkgsCache = [];
+var memPkgEditingId = '';
 var MEM_PKG_TEMPLATES = [
   { label: 'Gói tuần 5 buổi', suggestId: 'GOI_TUAN', type: 'Tuần', kind: 'Hệ thống', name: 'Gói tuần — giao sáng', sessions: 5, price: 189000, milk: 'Theo menu / ly chọn', cost: 85000, desc: '5 buổi giao trong tuần (T2–T6)', promo: 'week_bonus_2days|label:Mua 1 tuần tặng thêm 2 ngày', ribbon: 'Phổ biến', listPrice: 0, image: '' },
   { label: 'Gói tháng 22 buổi', suggestId: 'GOI_THANG', type: 'Tháng', kind: 'Hệ thống', name: 'Gói tháng — tiết kiệm', sessions: 22, price: 720000, milk: 'Theo menu / ly chọn', cost: 385000, desc: '22 buổi giao trong tháng (T2–T6)', promo: 'month_bonus_week|discount_pct:5|label:Mua tháng tặng 1 tuần + giảm 5%', ribbon: 'Tiết kiệm nhất', listPrice: 0, image: '' },
@@ -5363,7 +5376,7 @@ function renderCustomersTable(data) {
 }
 
 // Apply Debounce to customer search
-const filterCustomers = debounce(function(q) {
+var filterCustomers = debounce(function(q) {
   const qq = (q || '').trim().toLowerCase();
   const filtered = (AppState.customersData || []).filter(c => {
     const nm = String(c.name || '').toLowerCase();
@@ -6634,7 +6647,15 @@ window.delPin = delPin;
 window.submitPin = submitPin;
 window.logout = logout;
 window.loadSiteBrandForAdmin = loadSiteBrandForAdmin;
-}
+window.switchAdminTab = switchAdminTab;
+window.goToOrder = goToOrder;
+window.refreshAll = refreshAll;
+window.loadDashboard = loadDashboard;
+window.loadOrders = loadOrders;
+window.loadInventory = loadInventory;
+window.loadMenu = loadMenu;
+window.loadCustomers = loadCustomers;
+window.loadPromotions = loadPromotions;
 </script>
 <script>
 (function () {
@@ -6716,18 +6737,35 @@ window.loadSiteBrandForAdmin = loadSiteBrandForAdmin;
     pinInput = pinInput.slice(0, -1);
     updatePinDots();
   }
+  function showLoginError(msg) {
+    var err = document.getElementById('pin-error');
+    if (err) err.textContent = msg || '';
+  }
+  function hideLoginScreen() {
+    var login = document.getElementById('login-screen');
+    if (login) {
+      login.style.display = 'none';
+      login.classList.add('is-hidden');
+    }
+  }
+  function showAdminScreen() {
+    var admin = document.getElementById('admin-screen');
+    if (admin) admin.style.display = 'flex';
+  }
   function submitPin() {
     if (pinBusy) return;
     if (pinInput === ADMIN_PIN) {
+      if (typeof window.initAdmin !== 'function') {
+        showLoginError('❌ Hệ thống chưa sẵn sàng — hãy tải lại trang (F5).');
+        pinInput = '';
+        updatePinDots();
+        return;
+      }
       pinBusy = true;
-      var login = document.getElementById('login-screen');
-      var admin = document.getElementById('admin-screen');
-      if (login) login.style.display = 'none';
-      if (admin) admin.style.display = 'flex';
+      hideLoginScreen();
+      showAdminScreen();
       var boot = function () {
-        if (typeof window.initAdmin === 'function') {
-          try { window.initAdmin(); } catch (eInit) { /* ignore */ }
-        }
+        try { window.initAdmin(); } catch (eInit) { showLoginError('❌ Lỗi khởi động admin — tải lại trang.'); }
         pinBusy = false;
       };
       if (typeof window.loadSiteBrandForAdmin === 'function') {
@@ -6736,11 +6774,10 @@ window.loadSiteBrandForAdmin = loadSiteBrandForAdmin;
         boot();
       }
     } else {
-      var err = document.getElementById('pin-error');
-      if (err) err.textContent = '❌ PIN không đúng!';
+      showLoginError('❌ PIN không đúng!');
       pinInput = '';
       updatePinDots();
-      setTimeout(function () { if (err) err.textContent = ''; }, 2000);
+      setTimeout(function () { showLoginError(''); }, 2000);
     }
   }
   window.delPin = delPin;
@@ -6760,8 +6797,37 @@ window.loadSiteBrandForAdmin = loadSiteBrandForAdmin;
       if (/^\d$/.test(key)) addPin(key);
     });
   }
+  function wireAdminTabs() {
+    var inner = document.querySelector('.tabs-inner');
+    if (!inner || inner.dataset.adminWired === '1') return;
+    inner.dataset.adminWired = '1';
+    inner.addEventListener('click', function (ev) {
+      var tab = ev.target.closest('[data-admin-tab]');
+      if (!tab) return;
+      ev.preventDefault();
+      var name = tab.getAttribute('data-admin-tab');
+      if (name && typeof window.switchAdminTab === 'function') {
+        window.switchAdminTab(name, tab);
+      }
+    });
+  }
+  function wireAdminHeader() {
+    var hdr = document.querySelector('.admin-header');
+    if (!hdr || hdr.dataset.adminWired === '1') return;
+    hdr.dataset.adminWired = '1';
+    hdr.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('[data-admin-action]');
+      if (!btn) return;
+      var act = btn.getAttribute('data-admin-action');
+      if (act === 'order' && typeof window.goToOrder === 'function') window.goToOrder();
+      if (act === 'refresh' && typeof window.refreshAll === 'function') window.refreshAll();
+      if (act === 'logout' && typeof window.logout === 'function') window.logout();
+    });
+  }
   loadAdminBrandDisplay();
   wirePinPad();
+  wireAdminTabs();
+  wireAdminHeader();
   window.loadSiteBrandForAdmin = loadAdminBrandDisplay;
 })();
 </script>

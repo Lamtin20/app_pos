@@ -352,6 +352,10 @@ export default function LegacyPage({ src, title }) {
     load();
     return () => {
       cancelled = true;
+      if (src.includes('admin.html')) {
+        window._adminUiBound = false;
+        delete window.__SUN_ADMIN_CORE__;
+      }
       document.querySelectorAll('script[data-sun-legacy-src="' + src + '"]').forEach((node) => {
         node.remove();
       });
