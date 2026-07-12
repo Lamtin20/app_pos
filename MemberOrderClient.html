@@ -1112,14 +1112,24 @@
       });
     }
     /** Ẩn/hiện phần thanh toán theo vai trò trong nhóm + đổi chữ nút đặt đơn. */
+    function isCartFreeOrder() {
+      return cartFinalTotal() <= 0;
+    }
+    function syncCartPayBlockVisibility() {
+      var memberOnly = inGroup() && !isHost();
+      var freeOrder = isCartFreeOrder();
+      var payBlock = $('mem-cart-pay-block');
+      if (payBlock) payBlock.style.display = (memberOnly || freeOrder) ? 'none' : '';
+      var pre = $('mem-cart-qr-pre');
+      if (pre && (freeOrder || pay !== 'Chuyển khoản')) pre.style.display = 'none';
+    }
     function applyGroupModeUi() {
       var memberOnly = inGroup() && !isHost();
       var checkoutCard = document.querySelector('.mem-cart-checkout-card');
       if (checkoutCard) checkoutCard.style.display = memberOnly ? 'none' : '';
       var promoBlock = document.querySelector('.mem-cart-promo-block');
       if (promoBlock) promoBlock.style.display = memberOnly ? 'none' : '';
-      var payBlock = $('mem-cart-pay-block');
-      if (payBlock) payBlock.style.display = memberOnly ? 'none' : '';
+      syncCartPayBlockVisibility();
       var delBlock = $('mem-cart-delivery-schedule');
       if (delBlock) delBlock.style.display = (inGroup() && isHost()) ? '' : 'none';
       var wait = $('mem-group-wait');
@@ -1136,14 +1146,19 @@
     function syncSubmitButtonUi() {
       var sub = $('mem-cart-submit');
       if (!sub) return;
+      syncCartPayBlockVisibility();
       if (inGroup() && !isHost()) return;
       if (inGroup() && isHost()) {
         sub.disabled = false;
-        sub.innerHTML = '<i class="fa-solid fa-user-group"></i> Đặt đơn nhóm (' + fmt(cartFinalTotal()) + ')';
+        if (isCartFreeOrder()) {
+          sub.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Đặt đơn';
+        } else {
+          sub.innerHTML = '<i class="fa-solid fa-user-group"></i> Đặt đơn nhóm (' + fmt(cartFinalTotal()) + ')';
+        }
         return;
       }
       var qrPaid = $('mem-cart-qr') && $('mem-cart-qr').classList.contains('mem-cart-qr-paid');
-      if (qrOrderLock && pay === 'Chuyển khoản' && !qrPaid) {
+      if (qrOrderLock && pay === 'Chuyển khoản' && !qrPaid && !isCartFreeOrder()) {
         sub.disabled = true;
         sub.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Đã đặt — chờ CK';
         return;
@@ -1154,6 +1169,10 @@
         return;
       }
       sub.disabled = false;
+      if (isCartFreeOrder()) {
+        sub.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Đặt đơn';
+        return;
+      }
       if (pay === 'Chuyển khoản') {
         sub.innerHTML = '<i class="fa-solid fa-qrcode"></i> Đặt đơn &amp; hiện QR';
       } else {
@@ -2113,6 +2132,7 @@
       }
       var subtotal = cartSubtotal();
       var btn = $('mem-cart-submit');
+      var freeOrder = isCartFreeOrder();
       if (btn) btn.disabled = true;
       var promoP = appliedPromo ? applyPromo(appliedPromo, true) : Promise.resolve();
       return promoP.then(function () {
@@ -2120,7 +2140,7 @@
           customerPhone: phone(),
           customerName: myName() || (($('mem-cart-name') && $('mem-cart-name').value) || ''),
           discount: discount,
-          paymentMethod: pay,
+          paymentMethod: freeOrder ? 'Thanh toán khi nhận' : pay,
           fulfillment: fulfillment,
           addressDetail: ($('mem-cart-addr') && $('mem-cart-addr').value) || '',
           deliveryZone: ($('mem-cart-zone') && $('mem-cart-zone').value) || '',
@@ -2147,12 +2167,12 @@
         return api('savePickupOnlineOrder', checkout);
       }).then(function (res) {
         var oid = res && res.orderId ? String(res.orderId) : '';
-        if (pay === 'Chuyển khoản') {
+        if (!freeOrder && pay === 'Chuyển khoản') {
           toast('✅ Đã đặt đơn ' + oid + ' — quét QR bên dưới để chuyển khoản');
         } else {
           toast('✅ Đã đặt đơn ' + oid);
         }
-        if (pay === 'Chuyển khoản') {
+        if (!freeOrder && pay === 'Chuyển khoản') {
           // Giữ QR + snapshot chi tiết đơn (để hiện số tiền và in bill sau khi giỏ đã dọn)
           // Ưu tiên số tiền server chốt - chính xác cả với đơn nhóm
           var srvAmt = res && parseFloat(res.finalAmount);
