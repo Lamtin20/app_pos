@@ -211,13 +211,12 @@
   @media (max-width: 640px) { .mem-carousel { aspect-ratio: 4/3; min-height: 210px; } }
   .mem-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; background-size: cover; background-position: center; }
   .mem-slide.on { opacity: 1; z-index: 1; }
-  .mem-slide-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px; background: linear-gradient(transparent, rgba(0,0,0,.72)); color: #fff; z-index: 2; }
-  .mem-slide-cap .bdg { display: inline-block; font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(234,180,60,.95); color: #1a1410; margin-bottom: 8px; }
-  .mem-slide-cap h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 6px; font-family: var(--display); line-height: 1.25; }
-  .mem-slide-cap p { margin: 0; font-size: 13px; opacity: 0.96; line-height: 1.45; }
-  .mem-carousel-dots { display: flex; justify-content: center; gap: 6px; padding: 10px 0 4px; }
-  .mem-carousel-dots button { width: 8px; height: 8px; border-radius: 50%; border: none; background: var(--border); cursor: pointer; padding: 0; }
-  .mem-carousel-dots button.on { background: var(--primary); }
+  .mem-slide-cap:empty { display: none !important; }
+  .mem-slide-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 14px; background: none; color: #fff; z-index: 2; pointer-events: none; }
+  .mem-slide-cap .bdg { display: inline-block; font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(234,180,60,.95); color: #1a1410; margin-bottom: 8px; pointer-events: auto; }
+  .mem-slide-cap h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 6px; font-family: var(--display); line-height: 1.25; text-shadow: 0 1px 3px rgba(0,0,0,.55); }
+  .mem-slide-cap p { margin: 0; font-size: 13px; opacity: 0.96; line-height: 1.45; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+  .mem-carousel-dots { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; padding: 0 !important; margin: 0 !important; }
   .mem-shell { max-width: 1100px; margin: 0 auto; padding: 8px 16px 8px; }
   .mem-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
   @media (max-width: 900px) { .mem-split { grid-template-columns: 1fr; } }
@@ -843,10 +842,6 @@
   }
   .mem-go-overlay-card i { font-size: 28px; color: var(--primary); margin-bottom: 12px; display: block; }
   .mem-go-overlay-card p { margin: 0; font-weight: 800; color: var(--primary-dk); }
-  .mem-carousel .mem-slide::after {
-    content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,.55) 100%);
-  }
   .section.mem-page-active { animation: fadeRise 0.35s ease both; }
 
 

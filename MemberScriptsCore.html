@@ -165,30 +165,9 @@ function memCarouselTrackMaxIndex() {
 }
 function rebuildMemCarouselDots() {
   var dots = document.getElementById('mem-carousel-dots');
-  if (!dots) return;
-  var count = memCarouselDotCount();
-  if (count < 2) {
+  if (dots) {
     dots.innerHTML = '';
     dots.style.display = 'none';
-    return;
-  }
-  dots.style.display = 'flex';
-  var activeDot = memCarouselIndexToDot(memCarouselIndex);
-  dots.innerHTML = '';
-  for (var i = 0; i < count; i++) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.setAttribute('aria-label', 'Slide ' + (i + 1));
-    btn.setAttribute('data-i', String(i));
-    btn.className = i === activeDot ? 'on' : '';
-    btn.onclick = (function (dotIx) {
-      return function () {
-        memCarouselIndex = memCarouselDotToIndex(dotIx);
-        applyMemCarouselView();
-        startMemCarouselTimer();
-      };
-    })(i);
-    dots.appendChild(btn);
   }
 }
 function applyMemCarouselView() {
@@ -284,12 +263,14 @@ function buildMemCarouselSlides(banners) {
     var t = esc(b.title || '');
     var s = esc(b.subtitle || '');
     var fb = MEM_BANNER_FALLBACK_IMG.replace(/'/g, '%27');
+    var capInner = (bd ? '<span class="bdg">' + bd + '</span>' : '') +
+      (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '');
+    var capHtml = capInner ? '<div class="mem-slide-cap">' + capInner + '</div>' : '';
     return '<div class="mem-slide' + (i === 0 ? ' on' : '') + '" data-i="' + i + '">' +
       '<img class="mem-slide-img" src="' + img + '" alt="" loading="' + (i === 0 ? 'eager' : 'lazy') + '" decoding="async" onerror="this.onerror=null;this.src=\'' + fb + '\';">' +
-      '<div class="mem-slide-cap">' + (bd ? '<span class="bdg">' + bd + '</span>' : '') +
-      (t ? '<h3>' + t + '</h3>' : '') + (s ? '<p>' + s + '</p>' : '') + '</div></div>';
+      capHtml + '</div>';
   }).join('');
-  box.innerHTML = '<div class="mem-carousel-track">' + slidesHtml + '</div><div class="mem-carousel-dots" id="mem-carousel-dots"></div>';
+  box.innerHTML = '<div class="mem-carousel-track">' + slidesHtml + '</div>';
   memCarouselIndex = 0;
   memCarouselViewportMobile = window.matchMedia && window.matchMedia('(max-width: 899px)').matches;
   rebuildMemCarouselDots();
