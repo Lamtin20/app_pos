@@ -213,6 +213,32 @@
     .mem-admin-chip:hover { border-color:var(--gold); color:var(--gold2); }
     .mem-admin-chip.on { border-color:var(--gold); background:rgba(245,158,11,.12); color:var(--gold2); }
     .mem-admin-chip small { display:block; font-weight:500; color:var(--text3); margin-top:2px; }
+    .mem-tier-admin-card {
+      padding:14px; border:1px solid var(--border); border-radius:14px; background:var(--surface);
+      border-left:4px solid var(--tier-accent, var(--gold)); box-shadow:0 4px 14px rgba(0,0,0,.04);
+    }
+    .mem-tier-admin-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+    .mem-tier-admin-badge {
+      width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      background:color-mix(in srgb, var(--tier-accent) 18%, transparent);
+      color:var(--tier-accent); font-size:18px;
+    }
+    .mem-tier-admin-id { font-size:11px; font-weight:900; letter-spacing:.08em; color:var(--text3); }
+    .mem-tier-admin-sub { font-size:13px; font-weight:800; color:var(--text); }
+    .mem-tier-min-hint, .mem-tier-promote-hint { display:block; margin-top:4px; font-size:10px; color:var(--text3); }
+    .mem-admin-tier-ladder-preview { margin-bottom:14px; padding:12px; border-radius:12px; background:var(--bg2); border:1px dashed var(--border); }
+    .mem-admin-tier-ladder-title { font-size:11px; font-weight:800; color:var(--text2); margin-bottom:10px; }
+    .mem-admin-tier-ladder { display:flex; gap:8px; flex-wrap:wrap; }
+    .mem-admin-tier-step {
+      flex:1; min-width:88px; text-align:center; padding:10px 8px; border-radius:12px;
+      background:var(--surface); border:1px solid var(--border);
+    }
+    .mem-admin-tier-step .ico {
+      display:inline-flex; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center;
+      background:color-mix(in srgb, var(--tier-accent) 20%, transparent); color:var(--tier-accent); margin-bottom:6px;
+    }
+    .mem-admin-tier-step strong { display:block; font-size:11px; }
+    .mem-admin-tier-step em { display:block; font-size:10px; color:var(--text3); font-style:normal; margin-top:2px; }
     
     /* FORM */
     .form-grid { display:grid; grid-template-columns:1fr; gap:14px; }
@@ -1753,8 +1779,10 @@
         <div style="margin:0 0 16px;padding:14px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);">
           <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;"><i class="fa-solid fa-crown" style="color:var(--gold);margin-right:6px;"></i>Khai báo quyền lợi thành viên theo hạng</div>
           <p style="font-size:11px;color:var(--text3);margin:0 0 12px;line-height:1.5;">
-            Khai báo ngưỡng Sun, tích lũy mỗi ly và đặc quyền từng hạng. Mỗi quyền lợi một dòng: <code>fa-icon|Tên quyền lợi</code> (vd: <code>fa-cake-candles|Tặng 01 phần bánh sinh nhật</code>).
+            Khai báo <strong>ngưỡng Sun tích lũy</strong> và quyền lợi từng hạng. Rule mặc định: <strong>Thành viên → Bạc: 10 Sun</strong> · <strong>Bạc → Vàng: 50 Sun</strong> · <strong>Vàng → Kim cương: 150 Sun</strong>.
+            Mỗi quyền lợi một dòng: <code>fa-icon|Tên quyền lợi</code>.
           </p>
+          <div id="mem-cms-tiers-ladder-preview" class="mem-admin-tier-ladder-preview" aria-hidden="true"></div>
           <div id="mem-cms-tiers-list" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
         <div style="margin:0 0 12px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);">
@@ -1900,7 +1928,8 @@
         <div class="form-group"><label>Tên hiển thị</label><input class="form-control" id="cust-modal-name" placeholder="Tên khách"></div>
         <div class="form-group"><label>Ghi chú</label><input class="form-control" id="cust-modal-note" placeholder="Ghi chú nội bộ"></div>
         <p id="cust-modal-hint" style="font-size:11px;color:var(--text3);margin:0 0 12px;line-height:1.5;">SĐT dùng làm mã định danh. Nếu trùng SĐT thì hệ thống sẽ cập nhật dòng hiện có.</p>
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost" id="cust-modal-delete" style="display:none;color:var(--red);margin-right:auto;" onclick="deleteCustomerFromModal()"><i class="fa-solid fa-trash"></i> Xóa khách</button>
           <button type="button" class="btn btn-ghost" onclick="closeCustomerModal()">Huỷ</button>
           <button type="button" class="btn btn-green" onclick="submitCustomerModal()"><i class="fa-solid fa-save"></i> Lưu lên sheet</button>
         </div>
@@ -3638,28 +3667,91 @@ function collectMemCatBannersFromForm() {
   return out;
 }
 
+function memTierAdminMeta(id) {
+  var map = {
+    member: { icon: 'fa-seedling', color: '#f59e0b', label: 'Khởi đầu' },
+    silver: { icon: 'fa-medal', color: '#94a3b8', label: 'Bạc' },
+    gold: { icon: 'fa-crown', color: '#eab308', label: 'Vàng' },
+    diamond: { icon: 'fa-gem', color: '#c4b5fd', label: 'Kim cương' }
+  };
+  return map[id] || { icon: 'fa-star', color: 'var(--gold)', label: String(id || 'tier') };
+}
+
 function buildMemTierRow(tier) {
   var t = tier || {};
+  var tid = t.id || 'tier';
+  var meta = memTierAdminMeta(tid);
   var benefits = Array.isArray(t.benefits) ? t.benefits : [];
   var benText = benefits.map(function (b) {
     return String(b.icon || 'fa-gift').trim() + '|' + String(b.text || '').trim();
   }).join('\n');
+  var promoteVal = t.promoteSun != null ? t.promoteSun : (t.minSun != null ? t.minSun : 0);
   var row = document.createElement('div');
-  row.className = 'mem-tier-row';
-  row.style.cssText = 'padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);';
-  row.dataset.tierId = t.id || '';
+  row.className = 'mem-tier-row mem-tier-admin-card';
+  row.dataset.tierId = tid;
+  row.style.setProperty('--tier-accent', meta.color);
   row.innerHTML =
-    '<div style="font-size:12px;font-weight:900;color:var(--primary);margin-bottom:8px;">' + (t.id || 'tier').toUpperCase() + '</div>' +
+    '<div class="mem-tier-admin-head">' +
+      '<span class="mem-tier-admin-badge"><i class="fa-solid ' + meta.icon + '"></i></span>' +
+      '<div><div class="mem-tier-admin-id">' + escapeHtml(String(tid).toUpperCase()) + '</div>' +
+      '<div class="mem-tier-admin-sub">' + escapeHtml(meta.label) + '</div></div>' +
+    '</div>' +
     '<div class="form-grid cols-2" style="gap:8px;margin-bottom:8px;">' +
-    '<div class="form-group"><label>Tên hạng</label><input type="text" class="form-control mem-tier-name" value="' + (t.name || '').replace(/"/g, '&quot;') + '"></div>' +
-    '<div class="form-group"><label>Sun tối thiểu</label><input type="number" class="form-control mem-tier-min" min="0" value="' + (t.minSun != null ? t.minSun : 0) + '"></div>' +
+    '<div class="form-group"><label>Tên hạng hiển thị</label><input type="text" class="form-control mem-tier-name" value="' + (t.name || '').replace(/"/g, '&quot;') + '"></div>' +
+    '<div class="form-group"><label>Sun tích lũy để đạt hạng</label><input type="number" class="form-control mem-tier-min" min="0" value="' + (t.minSun != null ? t.minSun : 0) + '"><small class="mem-tier-min-hint">Ngưỡng tổng Sun (rule lên hạng)</small></div>' +
+    '<div class="form-group"><label>Sun cần (rule từ hạng trước)</label><input type="number" class="form-control mem-tier-promote" min="0" value="' + promoteVal + '"><small class="mem-tier-promote-hint">Hiển thị rule lên hạng cho khách</small></div>' +
     '<div class="form-group"><label>Sun / ly hoàn tất</label><input type="number" class="form-control mem-tier-cup" min="0" step="0.1" value="' + (t.sunPerCup != null ? t.sunPerCup : 1) + '"></div>' +
     '<div class="form-group"><label>Đổi quà (Sun)</label><input type="number" class="form-control mem-tier-redeem" min="1" value="' + (t.redeemSun != null ? t.redeemSun : 10) + '"></div>' +
     '<div class="form-group"><label>Hệ số nhân Sun</label><input type="number" class="form-control mem-tier-mult" min="1" step="0.1" value="' + (t.multiplier != null ? t.multiplier : 1) + '"></div>' +
     '<div class="form-group"><label>Mô tả đổi quà</label><input type="text" class="form-control mem-tier-redeem-desc" value="' + String(t.redeemDesc || '1 ly Cà phê / Cà phê sữa / Bạc sỉu').replace(/"/g, '&quot;') + '"></div>' +
     '</div>' +
     '<div class="form-group" style="margin:0;"><label>Quyền lợi (mỗi dòng: fa-icon|Nội dung)</label><textarea class="form-control mem-tier-benefits" rows="4" style="font-size:12px;font-family:var(--mono);">' + benText.replace(/</g, '&lt;') + '</textarea></div>';
+  var minIn = row.querySelector('.mem-tier-min');
+  var promIn = row.querySelector('.mem-tier-promote');
+  if (minIn && promIn) {
+    minIn.addEventListener('input', refreshMemTierLadderPreview);
+    promIn.addEventListener('input', function () {
+      syncMemTierCumulativeMins();
+      refreshMemTierLadderPreview();
+    });
+  }
   return row;
+}
+
+function syncMemTierCumulativeMins() {
+  var rows = document.querySelectorAll('#mem-cms-tiers-list .mem-tier-row');
+  var sum = 0;
+  rows.forEach(function (row, i) {
+    var minIn = row.querySelector('.mem-tier-min');
+    var promIn = row.querySelector('.mem-tier-promote');
+    if (i === 0) {
+      if (minIn) minIn.value = '0';
+      if (promIn) promIn.value = '0';
+      return;
+    }
+    var prom = promIn ? parseInt(promIn.value, 10) || 0 : 0;
+    sum += prom;
+    if (minIn) minIn.value = String(sum);
+  });
+}
+
+function refreshMemTierLadderPreview() {
+  var box = document.getElementById('mem-cms-tiers-ladder-preview');
+  if (!box) return;
+  var tiers = collectMemTiersFromForm();
+  if (!tiers.length) { box.innerHTML = ''; return; }
+  box.setAttribute('aria-hidden', 'false');
+  box.innerHTML = '<div class="mem-admin-tier-ladder-title">Xem trước bậc thang hạng</div><div class="mem-admin-tier-ladder">' +
+    tiers.map(function (t, i) {
+      var meta = memTierAdminMeta(t.id);
+      var rule = parseInt(t.minSun, 10) || 0;
+      var prom = parseInt(t.promoteSun, 10) || rule;
+      var ruleTxt = i === 0 ? 'Bắt đầu' : (prom + ' Sun');
+      return '<div class="mem-admin-tier-step" style="--tier-accent:' + meta.color + '">' +
+        '<span class="ico"><i class="fa-solid ' + meta.icon + '"></i></span>' +
+        '<strong>' + escapeHtml(t.name || '') + '</strong>' +
+        '<em>' + escapeHtml(ruleTxt) + '</em></div>';
+    }).join('') + '</div>';
 }
 
 function renderMemTiersList(items) {
@@ -3667,12 +3759,13 @@ function renderMemTiersList(items) {
   if (!list) return;
   list.innerHTML = '';
   var arr = Array.isArray(items) && items.length ? items : [
-    { id: 'member', name: 'Thành viên', minSun: 0 },
-    { id: 'silver', name: 'Bạc', minSun: 20 },
-    { id: 'gold', name: 'Vàng', minSun: 50 },
-    { id: 'diamond', name: 'Kim cương', minSun: 100 }
+    { id: 'member', name: 'Thành viên', minSun: 0, promoteSun: 0 },
+    { id: 'silver', name: 'Bạc', minSun: 10, promoteSun: 10 },
+    { id: 'gold', name: 'Vàng', minSun: 60, promoteSun: 50 },
+    { id: 'diamond', name: 'Kim cương', minSun: 210, promoteSun: 150 }
   ];
   arr.forEach(function (it) { list.appendChild(buildMemTierRow(it)); });
+  refreshMemTierLadderPreview();
 }
 
 function collectMemTiersFromForm() {
@@ -3691,6 +3784,7 @@ function collectMemTiersFromForm() {
       id: row.dataset.tierId || ('tier_' + out.length),
       name: gv('.mem-tier-name'),
       minSun: parseInt(gv('.mem-tier-min'), 10) || 0,
+      promoteSun: parseInt(gv('.mem-tier-promote'), 10) || 0,
       sunPerCup: parseFloat(gv('.mem-tier-cup')) || 1,
       redeemSun: parseInt(gv('.mem-tier-redeem'), 10) || 10,
       redeemDesc: gv('.mem-tier-redeem-desc') || '1 ly Cà phê / Cà phê sữa / Bạc sỉu',
@@ -5200,7 +5294,10 @@ function renderCustomersTable(data) {
     <td style="font-family:'JetBrains Mono',monospace;">${fmt(c.totalSpent)}</td>
     <td>${c.visitCount}</td>
     <td style="color:var(--text3);">${c.lastVisit ? new Date(c.lastVisit).toLocaleDateString('vi-VN') : '-'}</td>
-    <td><button type="button" class="btn btn-ghost btn-sm" onclick="openEditCustomerByPhone(${JSON.stringify(String(c.phone || ''))})" title="Sửa / lưu sheet"><i class="fa-solid fa-pen"></i></button></td>
+    <td style="white-space:nowrap;">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="openEditCustomerByPhone(${JSON.stringify(String(c.phone || ''))})" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+      <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteCustomerByPhone(${JSON.stringify(String(c.phone || ''))}, ${JSON.stringify(String(c.name || ''))})" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+    </td>
   </tr>`).join('');
 }
 
@@ -5222,6 +5319,8 @@ function openAddCustomer() {
   document.getElementById('cust-modal-phone').readOnly = false;
   document.getElementById('cust-modal-name').value = '';
   document.getElementById('cust-modal-note').value = '';
+  var delBtn = document.getElementById('cust-modal-delete');
+  if (delBtn) delBtn.style.display = 'none';
   document.getElementById('customer-edit-overlay').style.display = 'flex';
 }
 
@@ -5237,6 +5336,8 @@ function openEditCustomerByPhone(phoneRaw) {
   document.getElementById('cust-modal-phone').readOnly = true;
   document.getElementById('cust-modal-name').value = c.name || '';
   document.getElementById('cust-modal-note').value = c.note || '';
+  var delBtn = document.getElementById('cust-modal-delete');
+  if (delBtn) delBtn.style.display = '';
   document.getElementById('customer-edit-overlay').style.display = 'flex';
 }
 
@@ -5264,6 +5365,30 @@ async function submitCustomerModal() {
   } catch (e) {
     showToast('❌ Không lưu được, bạn thử lại nhé', 'error');
   }
+}
+
+async function deleteCustomerByPhone(phoneRaw, nameRaw) {
+  const phone = String(phoneRaw || '').replace(/\D/g, '');
+  if (phone.length < 9) return;
+  const label = String(nameRaw || phone).trim();
+  if (!confirm('Xóa khách «' + label + '» khỏi danh sách?\nDữ liệu đơn hàng cũ vẫn giữ nguyên.')) return;
+  try {
+    const r = await api.call('deleteCustomer', phone);
+    const ok = r && r.ok === true;
+    showToast(ok ? ('✅ ' + (r.message || 'Đã xóa')) : ((r && r.message) || 'Không xóa được'), ok ? 'success' : 'error');
+    if (ok) {
+      closeCustomerModal();
+      loadCustomers(true);
+    }
+  } catch (e) {
+    showToast('❌ Không xóa được khách hàng', 'error');
+  }
+}
+
+function deleteCustomerFromModal() {
+  const phone = document.getElementById('cust-modal-phone').value.trim();
+  const name = document.getElementById('cust-modal-name').value.trim();
+  deleteCustomerByPhone(phone, name);
 }
 
 // ========================

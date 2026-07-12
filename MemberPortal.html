@@ -1075,6 +1075,97 @@
     .mem-tier-hint { margin: 10px 0 0; font-size: 11px; color: #78716c; line-height: 1.45; text-align: center; }
     .mem-tier-maxed .mem-tier-to { color: #16a34a; }
     .mem-tier-maxed .mem-tier-marker { border-color: #16a34a; color: #16a34a; }
+    .mem-tier-ladder {
+      margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0ebe4;
+    }
+    .mem-tier-ladder-title {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 9px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+      color: #a8a29e; margin-bottom: 12px;
+    }
+    .mem-tier-ladder-title i { color: #f59e0b; animation: memSunSpin 6s linear infinite; }
+    .mem-tier-ladder-track {
+      display: flex; align-items: flex-start; gap: 0; position: relative; padding: 0 2px;
+    }
+    .mem-tier-ladder-track::before {
+      content: ''; position: absolute; left: 12%; right: 12%; top: 21px; height: 3px;
+      border-radius: 999px; background: #e7e5e4; z-index: 0;
+    }
+    .mem-tier-ladder-fill {
+      position: absolute; left: 12%; top: 21px; height: 3px; border-radius: 999px; width: 0%;
+      background: linear-gradient(90deg, #f59e0b, #ea580c); z-index: 1;
+      transition: width .55s cubic-bezier(.4, 0, .2, 1);
+      box-shadow: 0 0 10px rgba(245, 158, 11, .45);
+    }
+    .mem-tier-ladder-step {
+      flex: 1; min-width: 0; text-align: center; position: relative; z-index: 2;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .mem-tier-ladder-node {
+      width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; border: 2px solid #d6d3d1; background: #fff; color: #a8a29e;
+      transition: transform .25s, box-shadow .25s, border-color .25s, color .25s;
+      position: relative;
+    }
+    .mem-tier-ladder-step .name {
+      display: block; font-size: 9px; font-weight: 900; letter-spacing: .04em;
+      color: #78716c; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mem-tier-ladder-step .rule {
+      display: block; font-size: 8px; font-weight: 700; color: #a8a29e; margin-top: 2px;
+      line-height: 1.2;
+    }
+    .mem-tier-ladder-step.achieved .mem-tier-ladder-node {
+      border-color: var(--tier-accent, #f59e0b); color: var(--tier-accent, #f59e0b);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--tier-accent, #f59e0b) 18%, transparent);
+    }
+    .mem-tier-ladder-step.achieved .name { color: var(--tier-accent, #ea580c); }
+    .mem-tier-ladder-step.current .mem-tier-ladder-node {
+      border-color: var(--tier-accent, #ea580c); color: var(--tier-accent, #ea580c);
+      transform: scale(1.08);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--tier-accent, #ea580c) 22%, transparent),
+        0 4px 16px color-mix(in srgb, var(--tier-accent, #ea580c) 35%, transparent);
+      animation: memTierNodePulse 2.2s ease-in-out infinite;
+    }
+    .mem-tier-ladder-step.current .name { color: var(--tier-accent, #ea580c); font-size: 10px; }
+    .mem-tier-ladder-step.locked .mem-tier-ladder-node { opacity: .72; }
+    .mem-tier-ladder-step.locked .mem-tier-ladder-node::after {
+      content: '🔒'; position: absolute; bottom: -3px; right: -3px; font-size: 9px; line-height: 1;
+    }
+    .mem-tier-ladder-step[data-tier="member"] { --tier-accent: #d97706; }
+    .mem-tier-ladder-step[data-tier="silver"] { --tier-accent: #64748b; }
+    .mem-tier-ladder-step[data-tier="gold"] { --tier-accent: #b45309; }
+    .mem-tier-ladder-step[data-tier="diamond"] { --tier-accent: #7c3aed; }
+    @keyframes memTierNodePulse {
+      0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--tier-accent, #ea580c) 22%, transparent), 0 4px 16px color-mix(in srgb, var(--tier-accent, #ea580c) 35%, transparent); }
+      50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--tier-accent, #ea580c) 12%, transparent), 0 6px 20px color-mix(in srgb, var(--tier-accent, #ea580c) 45%, transparent); }
+    }
+    .mem-tier-progress.tier-silver .mem-tier-fill { background: linear-gradient(90deg, #64748b, #94a3b8); }
+    .mem-tier-progress.tier-silver .mem-tier-marker { border-color: #64748b; color: #64748b; }
+    .mem-tier-progress.tier-gold .mem-tier-fill { background: linear-gradient(90deg, #b45309, #fbbf24); }
+    .mem-tier-progress.tier-gold .mem-tier-marker { border-color: #b45309; color: #b45309; }
+    .mem-tier-progress.tier-diamond .mem-tier-fill { background: linear-gradient(90deg, #7c3aed, #c4b5fd); }
+    .mem-tier-progress.tier-diamond .mem-tier-marker { border-color: #7c3aed; color: #7c3aed; }
+    .mem-offers-hero.tier-silver .mem-tier-ladder-title i,
+    .mem-offers-hero.tier-silver .mem-tier-ladder-fill { background: linear-gradient(90deg, #64748b, #94a3b8); box-shadow: 0 0 10px rgba(100,116,139,.4); }
+    .mem-offers-hero.tier-gold .mem-tier-ladder-title i { color: #fbbf24; }
+    .mem-offers-hero.tier-gold .mem-tier-ladder-fill { background: linear-gradient(90deg, #b45309, #fbbf24); box-shadow: 0 0 10px rgba(251,191,36,.45); }
+    .mem-offers-hero.tier-diamond .mem-tier-ladder-title { color: rgba(254,243,199,.65); }
+    .mem-offers-hero.tier-diamond .mem-tier-ladder-title i { color: #c4b5fd; }
+    .mem-offers-hero.tier-diamond .mem-tier-ladder-step .name,
+    .mem-offers-hero.tier-diamond .mem-tier-ladder-step .rule { color: rgba(254,243,199,.72); }
+    .mem-offers-hero.tier-diamond .mem-tier-ladder-step.achieved .name,
+    .mem-offers-hero.tier-diamond .mem-tier-ladder-step.current .name { color: #fde68a; }
+    .mem-offers-hero.tier-diamond .mem-tier-ladder-fill { background: linear-gradient(90deg, #7c3aed, #c4b5fd); }
+    .mem-offers-hero.tier-silver .mem-tier-ladder-step .name,
+    .mem-offers-hero.tier-silver .mem-tier-ladder-step .rule { color: rgba(248,250,252,.75); }
+    .mem-offers-hero.tier-silver .mem-tier-ladder-step.achieved .name,
+    .mem-offers-hero.tier-silver .mem-tier-ladder-step.current .name { color: #f8fafc; }
+    .mem-offers-hero.tier-gold .mem-tier-ladder-step .name,
+    .mem-offers-hero.tier-gold .mem-tier-ladder-step .rule { color: rgba(255,251,235,.78); }
+    .mem-offers-hero.tier-gold .mem-tier-ladder-step.achieved .name,
+    .mem-offers-hero.tier-gold .mem-tier-ladder-step.current .name { color: #fffbeb; }
     .mem-offers-body {
       background: transparent; padding: 16px 12px var(--mem-menu-row-gap); position: relative; z-index: 2;
       border-radius: 0; margin-top: 0;
@@ -5316,6 +5407,12 @@
           <div class="mem-barcode-bars" id="mem-barcode-visual" aria-hidden="true"></div>
           <div class="code-text" id="mem-offers-code">SUN000000000</div>
         </div>
+        <div class="mem-tier-ladder" id="mem-tier-ladder" aria-label="Bậc thang hạng thành viên">
+          <div class="mem-tier-ladder-title"><i class="fa-solid fa-stairs"></i> Bậc thang hạng</div>
+          <div class="mem-tier-ladder-track" id="mem-tier-ladder-track">
+            <div class="mem-tier-ladder-fill" id="mem-tier-ladder-fill"></div>
+          </div>
+        </div>
         <div class="mem-tier-progress" id="mem-tier-progress">
           <div class="mem-tier-labels">
             <span class="mem-tier-from" id="mem-tier-current-label">THÀNH VIÊN</span>
@@ -5678,6 +5775,7 @@
         state.portal.profile = Object.assign({}, state.portal.profile || {}, { name: nm, phone: ph });
         var cartNm = $('mem-cart-name');
         if (cartNm && !String(cartNm.value || '').trim()) cartNm.value = nm;
+        else if (cartNm && isGenericCustomerName(cartNm.value)) cartNm.value = nm;
         applyTopbarGreeting(nm);
       }
       async function confirmRegister() {
@@ -5689,6 +5787,8 @@
         if (!privacy || !privacy.checked) { showToast('Vui lòng đồng ý cho phép dùng dữ liệu cá nhân'); return; }
         var nmEl = $('mem-register-name');
         var regName = nmEl ? String(nmEl.value || '').trim() : '';
+        if (!regName) { showToast('Vui lòng nhập tên của bạn'); return; }
+        if (isGenericCustomerName(regName)) { showToast('Vui lòng nhập tên thật của bạn'); return; }
         var btn = $('mem-register-confirm');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang đăng ký…'; }
         try {
@@ -6056,10 +6156,21 @@
         el.style.maxWidth = '100%';
         el.style.padding = '4px 0';
       }
+      function syncCartNameFromProfile() {
+        var dn = resolveDisplayName();
+        var cartNm = $('mem-cart-name');
+        if (!cartNm || !dn) return;
+        var cur = String(cartNm.value || '').trim();
+        if (!cur || isGenericCustomerName(cur)) cartNm.value = dn;
+      }
       function syncPortalAfterLookup(r) {
         if (!r || r.ok === false) return;
         state.portal = r;
         if (r.profile) state.profile = r.profile;
+        if (r.profile && r.profile.name && !isGenericCustomerName(r.profile.name)) {
+          state.memDisplayName = String(r.profile.name).trim();
+        }
+        syncCartNameFromProfile();
         applyPortalToHome(r);
         renderMemberInfo(r);
         renderOffers();
@@ -6263,18 +6374,38 @@
       function getMemberTiers() {
         var s = window.memberPortalSettings || {};
         var tiers = (s.memberTiers && s.memberTiers.length) ? s.memberTiers.slice() : [
-          { id: 'member', name: 'Thành viên', minSun: 0, sunPerCup: 1, redeemSun: 10, benefits: [] },
-          { id: 'silver', name: 'Bạc', minSun: 20, sunPerCup: 1, redeemSun: 10, benefits: [] },
-          { id: 'gold', name: 'Vàng', minSun: 50, sunPerCup: 1, redeemSun: 10, benefits: [] },
-          { id: 'diamond', name: 'Kim cương', minSun: 100, sunPerCup: 1, redeemSun: 10, multiplier: 1.5, benefits: [] }
+          { id: 'member', name: 'Thành viên', minSun: 0, promoteSun: 0, sunPerCup: 1, redeemSun: 10, benefits: [] },
+          { id: 'silver', name: 'Bạc', minSun: 10, promoteSun: 10, sunPerCup: 1, redeemSun: 10, benefits: [] },
+          { id: 'gold', name: 'Vàng', minSun: 60, promoteSun: 50, sunPerCup: 1, redeemSun: 10, benefits: [] },
+          { id: 'diamond', name: 'Kim cương', minSun: 210, promoteSun: 150, sunPerCup: 1, redeemSun: 10, multiplier: 1.5, benefits: [] }
         ];
         return tiers.sort(function (a, b) { return (parseInt(a.minSun, 10) || 0) - (parseInt(b.minSun, 10) || 0); });
       }
+      function tierLadderMeta(tierId) {
+        var map = {
+          member: { icon: 'fa-user', key: 'member' },
+          silver: { icon: 'fa-medal', key: 'silver' },
+          gold: { icon: 'fa-crown', key: 'gold' },
+          diamond: { icon: 'fa-gem', key: 'diamond' }
+        };
+        return map[tierId] || { icon: 'fa-star', key: 'member' };
+      }
+      function tierPromoteRule(tier, idx) {
+        if (idx <= 0) return 'Bắt đầu';
+        var prom = parseInt(tier.promoteSun, 10);
+        if (!isNaN(prom) && prom > 0) return prom + ' Sun';
+        var min = parseInt(tier.minSun, 10) || 0;
+        return min > 0 ? min + ' Sun' : '—';
+      }
       function computeTierProgressClient(cups) {
         var tiers = getMemberTiers().map(function (t) {
-          return { name: t.name, min: parseInt(t.minSun, 10) || 0 };
+          return {
+            id: t.id, name: t.name,
+            min: parseInt(t.minSun, 10) || 0,
+            promoteSun: parseInt(t.promoteSun, 10) || 0
+          };
         });
-        if (!tiers.length) tiers = [{ name: 'Thành viên', min: 0 }];
+        if (!tiers.length) tiers = [{ id: 'member', name: 'Thành viên', min: 0, promoteSun: 0 }];
         var c = Math.max(0, parseInt(cups, 10) || 0);
         var current = tiers[0];
         var next = tiers[1];
@@ -6287,17 +6418,54 @@
         }
         if (!next) {
           return {
-            cups: c, currentTier: current.name, nextTier: '',
-            progressPct: 100, tierHint: 'Bạn đang ở hạng cao nhất - cảm ơn đã đồng hành!'
+            cups: c, currentTier: current.name, currentTierId: current.id, nextTier: '',
+            progressPct: 100, tierHint: 'Bạn đang ở hạng cao nhất — cảm ơn đã đồng hành!'
           };
         }
         var span = next.min - current.min;
         var pct = span > 0 ? Math.min(100, Math.round(((c - current.min) / span) * 100)) : 0;
         var remaining = Math.max(0, next.min - c);
+        var rule = next.promoteSun > 0 ? next.promoteSun : span;
         return {
-          cups: c, currentTier: current.name, nextTier: next.name,
-          progressPct: pct, tierHint: 'Còn ' + remaining + ' Sun nữa để lên hạng ' + next.name
+          cups: c, currentTier: current.name, currentTierId: current.id, nextTier: next.name, nextTierId: next.id,
+          progressPct: pct,
+          tierHint: 'Còn ' + remaining + ' Sun để lên ' + next.name + ' · Rule: +' + rule + ' Sun từ ' + current.name
         };
+      }
+      function renderTierLadder(tp) {
+        var track = $('mem-tier-ladder-track');
+        if (!track) return;
+        var fill = $('mem-tier-ladder-fill');
+        var tiers = getMemberTiers();
+        var sun = (tp && tp.cups != null) ? parseInt(tp.cups, 10) || 0 : getMemberSunBalance();
+        var curId = (tp && tp.currentTierId) || tierIdFromName((tp && tp.currentTier) || getMemberCurrentTierName());
+        var stepsHtml = tiers.map(function (t, idx) {
+          var meta = tierLadderMeta(t.id);
+          var min = parseInt(t.minSun, 10) || 0;
+          var achieved = sun >= min;
+          var isCur = t.id === curId;
+          var cls = (isCur ? ' current' : '') + (achieved ? ' achieved' : '') + (!achieved && !isCur ? ' locked' : '');
+          return '<button type="button" class="mem-tier-ladder-step' + cls + '" data-tier="' + escAttr(meta.key) + '" data-tier-id="' + escAttr(t.id) + '" aria-label="' + escAttr(t.name + ' — ' + tierPromoteRule(t, idx)) + '">' +
+            '<span class="mem-tier-ladder-node"><i class="fa-solid ' + escAttr(meta.icon) + '"></i></span>' +
+            '<span class="name">' + esc(t.name) + '</span>' +
+            '<span class="rule">' + esc(tierPromoteRule(t, idx)) + '</span></button>';
+        }).join('');
+        track.innerHTML = '<div class="mem-tier-ladder-fill" id="mem-tier-ladder-fill"></div>' + stepsHtml;
+        fill = $('mem-tier-ladder-fill');
+        var maxIdx = tiers.length - 1;
+        var curIdx = 0;
+        tiers.forEach(function (t, i) { if (t.id === curId) curIdx = i; });
+        var ladderPct = maxIdx > 0 ? Math.min(100, Math.round((curIdx / maxIdx) * 100)) : 0;
+        if (tp && tp.nextTier && tp.progressPct != null && maxIdx > 0) {
+          var seg = 100 / maxIdx;
+          ladderPct = Math.min(100, Math.round(curIdx * seg + (tp.progressPct / 100) * seg));
+        }
+        if (fill) fill.style.width = ladderPct + '%';
+        track.querySelectorAll('.mem-tier-ladder-step').forEach(function (btn) {
+          btn.onclick = function () {
+            openTierPage(btn.getAttribute('data-tier-id'), 'Hạng thành viên');
+          };
+        });
       }
       function renderTierProgress(tp) {
         if (!tp) return;
@@ -6315,7 +6483,12 @@
         if (track) track.setAttribute('aria-valuenow', String(pct));
         if (hint) hint.textContent = tp.tierHint || '';
         var prog = $('mem-tier-progress');
-        if (prog) prog.classList.toggle('mem-tier-maxed', !tp.nextTier);
+        if (prog) {
+          prog.classList.toggle('mem-tier-maxed', !tp.nextTier);
+          var nextCls = tp.nextTierId ? tierHeroClass(tp.nextTier) : tierHeroClass(tp.currentTier);
+          prog.className = 'mem-tier-progress' + (tp.nextTier ? ' ' + nextCls : ' mem-tier-maxed');
+        }
+        renderTierLadder(tp);
       }
       var tierPageSelectedId = '';
       function getMemberSunBalance() {
@@ -6419,16 +6592,19 @@
       function paintTierPageCard() {
         var sun = getMemberSunBalance();
         var tp = computeTierProgressClient(sun);
-        var tierName = tp.currentTier || 'Thành viên';
+        var selId = tierPageSelectedId || tierIdFromName(tp.currentTier || 'Thành viên');
+        var tiers = getMemberTiers();
+        var selTier = tiers.find(function (t) { return t.id === selId; }) || tiers[0];
+        var selIdx = 0;
+        tiers.forEach(function (t, i) { if (t.id === selId) selIdx = i; });
         if ($('mem-tier-page-sun')) $('mem-tier-page-sun').textContent = String(sun);
         if ($('mem-tier-page-fill')) $('mem-tier-page-fill').style.width = (tp.progressPct != null ? tp.progressPct : 0) + '%';
-        var tierDef = getMemberTiers().find(function (t) { return t.name === tierName; });
-        var note = tp.tierHint || '';
-        if (tierDef && tierDef.redeemSun) {
-          note = (tierDef.sunPerCup || 1) + ' ly hoàn tất = ' + (tierDef.sunPerCup || 1) + ' Sun · Đổi ' + tierDef.redeemSun + ' Sun = ' + (tierDef.redeemDesc || '1 ly nước bất kỳ');
-        }
+        var note = selIdx === 0
+          ? 'Bắt đầu hành trình — tích Sun để mở khóa Bạc (+' + (tiers[1] ? tierPromoteRule(tiers[1], 1) : '10 Sun') + ')'
+          : ('Rule: ' + tierPromoteRule(selTier, selIdx) + ' · Ngưỡng ' + (parseInt(selTier.minSun, 10) || 0) + ' Sun tích lũy');
+        if (selId === tierIdFromName(tp.currentTier || '')) note = tp.tierHint || note;
         if ($('mem-tier-page-note')) $('mem-tier-page-note').textContent = note;
-        paintTierPageCardAppearance(tierPageSelectedId || tierIdFromName(tierName));
+        paintTierPageCardAppearance(selId);
       }
       function closeTierPage() {
         var ov = $('mem-tier-overlay');
@@ -9886,10 +10062,10 @@
       }
       /** Tab Đơn nhóm: giao diện riêng (không dùng chung Giỏ hàng). */
       function goGroup() {
-        if (!state.phone && !state.guest) {
+        if (!state.phone) {
           var pendCode = window.MemOrder && MemOrder.pendingGroup && MemOrder.pendingGroup();
-          if (pendCode) { openGuestGate(pendCode); return; }
-          showToast('Đăng nhập SĐT để tạo đơn nhóm, hoặc mở link mời từ bạn bè');
+          if (pendCode) { redirectToGroupLogin(pendCode); return; }
+          showToast('Đăng nhập SĐT để tạo hoặc tham gia đơn nhóm');
           switchSection('home');
           return;
         }
@@ -10024,6 +10200,7 @@
         showToast('👋 Xin chào! Đang tải thông tin hội viên…');
         state.gateLookupInFlight = false;
         tryPendingGroupJoin();
+        document.body.classList.remove('mem-group-invite');
         // Tải nền song song: hồ sơ khách + trạng thái gói/ưu đãi
         try {
           var pair = await Promise.all([
@@ -10032,7 +10209,10 @@
           ]);
           var cust = pair[0];
           var r = pair[1];
-          if (cust && cust.found) applyRegisteredMemberIdentity(ph, cust.name || '');
+          if (cust && cust.found) {
+            applyRegisteredMemberIdentity(ph, cust.name || '');
+            syncCartNameFromProfile();
+          }
           if (cust && cust.found === false) {
             // SĐT chưa có trên hệ thống → mời đăng ký (chỉ trường hợp chắc chắn)
             setPortalAuthState(false);
@@ -10332,7 +10512,14 @@
       function tryPendingGroupJoin() {
         if (!window.MemOrder || !MemOrder.consumePendingGroupJoin) return;
         MemOrder.consumePendingGroupJoin().then(function (r) {
-          if (r === true && MemOrder.inGroup && MemOrder.inGroup()) goGroup();
+          if (r === 'need-login') return;
+          if (r === true && MemOrder.inGroup && MemOrder.inGroup()) {
+            document.body.classList.remove('mem-group-invite');
+            var brandWrap = $('mem-group-invite-brand');
+            if (brandWrap) brandWrap.setAttribute('aria-hidden', 'true');
+            goOrder();
+            showToast('✅ Đã vào đơn nhóm — chọn món bạn thích nhé!');
+          }
         }).catch(function () { });
       }
       // ---------- Khách mời đơn nhóm (không cần đăng nhập, chỉ nhập tên) ----------
@@ -10368,7 +10555,8 @@
         }
         try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
       }
-      function openGuestGate(code) {
+      /** Mời đơn nhóm: bắt buộc đăng nhập SĐT (không nhập tên khách). */
+      function openGroupInviteLogin(code) {
         pendingGuestGroupCode = String(code || '').trim().toUpperCase();
         document.body.classList.add('mem-group-invite');
         var brandName = (window.memberPortalSettings && (memberPortalSettings.pageTitle || memberPortalSettings.brandTitle)) || 'Tiệm Cafe Sun & Matcha';
@@ -10378,16 +10566,20 @@
         if (brandEl) brandEl.textContent = brandName;
         var brandWrap = $('mem-group-invite-brand');
         if (brandWrap) brandWrap.setAttribute('aria-hidden', 'false');
+        setPortalAuthState(false);
         switchSection('home');
-        var m = $('mem-guest-modal');
-        var nm = $('mem-guest-name');
-        if (nm) nm.value = (window.MemOrder && MemOrder.guestName && MemOrder.guestName()) || '';
-        var lead = $('mem-guest-lead');
-        if (lead) lead.innerHTML = 'Bạn được mời vào đơn nhóm <strong>' + esc(pendingGuestGroupCode) +
-          '</strong>. Chỉ cần nhập tên để chọn món — <strong>không cần đăng nhập</strong>.';
-        if (m) m.classList.remove('mem-hidden');
-        setTimeout(function () { if (nm) nm.focus(); }, 120);
+        var gp = $('gate-phone');
+        if (gp) { gp.focus(); }
+        showToast('Đăng nhập SĐT để vào đơn nhóm ' + pendingGuestGroupCode);
       }
+      function redirectToGroupLogin(code) {
+        var c = String(code || '').trim().toUpperCase();
+        if (!c) return;
+        if (window.MemOrder && MemOrder.setPendingGroupCode) MemOrder.setPendingGroupCode(c);
+        openGroupInviteLogin(c);
+      }
+      // Giữ tên cũ để MemOrder gọi khi chưa đăng nhập
+      function openGuestGate(code) { redirectToGroupLogin(code); }
       function closeGuestGate() {
         if (document.body.classList.contains('mem-group-invite')) return;
         var m = $('mem-guest-modal');
@@ -10444,8 +10636,7 @@
           if (window.MemOrder && MemOrder.setPendingGroupCode) MemOrder.setPendingGroupCode(code);
           else { try { sessionStorage.setItem('sun_group_pending', code); } catch (eG) { } }
           if (!isPhone10(saved) && !state.phone) {
-            // Khách mời: chỉ cần nhập tên, không cần đăng nhập
-            openGuestGate(code);
+            openGroupInviteLogin(code);
           }
         });
         if (isPhone10(saved)) {
@@ -10506,25 +10697,8 @@
           });
         } else {
           setPortalAuthState(false);
-          // Khách mời từng vào nhóm trên thiết bị này: tự khôi phục, hiển thị lại món đã chọn
-          if (window.MemOrder && MemOrder.restoreGroupSession) {
-            MemOrder.restoreGroupSession().then(function (ok) {
-              if (!MemOrder.isGuest || !MemOrder.isGuest()) return;
-              var awaiting = MemOrder.hasAwait && MemOrder.hasAwait();
-              if (awaiting) {
-                // Đơn nhóm đã đặt: vào thẳng màn hình chờ nhận nước
-                enterGuestMode(MemOrder.guestName());
-                goCart();
-                return;
-              }
-              if (ok || (MemOrder.inGroup && MemOrder.inGroup())) {
-                enterGuestMode(MemOrder.guestName());
-                goOrder();
-                var gs = MemOrder.groupState && MemOrder.groupState();
-                showToast('👋 Chào mừng quay lại «' + ((gs && gs.groupName) || 'đơn nhóm') + '»! Món của bạn vẫn được giữ.');
-              }
-            }).catch(function () { });
-          }
+          var pendingGrp = (window.MemOrder && MemOrder.pendingGroup && MemOrder.pendingGroup()) || '';
+          if (pendingGrp) openGroupInviteLogin(pendingGrp);
         }
         if (boot) boot.classList.remove('on');
         if (saved) $('reg-phone').value = saved;
@@ -10549,6 +10723,8 @@
         closeProfileModal: closeProfileModal,
         goMenu: goMenu,
         openGuestGate: openGuestGate,
+        redirectToGroupLogin: redirectToGroupLogin,
+        resolveDisplayName: resolveDisplayName,
         backToMemberGate: backToMemberGate,
         get state() { return state; }
       };

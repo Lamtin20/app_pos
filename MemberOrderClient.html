@@ -651,9 +651,15 @@
     function myName() {
       var nm = $('mem-cart-name');
       if (nm && nm.value.trim()) return nm.value.trim();
+      if (global.SUN_MEM && typeof global.SUN_MEM.resolveDisplayName === 'function') {
+        var dn = String(global.SUN_MEM.resolveDisplayName() || '').trim();
+        if (dn) return dn;
+      }
       var portal = global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.portal;
-      var pName = (portal && portal.profile && portal.profile.name) || '';
-      return pName || (phone() ? '' : guestName());
+      var st = global.SUN_MEM && global.SUN_MEM.state;
+      var pName = (portal && portal.profile && portal.profile.name) || (st && st.profile && st.profile.name) || (st && st.memDisplayName) || '';
+      if (pName) return String(pName).trim();
+      return phone() ? '' : guestName();
     }
     function groupOthers() {
       if (!inGroup()) return [];
@@ -960,23 +966,21 @@
         toast(e.message || 'Không tạo được nhóm');
       }).finally(function () { if (btn) btn.disabled = false; });
     }
-    /** Vào nhóm: hội viên dùng SĐT; khách chỉ cần tên (guestNameIn) - không cần đăng nhập. */
+    /** Vào nhóm: bắt buộc đăng nhập SĐT. */
     function joinGroup(code, guestNameIn) {
       var c = String(code || '').trim().toUpperCase();
       if (!c) { toast('Nhập mã nhóm'); return Promise.resolve(false); }
-      var mid, nm;
-      if (phone()) {
-        mid = phone();
-        nm = myName();
-      } else {
-        nm = String(guestNameIn || '').trim() || guestName();
-        if (!nm) {
-          pendingGroupCode = c;
-          lsSet('sun_group_pending', c);
-          return Promise.resolve('need-name');
-        }
-        mid = ensureGuestId();
-        lsSet('sun_guest_name', nm);
+      if (!phone()) {
+        pendingGroupCode = c;
+        lsSet('sun_group_pending', c);
+        return Promise.resolve('need-login');
+      }
+      var mid = phone();
+      var nm = String(guestNameIn || '').trim() || myName();
+      if (!nm) {
+        pendingGroupCode = c;
+        lsSet('sun_group_pending', c);
+        return Promise.resolve('need-name');
       }
       return api('joinGroupOrder', c, mid, nm, '').then(function (st) {
         // Món của đơn nhóm chỉ tính từ lúc bấm link vào nhóm - giỏ chọn trước đó KHÔNG đưa vào nhóm
@@ -1089,7 +1093,7 @@
     function consumePendingGroupJoin(guestNameIn) {
       var c = pendingGroup();
       if (!c) return Promise.resolve(false);
-      if (!phone() && !String(guestNameIn || '').trim() && !guestName()) return Promise.resolve('need-name');
+      if (!phone()) return Promise.resolve('need-login');
       return joinGroup(c, guestNameIn).then(function (r) {
         if (r === true) clearPendingGroup();
         return r;
@@ -1420,7 +1424,7 @@
         blk.innerHTML =
           '<div class="card mem-group-card">' +
           '<div class="mem-group-head"><i class="fa-solid fa-user-group"></i> Đơn nhóm</div>' +
-          '<p class="mem-group-hint">Rủ bạn bè cùng đặt: mỗi người tự chọn món, trưởng nhóm chốt đơn một lần. <strong>Nhóm có hiệu lực 48 giờ</strong> — hết hạn sẽ khóa chọn món và <strong>tự chốt đơn</strong>.</p>' +
+          '<p class="mem-group-hint">Rủ bạn bè cùng đặt: mỗi người <strong>đăng nhập SĐT</strong> rồi tự chọn món, trưởng nhóm chốt đơn một lần. <strong>Nhóm có hiệu lực 48 giờ</strong>.</p>' +
           (canCreate
             ? ('<div class="mem-group-create-row">' +
               '<input type="text" id="mem-group-name-input" placeholder="Tên đơn nhóm (VD: Team Văn phòng) - bỏ trống dùng tên bạn" maxlength="60" autocomplete="off">' +
@@ -1434,7 +1438,14 @@
         if (cbtn) cbtn.onclick = createGroup;
         var doJoin = function (code) {
           joinGroup(code).then(function (r) {
-            if (r === 'need-name' && global.SUN_MEM && global.SUN_MEM.openGuestGate) global.SUN_MEM.openGuestGate(code);
+            if (r === 'need-login' && global.SUN_MEM && global.SUN_MEM.redirectToGroupLogin) {
+              global.SUN_MEM.redirectToGroupLogin(code);
+            } else if (r === 'need-name') {
+              toast('Cập nhật tên trong hồ sơ để vào đơn nhóm');
+              if (global.SUN_MEM && global.SUN_MEM.openProfileModal) global.SUN_MEM.openProfileModal();
+            } else if (r === true && global.SUN_MEM && global.SUN_MEM.goOrder) {
+              global.SUN_MEM.goOrder();
+            }
           });
         };
         var jbtn = $('mem-group-join-btn');
@@ -2053,10 +2064,20 @@
     function renderCartPage() {
       var ph = $('mem-cart-phone');
       if (ph) ph.value = phone();
-      var portal = global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.portal;
-      var prof = portal && portal.profile ? portal.profile : {};
       var nm = $('mem-cart-name');
-      if (nm && !nm.value) nm.value = prof.name || '';
+      if (nm) {
+        var cur = String(nm.value || '').trim();
+        var dn = '';
+        if (global.SUN_MEM && typeof global.SUN_MEM.resolveDisplayName === 'function') {
+          dn = String(global.SUN_MEM.resolveDisplayName() || '').trim();
+        }
+        if (!dn) {
+          var portal = global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.portal;
+          var prof = portal && portal.profile ? portal.profile : {};
+          dn = String(prof.name || '').trim();
+        }
+        if (dn && (!cur || cur.toLowerCase() === 'khách hàng' || cur.toLowerCase() === 'khach hang')) nm.value = dn;
+      }
       renderCartList();
       renderPromoApplied();
       initDeliveryScheduleDefaults();
@@ -2081,7 +2102,7 @@
       return promoP.then(function () {
         var checkout = {
           customerPhone: phone(),
-          customerName: ($('mem-cart-name') && $('mem-cart-name').value) || '',
+          customerName: myName() || (($('mem-cart-name') && $('mem-cart-name').value) || ''),
           discount: discount,
           paymentMethod: pay,
           fulfillment: fulfillment,
