@@ -332,8 +332,8 @@ export default function LegacyPage({ src, title }) {
         if (typeof window.__SUN_POS_BOOT__ === 'function') {
           window.__SUN_POS_BOOT__();
         }
-        if (src.includes('admin.html') && typeof window.initAdmin === 'function') {
-          try { window.initAdmin(); } catch (eAdmin) { /* ignore */ }
+        if (src.includes('admin.html') && typeof window.loadSiteBrandForAdmin === 'function') {
+          try { window.loadSiteBrandForAdmin(); } catch (eBrand) { /* ignore */ }
         }
 
         setProgress(100);

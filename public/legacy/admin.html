@@ -412,18 +412,18 @@
     </div>
     <div class="pin-error" id="pin-error"></div>
     <div class="numpad">
-      <button class="num-btn" onclick="addPin('1')">1</button>
-      <button class="num-btn" onclick="addPin('2')">2</button>
-      <button class="num-btn" onclick="addPin('3')">3</button>
-      <button class="num-btn" onclick="addPin('4')">4</button>
-      <button class="num-btn" onclick="addPin('5')">5</button>
-      <button class="num-btn" onclick="addPin('6')">6</button>
-      <button class="num-btn" onclick="addPin('7')">7</button>
-      <button class="num-btn" onclick="addPin('8')">8</button>
-      <button class="num-btn" onclick="addPin('9')">9</button>
-      <button class="num-btn del" onclick="delPin()"><i class="fa-solid fa-delete-left"></i></button>
-      <button class="num-btn" onclick="addPin('0')">0</button>
-      <button class="num-btn enter" onclick="submitPin()"><i class="fa-solid fa-check"></i></button>
+      <button type="button" class="num-btn" data-pin="1">1</button>
+      <button type="button" class="num-btn" data-pin="2">2</button>
+      <button type="button" class="num-btn" data-pin="3">3</button>
+      <button type="button" class="num-btn" data-pin="4">4</button>
+      <button type="button" class="num-btn" data-pin="5">5</button>
+      <button type="button" class="num-btn" data-pin="6">6</button>
+      <button type="button" class="num-btn" data-pin="7">7</button>
+      <button type="button" class="num-btn" data-pin="8">8</button>
+      <button type="button" class="num-btn" data-pin="9">9</button>
+      <button type="button" class="num-btn del" data-pin="del"><i class="fa-solid fa-delete-left"></i></button>
+      <button type="button" class="num-btn" data-pin="0">0</button>
+      <button type="button" class="num-btn enter" data-pin="enter"><i class="fa-solid fa-check"></i></button>
     </div>
     <p style="text-align:center;font-size:11px;color:var(--text3);">Nhập mã PIN 4 số để đăng nhập</p>
   </div>
@@ -2185,9 +2185,9 @@ function applyBrandLogoSlot(imgId, fallbackId, url) {
 function applySiteBrandToAdmin(brand) {
   if (!brand || typeof brand !== 'object') return;
   window.SUN_SITE_BRAND = brand;
-  var name = String(brand.brandName || 'SUN Nut Milk').trim() || 'SUN Nut Milk';
+  var name = String(brand.brandName || brand.brandTitle || brand.pageTitle || 'SUN Nut Milk').trim() || 'SUN Nut Milk';
   var tag = String(brand.brandTagline || '').trim();
-  var logo = String(brand.logoUrl || '').trim();
+  var logo = String(brand.logoUrl || brand.heroImageUrl || '').trim();
   var fav = String(brand.faviconUrl || logo || '').trim();
   if (typeof window.setFaviconUrl === 'function' && fav) {
     window.SUN_FAVICON_URL = fav;
@@ -2209,14 +2209,32 @@ function applySiteBrandToAdmin(brand) {
   }
 }
 function loadSiteBrandForAdmin() {
-  return fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
+  var brandP = fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     .then(function (res) { return res.ok ? res.json() : null; })
-    .then(function (data) {
-      if (data && data.brand) applySiteBrandToAdmin(data.brand);
-    })
-    .catch(function () { });
+    .catch(function () { return null; });
+  var portalP = (window.SUN_API && window.SUN_API.call)
+    ? window.SUN_API.call('getMemberPortalSettings', [true, true], 20000).catch(function () { return null; })
+    : fetch('/api/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ method: 'getMemberPortalSettings', args: [true, true], config: {} })
+    }).then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) { return data && data.ok ? data.result : null; })
+      .catch(function () { return null; });
+  return Promise.all([brandP, portalP]).then(function (arr) {
+    var brand = (arr[0] && arr[0].brand) || {};
+    var portal = arr[1] || {};
+    applySiteBrandToAdmin({
+      brandName: portal.brandTitle || portal.pageTitle || brand.brandName,
+      brandTagline: portal.brandTagline || brand.brandTagline,
+      logoUrl: brand.logoUrl || portal.heroImageUrl || '',
+      faviconUrl: brand.faviconUrl || brand.logoUrl || '',
+      pageTitle: portal.pageTitle,
+      brandTitle: portal.brandTitle
+    });
+  });
 }
-loadSiteBrandForAdmin();
 function submitPin() {
   if (pinInput === ADMIN_PIN) {
     document.getElementById('login-screen').style.display = 'none';
@@ -6612,16 +6630,75 @@ function showToast(msg, type) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 window.initAdmin = initAdmin;
-window.addPin = addPin;
 window.delPin = delPin;
 window.submitPin = submitPin;
 window.logout = logout;
+window.loadSiteBrandForAdmin = loadSiteBrandForAdmin;
 }
 </script>
 <script>
 (function () {
   var ADMIN_PIN = '2507';
   var pinInput = '';
+  var pinBusy = false;
+  function applyBrandSlot(imgId, fallbackId, url) {
+    var img = document.getElementById(imgId);
+    var fb = document.getElementById(fallbackId);
+    var u = String(url || '').trim();
+    if (!u) {
+      if (img) img.style.display = 'none';
+      if (fb) fb.style.display = '';
+      return;
+    }
+    if (img) {
+      img.src = u;
+      img.style.display = 'block';
+      img.onerror = function () {
+        img.style.display = 'none';
+        if (fb) fb.style.display = '';
+      };
+    }
+    if (fb) fb.style.display = 'none';
+  }
+  function applyAdminBrandDisplay(brand, portal) {
+    brand = brand || {};
+    portal = portal || {};
+    var name = String(portal.brandTitle || portal.pageTitle || brand.brandName || 'SUN Nut Milk').trim() || 'SUN Nut Milk';
+    var tag = String(portal.brandTagline || brand.brandTagline || 'Bảng quản trị hệ thống').trim() || 'Bảng quản trị hệ thống';
+    var logo = String(brand.logoUrl || portal.heroImageUrl || '').trim();
+    var fav = String(brand.faviconUrl || logo || '').trim();
+    document.title = 'Admin | ' + name;
+    var loginName = document.getElementById('admin-login-brand-name');
+    if (loginName) loginName.textContent = name;
+    var loginTag = document.getElementById('admin-login-brand-tagline');
+    if (loginTag) loginTag.textContent = tag;
+    applyBrandSlot('admin-login-logo-img', 'admin-login-logo-fallback', logo);
+    var headerName = document.getElementById('admin-header-brand-name');
+    if (headerName) headerName.textContent = name;
+    applyBrandSlot('admin-header-logo-img', 'admin-header-logo-fallback', logo);
+    if (typeof window.setFaviconUrl === 'function' && fav) {
+      window.SUN_FAVICON_URL = fav;
+      window.setFaviconUrl(fav);
+    }
+  }
+  function loadAdminBrandDisplay() {
+    var brandP = fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .catch(function () { return null; });
+    var portalP = (window.SUN_API && window.SUN_API.call)
+      ? window.SUN_API.call('getMemberPortalSettings', [true, true], 20000).catch(function () { return null; })
+      : fetch('/api/rpc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ method: 'getMemberPortalSettings', args: [true, true], config: {} })
+      }).then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) { return data && data.ok ? data.result : null; })
+        .catch(function () { return null; });
+    return Promise.all([brandP, portalP]).then(function (arr) {
+      applyAdminBrandDisplay((arr[0] && arr[0].brand) || {}, arr[1] || {});
+    });
+  }
   function updatePinDots() {
     for (var i = 0; i < ADMIN_PIN.length; i++) {
       var dot = document.getElementById('dot-' + i);
@@ -6629,19 +6706,35 @@ window.logout = logout;
     }
   }
   function addPin(d) {
-    if (pinInput.length >= ADMIN_PIN.length) return;
+    if (pinBusy || pinInput.length >= ADMIN_PIN.length) return;
     pinInput += d;
     updatePinDots();
     if (pinInput.length === ADMIN_PIN.length) setTimeout(submitPin, 200);
   }
-  function delPin() { pinInput = pinInput.slice(0, -1); updatePinDots(); }
+  function delPin() {
+    if (pinBusy) return;
+    pinInput = pinInput.slice(0, -1);
+    updatePinDots();
+  }
   function submitPin() {
+    if (pinBusy) return;
     if (pinInput === ADMIN_PIN) {
+      pinBusy = true;
       var login = document.getElementById('login-screen');
       var admin = document.getElementById('admin-screen');
       if (login) login.style.display = 'none';
       if (admin) admin.style.display = 'flex';
-      if (typeof window.initAdmin === 'function') window.initAdmin();
+      var boot = function () {
+        if (typeof window.initAdmin === 'function') {
+          try { window.initAdmin(); } catch (eInit) { /* ignore */ }
+        }
+        pinBusy = false;
+      };
+      if (typeof window.loadSiteBrandForAdmin === 'function') {
+        window.loadSiteBrandForAdmin().finally(boot);
+      } else {
+        boot();
+      }
     } else {
       var err = document.getElementById('pin-error');
       if (err) err.textContent = '❌ PIN không đúng!';
@@ -6650,7 +6743,6 @@ window.logout = logout;
       setTimeout(function () { if (err) err.textContent = ''; }, 2000);
     }
   }
-  window.addPin = addPin;
   window.delPin = delPin;
   window.submitPin = submitPin;
   function wirePinPad() {
@@ -6661,13 +6753,16 @@ window.logout = logout;
       var btn = ev.target.closest('.num-btn');
       if (!btn) return;
       ev.preventDefault();
-      if (btn.classList.contains('del')) { delPin(); return; }
-      if (btn.classList.contains('enter')) { submitPin(); return; }
-      var ch = (btn.textContent || '').trim();
-      if (/^\d$/.test(ch)) addPin(ch);
+      ev.stopPropagation();
+      var key = btn.getAttribute('data-pin') || '';
+      if (key === 'del') { delPin(); return; }
+      if (key === 'enter') { submitPin(); return; }
+      if (/^\d$/.test(key)) addPin(key);
     });
   }
+  loadAdminBrandDisplay();
   wirePinPad();
+  window.loadSiteBrandForAdmin = loadAdminBrandDisplay;
 })();
 </script>
 </body>
