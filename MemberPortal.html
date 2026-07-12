@@ -3899,6 +3899,7 @@
       padding-top: 0 !important;
     }
     .mem-carousel-dots:empty { display: none !important; }
+    #btn-home-schedule { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; pointer-events: none !important; }
     #mem-home-dashboard .mem-home-toolbar { display: none !important; }
     .mem-carousel-wrap { width: calc(100% - 24px); max-width: 480px; margin: 0 auto; padding: 0 !important; }
     .mem-carousel { border-radius: 16px; aspect-ratio: 5 / 2; min-height: 0; background: #f5f0ea; }
@@ -4639,7 +4640,6 @@
 
 <div id="mem-home-dashboard" class="mem-hidden">
     <span id="home-fav" class="mem-sr-only" aria-hidden="true">-</span>
-    <button type="button" class="mem-hidden" id="btn-home-schedule" data-go="schedule" tabindex="-1"></button>
     <div id="mem-home-packages-block" class="mem-hidden mem-home-extra"><div id="mem-home-packages-inner"></div></div>
     <div id="mem-home-schedule-block" class="mem-hidden mem-home-extra"><div id="mem-home-schedule-inner"></div></div>
 
@@ -8111,8 +8111,6 @@
         else updateContextHeader(document.body.getAttribute('data-mem-tab') || 'home');
         applyTopbarAvatar(prof.avatarUrl || '');
         if ($('home-fav')) $('home-fav').textContent = first.favoriteDrink || '-';
-        var schedBtn = $('btn-home-schedule');
-        if (schedBtn) schedBtn.classList.toggle('mem-hidden', !(r.hasPortalAccess && (r.activeSubscriptions || []).length));
         renderHomeMenuPreview();
         setTimeout(maybeShowGroupFeedback, 800);
       }
