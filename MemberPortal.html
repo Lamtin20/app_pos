@@ -1075,97 +1075,6 @@
     .mem-tier-hint { margin: 10px 0 0; font-size: 11px; color: #78716c; line-height: 1.45; text-align: center; }
     .mem-tier-maxed .mem-tier-to { color: #16a34a; }
     .mem-tier-maxed .mem-tier-marker { border-color: #16a34a; color: #16a34a; }
-    .mem-tier-ladder {
-      margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0ebe4;
-    }
-    .mem-tier-ladder-title {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      font-size: 9px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
-      color: #a8a29e; margin-bottom: 12px;
-    }
-    .mem-tier-ladder-title i { color: #f59e0b; animation: memSunSpin 6s linear infinite; }
-    .mem-tier-ladder-track {
-      display: flex; align-items: flex-start; gap: 0; position: relative; padding: 0 2px;
-    }
-    .mem-tier-ladder-track::before {
-      content: ''; position: absolute; left: 12%; right: 12%; top: 21px; height: 3px;
-      border-radius: 999px; background: #e7e5e4; z-index: 0;
-    }
-    .mem-tier-ladder-fill {
-      position: absolute; left: 12%; top: 21px; height: 3px; border-radius: 999px; width: 0%;
-      background: linear-gradient(90deg, #f59e0b, #ea580c); z-index: 1;
-      transition: width .55s cubic-bezier(.4, 0, .2, 1);
-      box-shadow: 0 0 10px rgba(245, 158, 11, .45);
-    }
-    .mem-tier-ladder-step {
-      flex: 1; min-width: 0; text-align: center; position: relative; z-index: 2;
-      cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
-    .mem-tier-ladder-node {
-      width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px; border: 2px solid #d6d3d1; background: #fff; color: #a8a29e;
-      transition: transform .25s, box-shadow .25s, border-color .25s, color .25s;
-      position: relative;
-    }
-    .mem-tier-ladder-step .name {
-      display: block; font-size: 9px; font-weight: 900; letter-spacing: .04em;
-      color: #78716c; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .mem-tier-ladder-step .rule {
-      display: block; font-size: 8px; font-weight: 700; color: #a8a29e; margin-top: 2px;
-      line-height: 1.2;
-    }
-    .mem-tier-ladder-step.achieved .mem-tier-ladder-node {
-      border-color: var(--tier-accent, #f59e0b); color: var(--tier-accent, #f59e0b);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--tier-accent, #f59e0b) 18%, transparent);
-    }
-    .mem-tier-ladder-step.achieved .name { color: var(--tier-accent, #ea580c); }
-    .mem-tier-ladder-step.current .mem-tier-ladder-node {
-      border-color: var(--tier-accent, #ea580c); color: var(--tier-accent, #ea580c);
-      transform: scale(1.08);
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--tier-accent, #ea580c) 22%, transparent),
-        0 4px 16px color-mix(in srgb, var(--tier-accent, #ea580c) 35%, transparent);
-      animation: memTierNodePulse 2.2s ease-in-out infinite;
-    }
-    .mem-tier-ladder-step.current .name { color: var(--tier-accent, #ea580c); font-size: 10px; }
-    .mem-tier-ladder-step.locked .mem-tier-ladder-node { opacity: .72; }
-    .mem-tier-ladder-step.locked .mem-tier-ladder-node::after {
-      content: '🔒'; position: absolute; bottom: -3px; right: -3px; font-size: 9px; line-height: 1;
-    }
-    .mem-tier-ladder-step[data-tier="member"] { --tier-accent: #d97706; }
-    .mem-tier-ladder-step[data-tier="silver"] { --tier-accent: #64748b; }
-    .mem-tier-ladder-step[data-tier="gold"] { --tier-accent: #b45309; }
-    .mem-tier-ladder-step[data-tier="diamond"] { --tier-accent: #7c3aed; }
-    @keyframes memTierNodePulse {
-      0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--tier-accent, #ea580c) 22%, transparent), 0 4px 16px color-mix(in srgb, var(--tier-accent, #ea580c) 35%, transparent); }
-      50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--tier-accent, #ea580c) 12%, transparent), 0 6px 20px color-mix(in srgb, var(--tier-accent, #ea580c) 45%, transparent); }
-    }
-    .mem-tier-progress.tier-silver .mem-tier-fill { background: linear-gradient(90deg, #64748b, #94a3b8); }
-    .mem-tier-progress.tier-silver .mem-tier-marker { border-color: #64748b; color: #64748b; }
-    .mem-tier-progress.tier-gold .mem-tier-fill { background: linear-gradient(90deg, #b45309, #fbbf24); }
-    .mem-tier-progress.tier-gold .mem-tier-marker { border-color: #b45309; color: #b45309; }
-    .mem-tier-progress.tier-diamond .mem-tier-fill { background: linear-gradient(90deg, #7c3aed, #c4b5fd); }
-    .mem-tier-progress.tier-diamond .mem-tier-marker { border-color: #7c3aed; color: #7c3aed; }
-    .mem-offers-hero.tier-silver .mem-tier-ladder-title i,
-    .mem-offers-hero.tier-silver .mem-tier-ladder-fill { background: linear-gradient(90deg, #64748b, #94a3b8); box-shadow: 0 0 10px rgba(100,116,139,.4); }
-    .mem-offers-hero.tier-gold .mem-tier-ladder-title i { color: #fbbf24; }
-    .mem-offers-hero.tier-gold .mem-tier-ladder-fill { background: linear-gradient(90deg, #b45309, #fbbf24); box-shadow: 0 0 10px rgba(251,191,36,.45); }
-    .mem-offers-hero.tier-diamond .mem-tier-ladder-title { color: rgba(254,243,199,.65); }
-    .mem-offers-hero.tier-diamond .mem-tier-ladder-title i { color: #c4b5fd; }
-    .mem-offers-hero.tier-diamond .mem-tier-ladder-step .name,
-    .mem-offers-hero.tier-diamond .mem-tier-ladder-step .rule { color: rgba(254,243,199,.72); }
-    .mem-offers-hero.tier-diamond .mem-tier-ladder-step.achieved .name,
-    .mem-offers-hero.tier-diamond .mem-tier-ladder-step.current .name { color: #fde68a; }
-    .mem-offers-hero.tier-diamond .mem-tier-ladder-fill { background: linear-gradient(90deg, #7c3aed, #c4b5fd); }
-    .mem-offers-hero.tier-silver .mem-tier-ladder-step .name,
-    .mem-offers-hero.tier-silver .mem-tier-ladder-step .rule { color: rgba(248,250,252,.75); }
-    .mem-offers-hero.tier-silver .mem-tier-ladder-step.achieved .name,
-    .mem-offers-hero.tier-silver .mem-tier-ladder-step.current .name { color: #f8fafc; }
-    .mem-offers-hero.tier-gold .mem-tier-ladder-step .name,
-    .mem-offers-hero.tier-gold .mem-tier-ladder-step .rule { color: rgba(255,251,235,.78); }
-    .mem-offers-hero.tier-gold .mem-tier-ladder-step.achieved .name,
-    .mem-offers-hero.tier-gold .mem-tier-ladder-step.current .name { color: #fffbeb; }
     .mem-offers-body {
       background: transparent; padding: 16px 12px var(--mem-menu-row-gap); position: relative; z-index: 2;
       border-radius: 0; margin-top: 0;
@@ -4001,33 +3910,18 @@
     .mem-group-added-price-off { color: var(--green); font-weight: 800; }
     .mem-group-added-sheet { max-width: 400px; max-height: 90dvh; overflow-y: auto; }
 
-    /* Mời vào đơn nhóm: chỉ hiện popup nhập tên */
+    /* Mời vào đơn nhóm: hiện màn đăng nhập SĐT */
     body.mem-group-invite { background: #f3ece4 !important; }
     body.mem-group-invite .mem-topbar,
     body.mem-group-invite .mem-bottom-nav,
     body.mem-group-invite .mem-nav-desktop,
     body.mem-group-invite #mem-home-dashboard,
-    body.mem-group-invite #mem-home-login-block,
     body.mem-group-invite .mem-carousel-wrap,
     body.mem-group-invite .mem-boot-bar { display: none !important; }
+    body.mem-group-invite #mem-home-login-block,
+    body.mem-group-invite #mem-home-login-block.mem-hidden { display: block !important; }
     body.mem-group-invite #sec-home { min-height: 100vh; background: #f3ece4; }
-    body.mem-group-invite #mem-guest-cancel,
-    body.mem-group-invite #mem-guest-close,
-    body.mem-group-invite .mem-guest-note { display: none !important; }
-    body.mem-group-invite #mem-guest-modal { background: rgba(60, 40, 25, .35); }
-    body.mem-group-invite .mem-register-actions { margin-top: 14px; }
-    body.mem-group-invite .mem-register-actions .btn { width: 100%; flex: none; }
-    body.mem-group-invite .mem-register-sheet { max-width: 400px; }
-    .mem-group-invite-brand {
-      display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 510;
-      padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 10px;
-      text-align: center; pointer-events: none;
-    }
-    .mem-group-invite-brand strong {
-      font-family: var(--display); font-size: clamp(1.05rem, 4.8vw, 1.2rem);
-      font-weight: 900; color: #3d2b1f; letter-spacing: .01em;
-    }
-    body.mem-group-invite .mem-group-invite-brand { display: block; }
+    body.mem-group-invite .mem-group-invite-brand { display: none !important; }
 
     /* Bottom nav: slot Ưu đãi → Giỏ khi đang đặt hàng có món */
     .mem-bottom-nav [data-nav-cart-swap="1"] { position: relative; }
@@ -5407,12 +5301,6 @@
           <div class="mem-barcode-bars" id="mem-barcode-visual" aria-hidden="true"></div>
           <div class="code-text" id="mem-offers-code">SUN000000000</div>
         </div>
-        <div class="mem-tier-ladder" id="mem-tier-ladder" aria-label="Bậc thang hạng thành viên">
-          <div class="mem-tier-ladder-title"><i class="fa-solid fa-stairs"></i> Bậc thang hạng</div>
-          <div class="mem-tier-ladder-track" id="mem-tier-ladder-track">
-            <div class="mem-tier-ladder-fill" id="mem-tier-ladder-fill"></div>
-          </div>
-        </div>
         <div class="mem-tier-progress" id="mem-tier-progress">
           <div class="mem-tier-labels">
             <span class="mem-tier-from" id="mem-tier-current-label">THÀNH VIÊN</span>
@@ -6381,15 +6269,6 @@
         ];
         return tiers.sort(function (a, b) { return (parseInt(a.minSun, 10) || 0) - (parseInt(b.minSun, 10) || 0); });
       }
-      function tierLadderMeta(tierId) {
-        var map = {
-          member: { icon: 'fa-user', key: 'member' },
-          silver: { icon: 'fa-medal', key: 'silver' },
-          gold: { icon: 'fa-crown', key: 'gold' },
-          diamond: { icon: 'fa-gem', key: 'diamond' }
-        };
-        return map[tierId] || { icon: 'fa-star', key: 'member' };
-      }
       function tierPromoteRule(tier, idx) {
         if (idx <= 0) return 'Bắt đầu';
         var prom = parseInt(tier.promoteSun, 10);
@@ -6432,41 +6311,6 @@
           tierHint: 'Còn ' + remaining + ' Sun để lên ' + next.name + ' · Rule: +' + rule + ' Sun từ ' + current.name
         };
       }
-      function renderTierLadder(tp) {
-        var track = $('mem-tier-ladder-track');
-        if (!track) return;
-        var fill = $('mem-tier-ladder-fill');
-        var tiers = getMemberTiers();
-        var sun = (tp && tp.cups != null) ? parseInt(tp.cups, 10) || 0 : getMemberSunBalance();
-        var curId = (tp && tp.currentTierId) || tierIdFromName((tp && tp.currentTier) || getMemberCurrentTierName());
-        var stepsHtml = tiers.map(function (t, idx) {
-          var meta = tierLadderMeta(t.id);
-          var min = parseInt(t.minSun, 10) || 0;
-          var achieved = sun >= min;
-          var isCur = t.id === curId;
-          var cls = (isCur ? ' current' : '') + (achieved ? ' achieved' : '') + (!achieved && !isCur ? ' locked' : '');
-          return '<button type="button" class="mem-tier-ladder-step' + cls + '" data-tier="' + escAttr(meta.key) + '" data-tier-id="' + escAttr(t.id) + '" aria-label="' + escAttr(t.name + ' — ' + tierPromoteRule(t, idx)) + '">' +
-            '<span class="mem-tier-ladder-node"><i class="fa-solid ' + escAttr(meta.icon) + '"></i></span>' +
-            '<span class="name">' + esc(t.name) + '</span>' +
-            '<span class="rule">' + esc(tierPromoteRule(t, idx)) + '</span></button>';
-        }).join('');
-        track.innerHTML = '<div class="mem-tier-ladder-fill" id="mem-tier-ladder-fill"></div>' + stepsHtml;
-        fill = $('mem-tier-ladder-fill');
-        var maxIdx = tiers.length - 1;
-        var curIdx = 0;
-        tiers.forEach(function (t, i) { if (t.id === curId) curIdx = i; });
-        var ladderPct = maxIdx > 0 ? Math.min(100, Math.round((curIdx / maxIdx) * 100)) : 0;
-        if (tp && tp.nextTier && tp.progressPct != null && maxIdx > 0) {
-          var seg = 100 / maxIdx;
-          ladderPct = Math.min(100, Math.round(curIdx * seg + (tp.progressPct / 100) * seg));
-        }
-        if (fill) fill.style.width = ladderPct + '%';
-        track.querySelectorAll('.mem-tier-ladder-step').forEach(function (btn) {
-          btn.onclick = function () {
-            openTierPage(btn.getAttribute('data-tier-id'), 'Hạng thành viên');
-          };
-        });
-      }
       function renderTierProgress(tp) {
         if (!tp) return;
         var cur = $('mem-tier-current-label');
@@ -6483,12 +6327,7 @@
         if (track) track.setAttribute('aria-valuenow', String(pct));
         if (hint) hint.textContent = tp.tierHint || '';
         var prog = $('mem-tier-progress');
-        if (prog) {
-          prog.classList.toggle('mem-tier-maxed', !tp.nextTier);
-          var nextCls = tp.nextTierId ? tierHeroClass(tp.nextTier) : tierHeroClass(tp.currentTier);
-          prog.className = 'mem-tier-progress' + (tp.nextTier ? ' ' + nextCls : ' mem-tier-maxed');
-        }
-        renderTierLadder(tp);
+        if (prog) prog.classList.toggle('mem-tier-maxed', !tp.nextTier);
       }
       var tierPageSelectedId = '';
       function getMemberSunBalance() {
@@ -10200,7 +10039,7 @@
         showToast('👋 Xin chào! Đang tải thông tin hội viên…');
         state.gateLookupInFlight = false;
         tryPendingGroupJoin();
-        document.body.classList.remove('mem-group-invite');
+        clearGroupInviteUi();
         // Tải nền song song: hồ sơ khách + trạng thái gói/ưu đãi
         try {
           var pair = await Promise.all([
@@ -10514,9 +10353,7 @@
         MemOrder.consumePendingGroupJoin().then(function (r) {
           if (r === 'need-login') return;
           if (r === true && MemOrder.inGroup && MemOrder.inGroup()) {
-            document.body.classList.remove('mem-group-invite');
-            var brandWrap = $('mem-group-invite-brand');
-            if (brandWrap) brandWrap.setAttribute('aria-hidden', 'true');
+            clearGroupInviteUi();
             goOrder();
             showToast('✅ Đã vào đơn nhóm — chọn món bạn thích nhé!');
           }
@@ -10555,6 +10392,7 @@
         }
         try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
       }
+      var gateLoginSubDefault = '';
       /** Mời đơn nhóm: bắt buộc đăng nhập SĐT (không nhập tên khách). */
       function openGroupInviteLogin(code) {
         pendingGuestGroupCode = String(code || '').trim().toUpperCase();
@@ -10562,15 +10400,23 @@
         var brandName = (window.memberPortalSettings && (memberPortalSettings.pageTitle || memberPortalSettings.brandTitle)) || 'Tiệm Cafe Sun & Matcha';
         document.title = brandName;
         if (typeof applyPageMetaFromSettings === 'function') applyPageMetaFromSettings(memberPortalSettings);
-        var brandEl = $('mem-group-invite-brand-txt');
-        if (brandEl) brandEl.textContent = brandName;
-        var brandWrap = $('mem-group-invite-brand');
-        if (brandWrap) brandWrap.setAttribute('aria-hidden', 'false');
         setPortalAuthState(false);
+        var login = $('mem-home-login-block');
+        if (login) login.classList.remove('mem-hidden');
         switchSection('home');
+        var sub = $('mem-disp-login-sub');
+        if (sub) {
+          if (!gateLoginSubDefault) gateLoginSubDefault = sub.textContent || '';
+          sub.textContent = 'Bạn được mời vào đơn nhóm «' + pendingGuestGroupCode + '». Đăng nhập SĐT để chọn món cùng bạn bè.';
+        }
         var gp = $('gate-phone');
-        if (gp) { gp.focus(); }
-        showToast('Đăng nhập SĐT để vào đơn nhóm ' + pendingGuestGroupCode);
+        if (gp) { setTimeout(function () { gp.focus(); }, 80); }
+      }
+      function clearGroupInviteUi() {
+        document.body.classList.remove('mem-group-invite');
+        var sub = $('mem-disp-login-sub');
+        if (sub && gateLoginSubDefault) sub.textContent = gateLoginSubDefault;
+        pendingGuestGroupCode = '';
       }
       function redirectToGroupLogin(code) {
         var c = String(code || '').trim().toUpperCase();
