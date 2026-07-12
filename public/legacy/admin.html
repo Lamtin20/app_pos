@@ -1811,6 +1811,9 @@
           <div class="form-group"><label>Cost ước (₫)</label><input type="number" class="form-control" id="mem-pkg-cost" min="0"></div>
           <div class="form-group"><label>Hiển thị Cổng HV</label><select class="form-control" id="mem-pkg-vis"><option>Có</option><option>Không</option></select></div>
           <div class="form-group" style="grid-column:span 2;"><label>Mô tả</label><input type="text" class="form-control" id="mem-pkg-desc"></div>
+          <div class="form-group"><label>Nhãn ribbon</label><input type="text" class="form-control" id="mem-pkg-ribbon" placeholder="VD: Tiết kiệm nhất, Phổ biến"></div>
+          <div class="form-group"><label>Giá niêm yết (₫)</label><input type="number" class="form-control" id="mem-pkg-listprice" min="0" placeholder="Chỉ hiện gạch ngang nếu &gt; giá bán"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Ảnh gói (URL)</label><input type="text" class="form-control" id="mem-pkg-image" placeholder="https://…"><p style="margin:4px 0 0;font-size:11px;color:var(--text3);">Thiết kế <strong>800×800px</strong> (vuông), JPG/WebP — hiển thị vùng ảnh trên thẻ gói cổng hội viên.</p></div>
           <div class="form-group" style="grid-column:span 4;">
             <label>Chương trình khuyến mãi</label>
             <div id="mem-pkg-promo-presets" class="mem-admin-chip-row" style="margin-bottom:8px;"></div>
@@ -3184,8 +3187,8 @@ let memSubsCache = [];
 let memPkgsCache = [];
 let memPkgEditingId = '';
 var MEM_PKG_TEMPLATES = [
-  { label: 'Gói tuần 5 buổi', suggestId: 'GOI_TUAN', type: 'Tuần', kind: 'Hệ thống', name: 'Gói tuần — giao sáng', sessions: 5, price: 189000, milk: 'Theo menu / ly chọn', cost: 85000, desc: '5 buổi giao trong tuần (T2–T6)', promo: 'week_bonus_2days|label:Mua 1 tuần tặng thêm 2 ngày' },
-  { label: 'Gói tháng 22 buổi', suggestId: 'GOI_THANG', type: 'Tháng', kind: 'Hệ thống', name: 'Gói tháng — tiết kiệm', sessions: 22, price: 720000, milk: 'Theo menu / ly chọn', cost: 385000, desc: '22 buổi giao trong tháng', promo: 'month_bonus_week|discount_pct:5|label:Mua tháng tặng 1 tuần + giảm 5%' },
+  { label: 'Gói tuần 5 buổi', suggestId: 'GOI_TUAN', type: 'Tuần', kind: 'Hệ thống', name: 'Gói tuần — giao sáng', sessions: 5, price: 189000, milk: 'Theo menu / ly chọn', cost: 85000, desc: '5 buổi giao trong tuần (T2–T6)', promo: 'week_bonus_2days|label:Mua 1 tuần tặng thêm 2 ngày', ribbon: 'Phổ biến', listPrice: 0, image: '' },
+  { label: 'Gói tháng 22 buổi', suggestId: 'GOI_THANG', type: 'Tháng', kind: 'Hệ thống', name: 'Gói tháng — tiết kiệm', sessions: 22, price: 720000, milk: 'Theo menu / ly chọn', cost: 385000, desc: '22 buổi giao trong tháng (T2–T6)', promo: 'month_bonus_week|discount_pct:5|label:Mua tháng tặng 1 tuần + giảm 5%', ribbon: 'Tiết kiệm nhất', listPrice: 0, image: '' },
   { label: 'Gói 2 tuần', suggestId: 'GOI_2TUAN', type: 'Tuần', kind: 'Hệ thống', name: 'Gói 2 tuần — 10 buổi', sessions: 10, price: 359000, milk: 'Theo menu', cost: 170000, desc: '10 buổi giao trong 14 ngày', promo: 'bonus_days:2|label:Tặng thêm 2 ngày giao' },
   { label: 'Gói Custom', suggestId: 'GOI_CUSTOM', type: 'Custom', kind: 'Custom', name: 'Gói Custom — chọn món yêu thích', sessions: 7, price: 0, milk: 'Tự chọn từ menu', cost: 0, desc: 'Chọn nhiều loại sữa; giá tính theo món × số buổi', promo: '' },
   { label: 'Gói văn phòng T2–T5', suggestId: 'GOI_VP', type: 'Tuần', kind: 'Hệ thống', name: 'Gói văn phòng (4 buổi/tuần)', sessions: 4, price: 149000, milk: 'Theo menu', cost: 68000, desc: 'Giao sáng T2–T5, phù hợp nhóm công sở', promo: 'discount_pct:8|label:Giảm 8% đăng ký nhóm VP' }
@@ -3289,6 +3292,9 @@ function applyMemPkgTemplate(idx) {
   document.getElementById('mem-pkg-milk').value = t.milk || '';
   document.getElementById('mem-pkg-cost').value = t.cost != null ? t.cost : '';
   document.getElementById('mem-pkg-desc').value = t.desc || '';
+  document.getElementById('mem-pkg-ribbon').value = t.ribbon || '';
+  document.getElementById('mem-pkg-listprice').value = t.listPrice != null ? t.listPrice : '';
+  document.getElementById('mem-pkg-image').value = t.image || '';
   document.getElementById('mem-pkg-vis').value = 'Có';
   document.getElementById('mem-pkg-promo').value = t.promo || '';
   setMemPkgFormTitle('Thêm gói mới (từ mẫu)');
@@ -3323,8 +3329,15 @@ function renderMemPackagesVisual() {
     const visText = vis.indexOf('Không') === 0 ? 'Ẩn' : 'Hiển thị';
     const kind = String(p.pkgKind || '').trim() || 'Hệ thống';
     const promoLbl = (p.promo && p.promo.label) ? String(p.promo.label) : '';
+    const ribbonLbl = String(p.ribbonLabel || '').trim();
+    const imgUrl = String(p.imageUrl || '').trim();
     const onCls = memPkgEditingId === id ? ' on' : '';
+    const thumb = imgUrl
+      ? '<div style="width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;margin-bottom:8px;border:1px solid var(--border);"><img src="' + escapeHtml(imgUrl) + '" alt="" style="width:100%;height:100%;object-fit:cover;"></div>'
+      : '';
     return '<div class="mem-admin-pkg-card' + onCls + '" data-pkgid="' + idAttr + '" onclick="editMemPackageRow(\'' + idAttr.replace(/'/g, "\\'") + '\')">' +
+      thumb +
+      (ribbonLbl ? '<div style="font-size:10px;font-weight:800;color:var(--gold);margin-bottom:4px;">' + escapeHtml(ribbonLbl) + '</div>' : '') +
       '<div class="pkg-id">' + idAttr + '</div>' +
       '<div class="pkg-name">' + escapeHtml(p.name || '(Chưa đặt tên)') + '</div>' +
       '<div class="pkg-meta">' + escapeHtml(p.type || '') + ' · ' + escapeHtml(kind) + ' · ' + (parseInt(p.sessions, 10) || 0) + ' buổi<br>' +
@@ -3356,6 +3369,9 @@ function clearMemPackageForm() {
     ['mem-pkg-milk', ''],
     ['mem-pkg-cost', ''],
     ['mem-pkg-desc', ''],
+    ['mem-pkg-ribbon', ''],
+    ['mem-pkg-listprice', ''],
+    ['mem-pkg-image', ''],
     ['mem-pkg-promo', ''],
     ['mem-pkg-vis', 'Có']
   ];
@@ -3389,6 +3405,9 @@ function editMemPackageRow(pkgId) {
   setVal('mem-pkg-milk', p.mainDrink);
   setVal('mem-pkg-cost', p.costEstimate);
   setVal('mem-pkg-desc', p.description);
+  setVal('mem-pkg-ribbon', p.ribbonLabel);
+  setVal('mem-pkg-listprice', p.listPrice);
+  setVal('mem-pkg-image', p.imageUrl);
   setVal('mem-pkg-vis', p.visible || 'Có');
   let promoStr = '';
   if (p.promo && typeof p.promo === 'object') {
@@ -4029,6 +4048,9 @@ async function saveMemPackageRow() {
       milkProduct: document.getElementById('mem-pkg-milk').value.trim(),
       costEstimate: document.getElementById('mem-pkg-cost').value,
       description: document.getElementById('mem-pkg-desc').value.trim(),
+      ribbonLabel: (document.getElementById('mem-pkg-ribbon') || {}).value || '',
+      listPrice: (document.getElementById('mem-pkg-listprice') || {}).value,
+      imageUrl: (document.getElementById('mem-pkg-image') || {}).value || '',
       visible: document.getElementById('mem-pkg-vis').value,
       pkgKind: (document.getElementById('mem-pkg-kind') || {}).value || 'Hệ thống',
       promoRules: (document.getElementById('mem-pkg-promo') || {}).value || ''

@@ -4249,6 +4249,54 @@
     .sched-day-pill .d2 { font-size: 11px; color: var(--text3); margin-top: 2px; }
     .sched-day-pill.on { background: var(--primary-dk); color: #fff; border-color: var(--primary-dk); }
     .sched-day-pill.on .d1, .sched-day-pill.on .d2 { color: #fff; opacity: 0.95; }
+    .sched-day-pill.off-weekend {
+      position: relative; opacity: 0.42; cursor: not-allowed; pointer-events: none;
+      background: var(--surface2); border-style: dashed;
+    }
+    .sched-day-pill.off-weekend::after {
+      content: '✕'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: var(--text3); background: rgba(255,255,255,.5); border-radius: 14px;
+    }
+    .reg-sched-wrap { margin-top: 12px; }
+    .reg-sched-label { font-size: 13px; font-weight: 800; color: var(--text); display: block; margin-bottom: 6px; }
+    .reg-sched-label .req { color: var(--primary); }
+    .reg-sched-hint { font-size: 12px; color: var(--text2); margin: 0 0 10px; line-height: 1.5; }
+    .reg-sched-guide {
+      font-size: 12px; color: var(--primary-dk); background: rgba(234,88,12,.08); border: 1px solid rgba(234,88,12,.2);
+      border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; line-height: 1.45;
+    }
+    .reg-sched-days { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .reg-sched-day-pill {
+      flex: 0 0 auto; min-width: 58px; padding: 10px 12px; border-radius: 14px; border: 1.5px solid var(--border);
+      background: var(--surface2); cursor: pointer; text-align: center; transition: 0.15s;
+    }
+    .reg-sched-day-pill .d1 { font-weight: 900; font-size: 13px; color: var(--primary-dk); }
+    .reg-sched-day-pill.on { background: var(--primary-dk); border-color: var(--primary-dk); }
+    .reg-sched-day-pill.on .d1 { color: #fff; }
+    .reg-sched-day-pill.done { border-color: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,.18); }
+    .reg-sched-day-pill.guide-pulse { animation: regSchedPulse 1.1s ease-in-out infinite; }
+    @keyframes regSchedPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(234,88,12,.45); }
+      50% { box-shadow: 0 0 0 6px rgba(234,88,12,0); }
+    }
+    .reg-sched-editor {
+      border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: var(--surface2); margin-bottom: 10px;
+    }
+    .reg-sched-editor .fld { margin-bottom: 10px; }
+    .reg-sched-editor label { font-size: 11px; font-weight: 800; color: var(--text3); display: block; margin-bottom: 4px; }
+    .reg-sched-editor select, .reg-sched-editor input[type="text"] {
+      width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface);
+      font-size: 14px; font-weight: 700; color: var(--primary-dk);
+    }
+    .reg-sched-opt-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .reg-sched-opt-btn {
+      padding: 8px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--surface);
+      font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .reg-sched-opt-btn.on { background: var(--primary-dk); color: #fff; border-color: var(--primary-dk); }
+    .reg-sched-toggle { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--text2); margin: 6px 0 0; }
+    .reg-sched-apply-all { margin-top: 4px; }
+    .reg-sched-invalid { border-color: var(--primary) !important; box-shadow: 0 0 0 2px rgba(234,88,12,.2); }
     .sched-day-hero {
       display: grid; grid-template-columns: 1fr 1.1fr; gap: 16px; align-items: stretch;
       background: linear-gradient(145deg, rgba(124,45,18,.06), var(--surface)); border: 1px solid var(--border);
@@ -4885,8 +4933,16 @@
             </div>
             </div>
 
-            <label>Món yêu thích / mặc định</label>
-            <select id="reg-drink"></select>
+            <div class="reg-sched-wrap" id="reg-schedule-block">
+              <label class="reg-sched-label">Lên lịch order món theo ngày <span class="req">*</span></label>
+              <p class="reg-sched-hint" id="reg-sched-summary">Chọn món cho từng ngày T2–T6 (gói Sun không áp dụng thứ 7 &amp; Chủ nhật).</p>
+              <div class="reg-sched-guide" id="reg-sched-guide" style="display:none;"></div>
+              <div class="reg-sched-days" id="reg-sched-days"></div>
+              <div class="reg-sched-editor" id="reg-sched-editor"></div>
+              <div class="reg-sched-apply-all">
+                <button type="button" class="btn btn-sec btn-sm" id="reg-sched-apply-rest" style="display:none;">Áp dụng món này cho các ngày còn lại</button>
+              </div>
+            </div>
           </div>
           <div class="mem-pay-panel">
             <div class="mem-mini-title">PHƯƠNG THỨC THANH TOÁN</div>
@@ -6530,37 +6586,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       return false;
     }
     function quickAddProduct(p) {
-      if (!p) return;
-      var isTop = (p.category || '').toLowerCase().indexOf('topping') >= 0;
-      var defSize = isTop ? 'Tiêu chuẩn' : 'Thường (350ml)';
-      var ex = cart.find(function (i) {
-        return i.id === p.id && !i.note &&
-          normalizeCupSizeLabel(i.options.size) === normalizeCupSizeLabel(defSize) &&
-          (i.options.serveTemp || 'cold_steep') === (isTop ? 'cold_steep' : 'iced') &&
-          (i.options.packaging || 'paper') === 'paper' &&
-          !(i.options.addons && i.options.addons.length);
-      });
-      if (ex) ex.quantity += 1;
-      else {
-        cart.push({
-          id: p.id, name: p.name, imageUrl: p.imageUrl || '', basePrice: p.basePrice,
-          options: {
-            size: defSize, sizePrice: 0,
-            ice: isTop ? 'Không đá' : 'Vừa',
-            sweetness: 'Ngọt vừa', addons: [], addonPrices: [],
-            serveTemp: isTop ? 'cold_steep' : 'iced',
-            packaging: 'paper', packagingPrice: 0, familyPack: false
-          },
-          note: '', quantity: 1
-        });
-      }
-      qrOrderLock = null;
-      if (awaitInfo) clearAwait();
-      syncNavBadge(p.imageUrl);
-      scheduleGroupSync();
-      var added = ex || cart[cart.length - 1];
-      if (inGroup()) showGroupAddedPopup(added);
-      else toast('✅ ' + p.name + ' +1');
+      openProduct(p);
     }
     function addToCart() {
       if (!currentProduct) return;
@@ -8323,6 +8349,11 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         memAiWizard: { step: 'idle', goal: '', durationDays: 0 },
         customDrinks: [],
         pkgQuote: null,
+        regWeekPlan: null,
+        regSchedActiveKey: 'T2',
+        regSchedGuide: true,
+        regApplySweetAll: false,
+        regApplyTempAll: false,
         orderHistoryTab: 'completed',
         memberOrdersFiltered: [],
         notifications: [],
@@ -8800,9 +8831,9 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         }
         var isCus = isPkgCustom(p);
         var isMonth = variant === 'month' || String(p.type || '').indexOf('Tháng') >= 0;
-        if (isCus) return ['Chọn nhiều loại sữa yêu thích', 'Giá tính theo món × số buổi giao', 'Linh hoạt đổi món theo tuần'];
-        if (isMonth) return [(p.sessions || 30) + ' buổi giao trong tháng', 'Gợi ý lịch uống theo menu & mục tiêu', 'Tích điểm hội viên x2'];
-        return [(p.sessions || 7) + ' buổi giao linh hoạt', 'Miễn phí vận chuyển mỗi tuần', 'Đổi món theo mục tiêu sức khỏe'];
+        if (isCus) return ['Chọn nhiều loại sữa yêu thích', 'Giá tính theo món × số buổi giao', 'Linh hoạt đổi món theo tuần', 'Chỉ áp dụng ngày T2–T6'];
+        if (isMonth) return [(p.sessions || 30) + ' buổi giao trong tháng (T2–T6)', 'Gợi ý lịch uống theo menu & mục tiêu', 'Tích điểm hội viên x2'];
+        return [(p.sessions || 7) + ' buổi giao linh hoạt (T2–T6)', 'Miễn phí vận chuyển mỗi tuần', 'Đổi món theo mục tiêu sức khỏe'];
       }
       function pkgQuoteForCard(p, q) {
         if (q && q.packageId === p.id) return q;
@@ -8824,15 +8855,16 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var isCus = isPkgCustom(p);
         var quote = pkgQuoteForCard(p, q);
         var priceMain = quote.finalPrice;
-        var wasPrice = quote.retailEstimate > priceMain ? quote.retailEstimate : (quote.discount > 0 ? quote.basePrice : 0);
+        var listPrice = Math.round(parseFloat(p.listPrice) || parseFloat(quote.retailEstimate) || 0);
+        var wasPrice = listPrice > priceMain ? listPrice : 0;
         var priceHtml = wasPrice > priceMain
           ? '<span class="mem-pkg-price-was">' + fmt(wasPrice) + '</span><span class="mem-pkg-price-main">' + fmt(priceMain) + '</span>'
           : '<span class="mem-pkg-price-main">' + fmt(priceMain) + '</span>';
-        var savings = quote.savingsAmount || Math.max(0, wasPrice - priceMain);
+        var savings = wasPrice > priceMain ? wasPrice - priceMain : Math.max(0, quote.discount || 0);
         var saveTag = savings > 0 ? '<span class="mem-pkg-save-tag">Tiết kiệm ' + fmt(savings) + '</span>' : '';
         var ribbon = '';
-        if (isWeek) ribbon = '<div class="mem-pkg-ribbon popular"><span>Phổ biến</span></div>';
-        else if (isMonth) ribbon = '<div class="mem-pkg-ribbon best"><span>Tiết kiệm nhất</span></div>';
+        var ribbonLabel = String(p.ribbonLabel || '').trim();
+        if (ribbonLabel) ribbon = '<div class="mem-pkg-ribbon best"><span>' + esc(ribbonLabel) + '</span></div>';
         var promoLabel = quote.promoLabel || p.promoLabel || '';
         var promo = promoLabel ? '<div class="mem-pkg-promo-badge">' + esc(promoLabel) + '</div>' : '';
         var perks = parsePkgPerks(p, variant).map(function (line) {
@@ -10542,7 +10574,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             if (e.target.closest('.mem-pk-add-btn')) return;
             var id = el.getAttribute('data-home-menu-id');
             var it = state.menu.find(function (x) { return String(x.id) === String(id); });
-            if (it && window.MemOrder) MemOrder.openProduct(it); else goOrder();
+            openMemProductFromCard(id, it);
           };
         });
         container.querySelectorAll('.mem-pk-add-btn').forEach(function (btn) {
@@ -10550,7 +10582,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             e.stopPropagation();
             var id = btn.getAttribute('data-add-id');
             var full = (state.menu || []).find(function (x) { return String(x.id) === String(id); });
-            memPkQuickAdd(id, full);
+            openMemProductFromCard(id, full);
           };
         });
       }
@@ -11243,10 +11275,19 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           return '<div class="menu-card" data-id="' + esc(m.id) + '">' + buildMenuCardBlocksHtml(m, true) + '</div>';
         }).join('');
         g.querySelectorAll('.menu-card').forEach(function (el) {
-          el.onclick = function () {
+          el.onclick = function (e) {
+            if (e.target.closest('.mem-pk-add-btn')) return;
             var id = el.getAttribute('data-id');
             var it = state.menu.find(function (x) { return String(x.id) === String(id); });
-            if (it) openMenuModal(it);
+            openMemProductFromCard(id, it);
+          };
+        });
+        g.querySelectorAll('.mem-pk-add-btn').forEach(function (btn) {
+          btn.onclick = function (e) {
+            e.stopPropagation();
+            var id = btn.getAttribute('data-add-id');
+            var full = (state.menu || []).find(function (x) { return String(x.id) === String(id); });
+            openMemProductFromCard(id, full);
           };
         });
       }
@@ -11364,6 +11405,8 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
 
       // ---------- Schedule section ----------
       var PORTAL_DAY_KEYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+      var PKG_WORKDAY_KEYS = ['T2', 'T3', 'T4', 'T5', 'T6'];
+      function isPkgWeekendKey(key) { return key === 'T7' || key === 'CN'; }
       var portalPrimarySubId = '';
       var portalActiveSubs = [];
 
@@ -11447,15 +11490,15 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var tomMid = new Date(tom.getFullYear(), tom.getMonth(), tom.getDate()).getTime();
         var i;
         for (i = 0; i < meta.length; i++) {
-          if (meta[i].ts === tomMid) return meta[i].key;
+          if (meta[i].ts === tomMid && !isPkgWeekendKey(meta[i].key)) return meta[i].key;
         }
         for (i = 0; i < meta.length; i++) {
-          if (meta[i].ts > nowMid) return meta[i].key;
+          if (meta[i].ts > nowMid && !isPkgWeekendKey(meta[i].key)) return meta[i].key;
         }
         for (i = 0; i < meta.length; i++) {
-          if (meta[i].isToday) return meta[i].key;
+          if (meta[i].isToday && !isPkgWeekendKey(meta[i].key)) return meta[i].key;
         }
-        return PORTAL_DAY_KEYS[0];
+        return PKG_WORKDAY_KEYS[0];
       }
       function fmtViShortDay(ts) {
         var d = new Date(ts);
@@ -11493,7 +11536,11 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var meta = scheduleWeekMeta();
         strip.innerHTML = meta.map(function (m) {
           var on = m.key === state.activeScheduleDayKey ? ' on' : '';
-          var extra = (m.isTomorrow ? ' tom' : '') + (m.isPast ? ' past' : '');
+          var extra = (m.isTomorrow ? ' tom' : '') + (m.isPast ? ' past' : '') + (isPkgWeekendKey(m.key) ? ' off-weekend' : '');
+          if (isPkgWeekendKey(m.key)) {
+            return '<div class="sched-day-pill disabled' + extra + '" data-key="' + esc(m.key) + '" aria-disabled="true" title="Gói Sun không áp dụng thứ 7 & Chủ nhật">' +
+              '<div class="d1">' + esc(m.short) + '</div><div class="d2">' + m.dayNum + '/' + m.mon + '</div></div>';
+          }
           return '<button type="button" class="sched-day-pill' + extra + on + '" data-key="' + esc(m.key) + '" role="tab" aria-selected="' + (on ? 'true' : 'false') + '">' +
             '<div class="d1">' + esc(m.short) + (m.isTomorrow ? ' · Mai' : '') + '</div>' +
             '<div class="d2">' + m.dayNum + '/' + m.mon + '</div></button>';
@@ -11572,7 +11619,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         line.textContent = 'Tuần này: ' + parts.join(' · ');
       }
       function finalizeScheduleUiAfterApply() {
-        state.activeScheduleDayKey = pickNextDrinkDayKey();
+        if (isPkgWeekendKey(state.activeScheduleDayKey)) state.activeScheduleDayKey = pickNextDrinkDayKey();
         renderScheduleWeekStrip();
         populateVisibleDrinkSelectPortal();
         syncHiddenToVisible();
@@ -11588,7 +11635,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           var pill = ev.target && ev.target.closest ? ev.target.closest('.sched-day-pill') : null;
           if (!pill || !card.contains(pill)) return;
           var key = pill.getAttribute('data-key');
-          if (!key || key === state.activeScheduleDayKey) return;
+          if (!key || key === state.activeScheduleDayKey || isPkgWeekendKey(key)) return;
           ev.preventDefault();
           syncVisibleToHidden();
           state.activeScheduleDayKey = key;
@@ -11989,14 +12036,295 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         syncFul();
       }
 
-      function fillRegDrinkSelect() {
-        var el = $('reg-drink');
+      function defaultRegDayPlan() {
+        return { drink: '', size: 'Thường (350ml)', sweetness: 'Ngọt vừa', serveTemp: 'iced', ice: 'Vừa', note: '', done: false };
+      }
+      function initRegWeekPlan() {
+        state.regWeekPlan = state.regWeekPlan || {};
+        PKG_WORKDAY_KEYS.forEach(function (k) {
+          if (!state.regWeekPlan[k]) state.regWeekPlan[k] = defaultRegDayPlan();
+        });
+        if (!state.regSchedActiveKey || PKG_WORKDAY_KEYS.indexOf(state.regSchedActiveKey) < 0) {
+          state.regSchedActiveKey = PKG_WORKDAY_KEYS[0];
+        }
+        if (state.regSchedGuide == null) state.regSchedGuide = true;
+      }
+      function regDayLabelShort(k) {
+        if (k === 'T2') return 'T2';
+        if (k === 'T3') return 'T3';
+        if (k === 'T4') return 'T4';
+        if (k === 'T5') return 'T5';
+        if (k === 'T6') return 'T6';
+        return k;
+      }
+      function regMenuOptionsHtml(selected) {
+        var opts = '<option value="">— Chọn món —</option>';
+        state.menu.filter(function (m) { return m.available !== false; }).forEach(function (m) {
+          var nm = String(m.name || '');
+          opts += '<option value="' + escAttr(nm) + '"' + (nm === selected ? ' selected' : '') + '>' + esc(nm) + '</option>';
+        });
+        return opts;
+      }
+      function regProductSizeOptions(p) {
+        if (!p) return [];
+        var isTop = (p.category || '').toLowerCase().indexOf('topping') >= 0;
+        if (isTop) return [];
+        var parts = [];
+        if (p.enableSmall) parts.push('Nhỏ (250ml)');
+        if (p.enableRegular !== false) parts.push('Thường (350ml)');
+        if (p.enableLarge !== false) parts.push('Lớn (450ml)');
+        if (!parts.length) parts.push('Thường (350ml)');
+        return parts;
+      }
+      function regFindProductByName(name) {
+        var n = String(name || '').trim();
+        if (!n) return null;
+        for (var i = 0; i < state.menu.length; i++) {
+          if (String(state.menu[i].name || '').trim() === n) return state.menu[i];
+        }
+        return null;
+      }
+      function regSchedNextGuideKey() {
+        for (var i = 0; i < PKG_WORKDAY_KEYS.length; i++) {
+          var k = PKG_WORKDAY_KEYS[i];
+          var pl = state.regWeekPlan[k];
+          if (!pl || !pl.done || !String(pl.drink || '').trim()) return k;
+        }
+        return '';
+      }
+      function syncRegSchedFromEditor() {
+        var key = state.regSchedActiveKey;
+        if (!key || !state.regWeekPlan[key]) return;
+        var pl = state.regWeekPlan[key];
+        var drinkEl = $('reg-sched-drink');
+        if (drinkEl) pl.drink = drinkEl.value || '';
+        var noteEl = $('reg-sched-note');
+        if (noteEl) pl.note = noteEl.value || '';
+        pl.done = !!String(pl.drink || '').trim();
+      }
+      function renderRegScheduleEditor() {
+        var box = $('reg-sched-editor');
+        if (!box) return;
+        initRegWeekPlan();
+        syncRegSchedFromEditor();
+        var key = state.regSchedActiveKey;
+        var pl = state.regWeekPlan[key] || defaultRegDayPlan();
+        var prod = regFindProductByName(pl.drink);
+        var sizes = regProductSizeOptions(prod);
+        var sizeHtml = '';
+        if (sizes.length > 1) {
+          sizeHtml = '<div class="fld"><label>Size</label><div class="reg-sched-opt-row" id="reg-sched-size-row">' +
+            sizes.map(function (s) {
+              return '<button type="button" class="reg-sched-opt-btn' + (pl.size === s ? ' on' : '') + '" data-size="' + escAttr(s) + '">' + esc(s) + '</button>';
+            }).join('') + '</div></div>';
+        } else if (sizes.length === 1) {
+          pl.size = sizes[0];
+        }
+        var sweetHtml = '<div class="fld"><label>Độ ngọt</label><div class="reg-sched-opt-row" id="reg-sched-sweet-row">' +
+          ['Ít ngọt', 'Ngọt vừa', 'Ngọt'].map(function (s) {
+            return '<button type="button" class="reg-sched-opt-btn' + (pl.sweetness === s ? ' on' : '') + '" data-sweet="' + escAttr(s) + '">' + esc(s) + '</button>';
+          }).join('') + '</div>' +
+          '<label class="reg-sched-toggle"><input type="checkbox" id="reg-apply-sweet-all"' + (state.regApplySweetAll ? ' checked' : '') + '> Áp dụng cho tất cả</label></div>';
+        var tempHtml = '<div class="fld"><label>Cách dùng</label><div class="reg-sched-opt-row" id="reg-sched-temp-row">' +
+          '<button type="button" class="reg-sched-opt-btn' + (pl.serveTemp === 'hot' ? ' on' : '') + '" data-temp="hot">Nóng</button>' +
+          '<button type="button" class="reg-sched-opt-btn' + (pl.serveTemp === 'iced' ? ' on' : '') + '" data-temp="iced">Đá</button>' +
+          '</div><label class="reg-sched-toggle"><input type="checkbox" id="reg-apply-temp-all"' + (state.regApplyTempAll ? ' checked' : '') + '> Áp dụng cho tất cả</label></div>';
+        var iceHtml = '';
+        if (pl.serveTemp === 'iced') {
+          iceHtml = '<div class="fld"><label>Mức đá</label><div class="reg-sched-opt-row" id="reg-sched-ice-row">' +
+            ['Ít đá', 'Vừa', 'Nhiều đá'].map(function (s) {
+              return '<button type="button" class="reg-sched-opt-btn' + (pl.ice === s ? ' on' : '') + '" data-ice="' + escAttr(s) + '">' + esc(s) + '</button>';
+            }).join('') + '</div></div>';
+        }
+        box.innerHTML =
+          '<div class="fld"><label>Món cho ' + esc(regDayLabelShort(key)) + '</label>' +
+          '<select id="reg-sched-drink">' + regMenuOptionsHtml(pl.drink) + '</select></div>' +
+          sizeHtml + sweetHtml + tempHtml + iceHtml +
+          '<div class="fld"><label>Ghi chú (tuỳ chọn)</label><input type="text" id="reg-sched-note" value="' + escAttr(pl.note || '') + '" placeholder="VD: ít đá hơn bình thường"></div>';
+        var drinkSel = $('reg-sched-drink');
+        if (drinkSel) drinkSel.onchange = function () {
+          pl.drink = drinkSel.value || '';
+          pl.done = !!pl.drink;
+          renderRegScheduleDays();
+          renderRegScheduleEditor();
+          updateRegSchedGuide();
+        };
+        box.querySelectorAll('[data-size]').forEach(function (btn) {
+          btn.onclick = function () {
+            pl.size = btn.getAttribute('data-size') || pl.size;
+            if (state.regApplySweetAll) applyRegOptionToAll('size', pl.size);
+            renderRegScheduleEditor();
+          };
+        });
+        box.querySelectorAll('[data-sweet]').forEach(function (btn) {
+          btn.onclick = function () {
+            pl.sweetness = btn.getAttribute('data-sweet') || pl.sweetness;
+            if (state.regApplySweetAll) applyRegOptionToAll('sweetness', pl.sweetness);
+            renderRegScheduleEditor();
+          };
+        });
+        box.querySelectorAll('[data-temp]').forEach(function (btn) {
+          btn.onclick = function () {
+            pl.serveTemp = btn.getAttribute('data-temp') || 'iced';
+            if (state.regApplyTempAll) applyRegOptionToAll('serveTemp', pl.serveTemp);
+            renderRegScheduleEditor();
+          };
+        });
+        box.querySelectorAll('[data-ice]').forEach(function (btn) {
+          btn.onclick = function () {
+            pl.ice = btn.getAttribute('data-ice') || pl.ice;
+            if (state.regApplyTempAll) applyRegOptionToAll('ice', pl.ice);
+            renderRegScheduleEditor();
+          };
+        });
+        var swAll = $('reg-apply-sweet-all');
+        if (swAll) swAll.onchange = function () {
+          state.regApplySweetAll = !!swAll.checked;
+          if (state.regApplySweetAll) applyRegOptionToAll('sweetness', pl.sweetness);
+        };
+        var tpAll = $('reg-apply-temp-all');
+        if (tpAll) tpAll.onchange = function () {
+          state.regApplyTempAll = !!tpAll.checked;
+          if (state.regApplyTempAll) {
+            applyRegOptionToAll('serveTemp', pl.serveTemp);
+            applyRegOptionToAll('ice', pl.ice);
+          }
+        };
+      }
+      function applyRegOptionToAll(field, val) {
+        PKG_WORKDAY_KEYS.forEach(function (k) {
+          if (!state.regWeekPlan[k]) state.regWeekPlan[k] = defaultRegDayPlan();
+          state.regWeekPlan[k][field] = val;
+        });
+      }
+      function renderRegScheduleDays() {
+        var row = $('reg-sched-days');
+        if (!row) return;
+        initRegWeekPlan();
+        var guideKey = state.regSchedGuide ? regSchedNextGuideKey() : '';
+        row.innerHTML = PKG_WORKDAY_KEYS.map(function (k) {
+          var pl = state.regWeekPlan[k] || defaultRegDayPlan();
+          var on = k === state.regSchedActiveKey ? ' on' : '';
+          var done = pl.done && pl.drink ? ' done' : '';
+          var pulse = (guideKey === k) ? ' guide-pulse' : '';
+          var sub = pl.drink ? esc(pl.drink) : 'Chưa chọn';
+          return '<button type="button" class="reg-sched-day-pill' + on + done + pulse + '" data-reg-day="' + escAttr(k) + '">' +
+            '<div class="d1">' + esc(regDayLabelShort(k)) + '</div>' +
+            '<div style="font-size:10px;color:var(--text3);margin-top:3px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + sub + '</div></button>';
+        }).join('');
+        row.querySelectorAll('[data-reg-day]').forEach(function (btn) {
+          btn.onclick = function () {
+            syncRegSchedFromEditor();
+            state.regSchedActiveKey = btn.getAttribute('data-reg-day') || PKG_WORKDAY_KEYS[0];
+            renderRegScheduleDays();
+            renderRegScheduleEditor();
+            updateRegSchedGuide();
+          };
+        });
+      }
+      function updateRegSchedSummary() {
+        var el = $('reg-sched-summary');
         if (!el) return;
-        var opts = '<option value="">Theo menu / mặc định cửa hàng</option>' +
-          state.menu.filter(function (m) { return m.available !== false; }).map(function (m) {
-            return '<option value="' + esc(m.name) + '">' + esc(m.name) + '</option>';
-          }).join('');
-        el.innerHTML = opts;
+        var p = findPkgById(state.selectedPkgId);
+        var sessions = p ? (parseInt(p.sessions, 10) || 0) : 0;
+        var done = PKG_WORKDAY_KEYS.filter(function (k) {
+          var pl = state.regWeekPlan && state.regWeekPlan[k];
+          return pl && pl.drink;
+        }).length;
+        el.textContent = (sessions ? ('Gói ' + sessions + ' buổi · ') : '') +
+          'Chọn món cho ' + PKG_WORKDAY_KEYS.length + ' ngày T2–T6' +
+          (done ? (' · Đã chọn ' + done + '/' + PKG_WORKDAY_KEYS.length) : '') +
+          ' (Thứ 7 & CN không áp dụng).';
+      }
+      function updateRegSchedGuide() {
+        var g = $('reg-sched-guide');
+        if (!g) return;
+        if (!state.regSchedGuide) { g.style.display = 'none'; return; }
+        var next = regSchedNextGuideKey();
+        if (!next) { g.style.display = 'none'; state.regSchedGuide = false; return; }
+        g.style.display = 'block';
+        g.innerHTML = '<i class="fa-solid fa-hand-pointer"></i> Bấm ô <strong>' + esc(regDayLabelShort(next)) + '</strong> (đang nhấp nháy), chọn món và tùy chỉnh. Xong từng ngày hoặc dùng nút <strong>Áp dụng cho các ngày còn lại</strong>.';
+        var applyBtn = $('reg-sched-apply-rest');
+        if (applyBtn) {
+          var cur = state.regWeekPlan[state.regSchedActiveKey];
+          var hasDrink = cur && cur.drink;
+          var remain = PKG_WORKDAY_KEYS.filter(function (k) {
+            var pl = state.regWeekPlan[k];
+            return !pl || !pl.drink;
+          }).length;
+          applyBtn.style.display = (hasDrink && remain > 0) ? '' : 'none';
+        }
+      }
+      function renderRegScheduleBlock() {
+        initRegWeekPlan();
+        renderRegScheduleDays();
+        renderRegScheduleEditor();
+        updateRegSchedSummary();
+        updateRegSchedGuide();
+        var wrap = $('reg-schedule-block');
+        if (wrap) wrap.classList.toggle('reg-sched-invalid', !validateRegSchedule());
+      }
+      function wireRegScheduleOnce() {
+        if (wireRegScheduleOnce.done) return;
+        wireRegScheduleOnce.done = true;
+        var applyBtn = $('reg-sched-apply-rest');
+        if (applyBtn) applyBtn.onclick = function () {
+          syncRegSchedFromEditor();
+          var src = state.regWeekPlan[state.regSchedActiveKey];
+          if (!src || !src.drink) { showToast('Chọn món cho ngày hiện tại trước'); return; }
+          PKG_WORKDAY_KEYS.forEach(function (k) {
+            if (!state.regWeekPlan[k] || !state.regWeekPlan[k].drink) {
+              state.regWeekPlan[k] = {
+                drink: src.drink, size: src.size, sweetness: src.sweetness,
+                serveTemp: src.serveTemp, ice: src.ice, note: src.note, done: true
+              };
+            }
+          });
+          state.regSchedGuide = false;
+          renderRegScheduleBlock();
+          showToast('Đã áp dụng món cho các ngày còn lại');
+        };
+      }
+      function initRegScheduleUi() {
+        wireRegScheduleOnce();
+        renderRegScheduleBlock();
+      }
+      function validateRegSchedule() {
+        initRegWeekPlan();
+        for (var i = 0; i < PKG_WORKDAY_KEYS.length; i++) {
+          var pl = state.regWeekPlan[PKG_WORKDAY_KEYS[i]];
+          if (!pl || !String(pl.drink || '').trim()) return false;
+        }
+        return true;
+      }
+      function buildRegSchedulePayload() {
+        initRegWeekPlan();
+        syncRegSchedFromEditor();
+        var dailyDrinks = {};
+        var dailyOptions = {};
+        PKG_WORKDAY_KEYS.forEach(function (k) {
+          var pl = state.regWeekPlan[k] || defaultRegDayPlan();
+          dailyDrinks[k] = pl.drink;
+          dailyOptions[k] = {
+            size: pl.size, sweetness: pl.sweetness, serveTemp: pl.serveTemp,
+            ice: pl.ice, note: pl.note || ''
+          };
+        });
+        var p = findPkgById(state.selectedPkgId);
+        return {
+          weekdaysOnly: true,
+          workdays: PKG_WORKDAY_KEYS.slice(),
+          sessions: p ? (parseInt(p.sessions, 10) || 0) : 0,
+          defaultDrink: dailyDrinks.T2 || '',
+          dailyDrinks: dailyDrinks,
+          dailyOptions: dailyOptions,
+          updatedAt: new Date().toISOString(),
+          source: 'register'
+        };
+      }
+
+      function fillRegDrinkSelect() {
+        initRegScheduleUi();
       }
 
       function findPkgById(id) {
@@ -12068,7 +12396,10 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var q = state.pkgQuote;
         var finalP = (q && q.finalPrice != null) ? q.finalPrice : (p.price || 0);
         nm.textContent = (p.type ? (p.type + ' - ') : '') + (p.name || 'Gói hội viên');
-        if (q && q.discount > 0) {
+        var listPrice = Math.round(parseFloat(p.listPrice) || 0);
+        if (listPrice > finalP) {
+          pr.innerHTML = '<span class="mem-pkg-price-was">' + fmt(listPrice) + '</span>' + fmt(finalP);
+        } else if (q && q.discount > 0) {
           pr.innerHTML = '<span class="mem-pkg-price-was">' + fmt(q.basePrice) + '</span>' + fmt(finalP);
         } else {
           pr.textContent = fmt(finalP);
@@ -12082,6 +12413,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         renderPkgs();
         renderCustomPicks();
         refreshPkgQuote();
+        initRegScheduleUi();
         if (openCheckout) {
           var sec = $('mem-pay-section');
           if (sec) sec.classList.remove('mem-hidden');
@@ -12220,6 +12552,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         if (!state.selectedPkgId) { showToast('Chọn gói'); return; }
         var selPkg = findPkgById(state.selectedPkgId);
         if (selPkg && isPkgCustom(selPkg) && (!state.customDrinks || !state.customDrinks.length)) { showToast('Gói Custom: chọn ít nhất 1 loại sữa.'); return; }
+        if (!validateRegSchedule()) { showToast('Hoàn tất lịch order món theo ngày (T2–T6)'); renderRegScheduleBlock(); return; }
         var fulfillment = ($('reg-fulfillment') || {}).value || 'pickup';
         var isPickup = fulfillment !== 'delivery';
         var detail = String($('reg-addr').value || '').trim();
@@ -12240,7 +12573,8 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             addressDetail: detail,
             landmark: $('reg-landmark').value,
             mapLink: $('reg-map').value,
-            favoriteDrink: $('reg-drink').value,
+            favoriteDrink: (state.regWeekPlan && state.regWeekPlan.T2 && state.regWeekPlan.T2.drink) || '',
+            regSchedule: buildRegSchedulePayload(),
             note: 'MemberPortal',
             paymentMethod: payMeth,
             aiScheduleDays: aiDays,
@@ -12283,6 +12617,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         switchSection('register');
         setTab('packages');
         refreshPkgQuote();
+        initRegScheduleUi();
         updateRegSummary();
         if (pay && pay.scrollIntoView) pay.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }

@@ -568,37 +568,7 @@
       return false;
     }
     function quickAddProduct(p) {
-      if (!p) return;
-      var isTop = (p.category || '').toLowerCase().indexOf('topping') >= 0;
-      var defSize = isTop ? 'Tiêu chuẩn' : 'Thường (350ml)';
-      var ex = cart.find(function (i) {
-        return i.id === p.id && !i.note &&
-          normalizeCupSizeLabel(i.options.size) === normalizeCupSizeLabel(defSize) &&
-          (i.options.serveTemp || 'cold_steep') === (isTop ? 'cold_steep' : 'iced') &&
-          (i.options.packaging || 'paper') === 'paper' &&
-          !(i.options.addons && i.options.addons.length);
-      });
-      if (ex) ex.quantity += 1;
-      else {
-        cart.push({
-          id: p.id, name: p.name, imageUrl: p.imageUrl || '', basePrice: p.basePrice,
-          options: {
-            size: defSize, sizePrice: 0,
-            ice: isTop ? 'Không đá' : 'Vừa',
-            sweetness: 'Ngọt vừa', addons: [], addonPrices: [],
-            serveTemp: isTop ? 'cold_steep' : 'iced',
-            packaging: 'paper', packagingPrice: 0, familyPack: false
-          },
-          note: '', quantity: 1
-        });
-      }
-      qrOrderLock = null;
-      if (awaitInfo) clearAwait();
-      syncNavBadge(p.imageUrl);
-      scheduleGroupSync();
-      var added = ex || cart[cart.length - 1];
-      if (inGroup()) showGroupAddedPopup(added);
-      else toast('✅ ' + p.name + ' +1');
+      openProduct(p);
     }
     function addToCart() {
       if (!currentProduct) return;
