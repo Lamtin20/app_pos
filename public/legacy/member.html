@@ -1026,6 +1026,10 @@
       transform: translateZ(0);
     }
     #btn-top-group { display: none !important; }
+    body[data-mem-tab="order"] #btn-top-cart,
+    body[data-mem-tab="group"] #btn-top-cart,
+    body[data-mem-tab="more"] #btn-top-cart,
+    body[data-mem-tab="cart"] #btn-top-cart { display: none !important; }
     .mem-barcode-wrap { text-align: center; padding-bottom: 4px; overflow: hidden; border-radius: 10px; }
     .mem-barcode-wrap .code-text {
       font-family: var(--mono); font-size: 14px; font-weight: 800; letter-spacing: 0.14em;
@@ -2101,7 +2105,7 @@
       font-style: normal; display: none; align-items: center; justify-content: center; border: 2px solid #fff;
     }
     .mem-redeem-pick-overlay {
-      position: fixed; inset: 0; z-index: 190; background: rgba(20, 12, 8, .5);
+      position: fixed; inset: 0; z-index: 220; background: rgba(20, 12, 8, .5);
       display: flex; align-items: flex-end; justify-content: center;
     }
     .mem-redeem-pick-overlay.mem-hidden { display: none !important; }
@@ -9447,6 +9451,17 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var grid = $('mem-redeem-pick-grid');
         var sub = $('mem-redeem-pick-sub');
         if (!ov || !grid) return;
+        if (!(state.menu && state.menu.length) && typeof api === 'function') {
+          api('getMenu').then(function (raw) {
+            state.menu = raw || [];
+            syncMenuCache();
+            openRedeemPick(prog);
+          }).catch(function () {
+            if (sub) sub.textContent = 'Không tải được thực đơn — thử lại sau.';
+          });
+          return;
+        }
+        sunRedeemPending = prog;
         var drinks = (state.menu || []).filter(function (m) {
           if (!m || m.available === false) return false;
           var cat = String(m.category || '').toLowerCase();
@@ -11148,21 +11163,27 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var offersBtn = $('btn-top-offers');
         var badge = offersBtn && offersBtn.querySelector('.mem-top-cart-mode-badge');
         var n = parseInt(qty, 10) || 0;
+        var tab = document.body.getAttribute('data-mem-tab') || '';
+        var headerCartMode = useHeaderCartForTab(tab);
         if (badge) {
-          badge.textContent = String(n);
-          badge.style.display = n > 0 ? 'inline-flex' : 'none';
+          if (headerCartMode) {
+            badge.textContent = String(n);
+            badge.style.display = n > 0 ? 'inline-flex' : 'none';
+          } else {
+            badge.style.display = 'none';
+          }
         }
         var btn = $('btn-top-cart');
         var topBadge = $('mem-top-cart-badge');
-        if (btn) btn.classList.toggle('mem-hidden', n <= 0);
+        var cartTabs = tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart';
+        if (btn) btn.classList.toggle('mem-hidden', n <= 0 || cartTabs);
         if (topBadge) {
           topBadge.textContent = String(n);
           topBadge.style.display = n > 0 ? 'inline-flex' : 'none';
         }
         if (window.memSyncBottomNavCart) window.memSyncBottomNavCart(n, imageUrl);
         else if (imageUrl && n > 0) window.memCartFlyAnim(imageUrl);
-        var tab = document.body.getAttribute('data-mem-tab') || '';
-        if (tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart') syncTopbarActionButtons(tab);
+        if (cartTabs) syncTopbarActionButtons(tab);
       };
       function timeGreeting() {
         var h = new Date().getHours();
@@ -11181,23 +11202,29 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         }
         titleEl.innerHTML = '<span class="mem-greet-hi">Hi, </span><span class="mem-write-name-wrap"><span class="mem-write-name">' + esc(shortName) + '</span></span><span class="mem-greet-tail">!</span>';
       }
+      function useHeaderCartForTab(tab) {
+        var cartTabs = tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart';
+        var isMobile = window.innerWidth < 900;
+        return cartTabs && !(isMobile && tab === 'order');
+      }
       function syncTopbarActionButtons(tab) {
         var notifyBtn = $('btn-top-notify');
         var searchBtn = $('btn-top-search');
         var offersBtn = $('btn-top-offers');
         var isOrder = tab === 'order';
-        var cartTabs = tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart';
+        var headerCartMode = useHeaderCartForTab(tab);
         if (notifyBtn) notifyBtn.classList.toggle('mem-hidden', isOrder);
         if (searchBtn) searchBtn.classList.toggle('mem-hidden', !isOrder);
         if (offersBtn) {
           var icon = offersBtn.querySelector('i');
           var badge = offersBtn.querySelector('.mem-top-cart-mode-badge');
+          var cartBtn = $('btn-top-cart');
           if (!badge) {
             badge = document.createElement('em');
             badge.className = 'mem-top-cart-mode-badge';
             offersBtn.appendChild(badge);
           }
-          if (cartTabs) {
+          if (headerCartMode) {
             offersBtn.classList.add('mem-top-cart-mode');
             offersBtn.title = 'Giỏ hàng';
             offersBtn.setAttribute('aria-label', 'Giỏ hàng');
@@ -11205,6 +11232,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             var n = (window.MemOrder && MemOrder.cartQty) ? MemOrder.cartQty() : 0;
             badge.textContent = String(n);
             badge.style.display = n > 0 ? 'inline-flex' : 'none';
+            if (cartBtn) cartBtn.classList.add('mem-hidden');
           } else {
             offersBtn.classList.remove('mem-top-cart-mode');
             offersBtn.title = 'Ưu đãi';
