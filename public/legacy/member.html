@@ -1150,7 +1150,7 @@
     }
     .mem-promo-list { display: flex; flex-direction: column; gap: 10px; }
     .mem-office-streak {
-      margin: 0 16px 14px; padding: 16px 14px 14px; border-radius: 18px;
+      margin: 0 16px 16px; padding: 16px 14px 14px; border-radius: 18px;
       background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 55%, #fef3c7 100%);
       border: 1px solid rgba(234, 88, 12, .18);
       box-shadow: 0 8px 24px rgba(234, 88, 12, .08);
@@ -1174,7 +1174,7 @@
     .mem-office-streak-head h3 { margin: 0; font-size: 15px; font-weight: 800; color: #9a3412; }
     .mem-office-streak-head p { margin: 2px 0 0; font-size: 11px; color: #c2410c; line-height: 1.4; }
     .mem-streak-track {
-      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
+      display: grid; grid-template-columns: repeat(var(--streak-cols, 4), minmax(0, 1fr)); gap: 8px;
     }
     .mem-streak-day {
       text-align: center; padding: 10px 6px 8px; border-radius: 14px;
@@ -2882,7 +2882,13 @@
     #mem-home-dashboard { padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px)); max-width: none; width: 100%; margin: 0 auto; }
     .mem-carousel-wrap { width: calc(100% - 24px); max-width: 480px; margin: 0 auto; padding: 0 !important; box-sizing: border-box; }
     .mem-home-toolbar {
-      display: flex; align-items: center; gap: 8px; margin: 8px 0 6px;
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
     }
     .mem-search-wrap {
       flex: 1; display: flex; align-items: center; gap: 8px;
@@ -3894,8 +3900,17 @@
     body[data-mem-tab="home"] .mem-topbar-sky-bg { margin-bottom: 0; }
     body[data-mem-tab="home"] .mem-carousel-wrap {
       width: calc(100% - 24px); max-width: 480px;
-      margin: 10px auto 10px; padding: 0 !important;
+      margin: 6px auto 10px; padding: 0 !important;
       position: relative; z-index: 2;
+    }
+    body.mem-logged-in[data-mem-tab="home"] .mem-topbar {
+      border: none !important;
+      box-shadow: none !important;
+      margin-bottom: 0 !important;
+    }
+    body.mem-logged-in[data-mem-tab="home"] .mem-portal-main {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
     }
     .mem-carousel-dots:empty { display: none !important; }
     #mem-home-dashboard .mem-home-toolbar { display: none !important; }
@@ -4646,14 +4661,6 @@
       <div class="mem-carousel" id="mem-carousel"></div>
     </div>
 
-    <div class="mem-home-toolbar mem-hidden" id="mem-home-toolbar" aria-hidden="true" style="display:none !important;">
-      <label class="mem-search-wrap">
-        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-        <input type="search" id="mem-home-search" placeholder="Tìm món..." autocomplete="off">
-      </label>
-      <button type="button" class="mem-fav-chip" id="btn-home-favorites" title="Món yêu thích"><i class="fa-solid fa-heart"></i></button>
-    </div>
-
     <div class="mem-home-menu-block">
       <div id="mem-home-personal" class="mem-home-spotlight"></div>
       <div id="mem-home-curated" class="mem-home-spotlight"></div>
@@ -5213,16 +5220,6 @@
       <p class="mem-offers-expiry" id="mem-offers-expiry">1 ly hoàn tất = 1 Sun · Đổi 10 Sun = 1 ly nước bất kỳ (voucher 30 ngày)</p>
     </div>
     <div class="mem-offers-body">
-      <div class="mem-offers-quick" id="mem-offers-quick">
-        <button type="button" class="mem-offers-quick-btn" data-offers-go="tier"><i class="fa-solid fa-crown ic-tier"></i> Hạng thành viên</button>
-        <button type="button" class="mem-offers-quick-btn" data-offers-go="redeem"><i class="fa-solid fa-gift ic-bean"></i> Đổi Sun</button>
-        <button type="button" class="mem-offers-quick-btn" data-offers-go="benefits"><i class="fa-solid fa-shield-heart ic-benefit"></i> Quyền lợi của bạn</button>
-        <button type="button" class="mem-offers-quick-btn" data-offers-go="history"><i class="fa-solid fa-mug-saucer ic-history"></i> Lịch sử Sun</button>
-      </div>
-      <div class="mem-offers-section-head">
-        <h2>Phiếu ưu đãi của bạn</h2>
-        <button type="button" class="mem-promo-see-all" id="mem-promo-see-all">Xem tất cả</button>
-      </div>
       <div class="mem-office-streak mem-hidden" id="mem-office-streak" aria-live="polite">
         <div class="mem-office-streak-head">
           <span class="mem-streak-flame-wrap" aria-label="Chuỗi ngày">
@@ -5236,6 +5233,16 @@
         </div>
         <div class="mem-streak-track" id="mem-streak-track"></div>
         <div class="mem-streak-voucher mem-hidden" id="mem-streak-voucher"></div>
+      </div>
+      <div class="mem-offers-quick" id="mem-offers-quick">
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="tier"><i class="fa-solid fa-crown ic-tier"></i> Hạng thành viên</button>
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="redeem"><i class="fa-solid fa-gift ic-bean"></i> Đổi Sun</button>
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="benefits"><i class="fa-solid fa-shield-heart ic-benefit"></i> Quyền lợi của bạn</button>
+        <button type="button" class="mem-offers-quick-btn" data-offers-go="history"><i class="fa-solid fa-mug-saucer ic-history"></i> Lịch sử Sun</button>
+      </div>
+      <div class="mem-offers-section-head">
+        <h2>Phiếu ưu đãi của bạn</h2>
+        <button type="button" class="mem-promo-see-all" id="mem-promo-see-all">Xem tất cả</button>
       </div>
       <div class="mem-promo-list" id="mem-promo-list">
         <p class="mem-promo-empty"><span class="mem-promo-empty-icon" aria-hidden="true">🎟️</span>Chưa có ưu đãi — theo dõi cửa hàng để nhận tin mới.</p>
@@ -8670,7 +8677,9 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           document.body.style.overflow = '';
           try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (eSc) { window.scrollTo(0, 0); }
         }
-        if (s === 'offers') renderOffers();
+        if (s === 'offers') {
+          refreshPortalStatus().then(function () { renderOffers(); }).catch(function () { renderOffers(); });
+        }
         syncMemSaveFab();
         var fab = $('mem-ai-fab');
         if (fab) fab.classList.toggle('mem-hidden', !(s === 'more' && state.portal && !state.portal.hasPortalAccess));
@@ -9317,6 +9326,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var streak = parseInt(st.streak, 10) || 0;
         var titleEl = $('mem-streak-title');
         if (countEl) countEl.textContent = String(streak);
+        if (track) track.style.setProperty('--streak-cols', String(Math.max(2, (st.days && st.days.length) || st.maxDays || 4)));
         if (titleEl) titleEl.textContent = st.title || 'Chuỗi đặt văn phòng';
         if (subEl) subEl.textContent = st.message || st.description || 'Đặt liên tục T2–T5 · nhận 1 ly miễn phí thứ 6';
         var days = st.days || [];
@@ -12645,22 +12655,6 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var tab = document.body.getAttribute('data-mem-tab') || 'home';
         updateContextHeader(tab);
       }, { passive: true });
-      var hs = $('mem-home-search');
-      if (hs) hs.addEventListener('input', function () {
-        var q = String(hs.value || '').trim().toLowerCase();
-        var container = $('mem-home-menu-sections');
-        if (!container) return;
-        container.querySelectorAll('.mem-home-cat-block').forEach(function (block) {
-          var visible = 0;
-          block.querySelectorAll('.menu-card').forEach(function (card) {
-            var nm = (card.querySelector('.nm') && card.querySelector('.nm').textContent) || '';
-            var show = !q || nm.toLowerCase().indexOf(q) >= 0;
-            card.style.display = show ? '' : 'none';
-            if (show) visible++;
-          });
-          block.style.display = visible ? '' : 'none';
-        });
-      });
       /** Đọc mã đơn nhóm từ URL (?group=CODE) - hỗ trợ cả iframe GAS. */
       function detectGroupParam(cb) {
         var g = '';

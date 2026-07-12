@@ -1036,6 +1036,12 @@
   .mem-carousel-wrap { width: 90%; max-width: none; margin: 0 auto; padding: 6px 0 0 !important; }
   .mem-home-toolbar {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
   }
   .mem-search-wrap {
     flex: 1; display: flex; align-items: center; gap: 8px;
@@ -1742,7 +1748,7 @@
     .mem-carousel { aspect-ratio: 4/3; min-height: 210px; }
   }
   .mem-carousel-dots { padding: 8px 0 0; }
-  .mem-home-toolbar { margin: 10px auto 6px; width: 90%; }
+  .mem-home-toolbar { display: none !important; visibility: hidden !important; height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
   .mem-fav-chip, #btn-top-favorites { display: none !important; } /* Yêu thích tạm ẩn */
   .mem-home-menu-block { padding: 12px 12px 10px; border-radius: 16px; margin: 0 auto; width: 90%; }
   .mem-home-menu-block .mem-section-head { margin: 0 0 8px; }
