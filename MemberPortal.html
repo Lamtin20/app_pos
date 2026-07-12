@@ -2676,6 +2676,7 @@
     }
     .mem-topbar-inner { gap: 10px; }
     .mem-brand-gate.mem-hidden { display: none !important; }
+    body.mem-logged-in .mem-brand-gate { display: none !important; }
     .mem-avatar {
       width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(145deg, #ffedd5, #fed7aa);
@@ -3922,6 +3923,7 @@
     body.mem-group-invite #mem-home-login-block.mem-hidden { display: block !important; }
     body.mem-group-invite #sec-home { min-height: 100vh; background: #f3ece4; }
     body.mem-group-invite .mem-group-invite-brand { display: none !important; }
+    .mem-group-invite-brand { display: none !important; }
 
     /* Bottom nav: slot Ưu đãi → Giỏ khi đang đặt hàng có món */
     .mem-bottom-nav [data-nav-cart-swap="1"] { position: relative; }
@@ -5490,13 +5492,12 @@
   <div class="mem-register-modal mem-hidden" id="mem-register-modal" role="dialog" aria-modal="true">
     <div class="mem-register-sheet">
       <button type="button" class="mem-register-close" id="mem-register-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
-      <h3>Đăng ký hội viên</h3>
-      <p class="mem-register-lead">Số <strong id="mem-register-phone"></strong> chưa có trên hệ thống. Bạn có muốn đăng ký không?</p>
+      <h3>Thông tin</h3>
+      <p class="mem-register-lead">Số <strong id="mem-register-phone"></strong> chưa có trên hệ thống. Bạn bổ sung thêm thông tin nhé!</p>
       <label>Họ tên</label>
       <input type="text" id="mem-register-name" placeholder="Tên hiển thị khi đặt hàng">
       <label class="mem-reg-check"><input type="checkbox" id="mem-reg-terms"> Tôi đồng ý <strong>điều khoản và điều kiện</strong> sử dụng</label>
       <label class="mem-reg-check"><input type="checkbox" id="mem-reg-privacy"> Cho phép dùng dữ liệu cá nhân để ghi nhận đơn hàng và tích điểm khuyến mãi</label>
-      <label class="mem-reg-check"><input type="checkbox" id="mem-reg-marketing"> Nhận thông tin ưu đãi qua SĐT (tùy chọn)</label>
       <div class="mem-register-actions">
         <button type="button" class="btn btn-ghost" id="mem-register-cancel">Hủy</button>
         <button type="button" class="btn" id="mem-register-confirm"><i class="fa-solid fa-user-plus"></i> Đăng ký &amp; đăng nhập</button>
@@ -5640,7 +5641,7 @@
         var nm = $('mem-register-name');
         if (sp) sp.textContent = registerPhonePending;
         if (nm) nm.value = '';
-        ['mem-reg-terms', 'mem-reg-privacy', 'mem-reg-marketing'].forEach(function (id) {
+        ['mem-reg-terms', 'mem-reg-privacy'].forEach(function (id) {
           var cb = $(id);
           if (cb) cb.checked = false;
         });
@@ -5685,7 +5686,7 @@
             name: regName,
             acceptTerms: true,
             acceptPrivacy: true,
-            acceptMarketing: $('mem-reg-marketing') && $('mem-reg-marketing').checked
+            acceptMarketing: false
           });
           closeRegisterModal();
           applyRegisteredMemberIdentity(ph, regName || (reg && reg.name) || '');
