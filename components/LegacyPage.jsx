@@ -270,13 +270,12 @@ export default function LegacyPage({ src, title }) {
       });
     }
 
-    async function runInlineScripts(scripts) {
-      for (const s of scripts) {
-        const key = s.textContent.slice(0, 80);
-        if (!window.__SUN_LEGACY_INLINE__) window.__SUN_LEGACY_INLINE__ = new Set();
-        if (window.__SUN_LEGACY_INLINE__.has(key)) continue;
-        window.__SUN_LEGACY_INLINE__.add(key);
+    async function runInlineScripts(scripts, pageSrc) {
+      for (let i = 0; i < scripts.length; i++) {
+        const s = scripts[i];
         const el = document.createElement('script');
+        el.setAttribute('data-sun-legacy-src', pageSrc);
+        el.setAttribute('data-sun-legacy-idx', String(i));
         el.textContent = s.textContent;
         document.body.appendChild(el);
       }
@@ -327,11 +326,14 @@ export default function LegacyPage({ src, title }) {
 
         setProgress(92);
         const inlineScripts = [...doc.querySelectorAll('script:not([src])')];
-        await runInlineScripts(inlineScripts);
+        await runInlineScripts(inlineScripts, src);
 
         setProgress(96);
         if (typeof window.__SUN_POS_BOOT__ === 'function') {
           window.__SUN_POS_BOOT__();
+        }
+        if (src.includes('admin.html') && typeof window.initAdmin === 'function') {
+          try { window.initAdmin(); } catch (eAdmin) { /* ignore */ }
         }
 
         setProgress(100);
@@ -350,6 +352,9 @@ export default function LegacyPage({ src, title }) {
     load();
     return () => {
       cancelled = true;
+      document.querySelectorAll('script[data-sun-legacy-src="' + src + '"]').forEach((node) => {
+        node.remove();
+      });
     };
   }, [src, title]);
 

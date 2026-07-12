@@ -1979,6 +1979,8 @@
 <script>try { var SCRIPT_URL = ""; } catch (e) { var SCRIPT_URL = ''; }</script>
 <script>
 if(typeof SCRIPT_URL==='undefined')var SCRIPT_URL='';
+if (!window.__SUN_ADMIN_CORE__) {
+window.__SUN_ADMIN_CORE__ = 1;
 (function () {
   var U = 'https://i.ibb.co/8LV0snn8/logo-sun-web.png';
   if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
@@ -2006,7 +2008,6 @@ if(typeof SCRIPT_URL==='undefined')var SCRIPT_URL='';
 // ========================
 
 // 1. API Service Layer — dùng fetch RPC qua sun-api-client.js
-if (window.__SUN_INSTALL_API__) __SUN_INSTALL_API__();
 if (!window.api) {
   window.api = {
     call: function (method) {
@@ -2023,9 +2024,10 @@ if (!window.api) {
     },
   };
 }
-const api = window.api;
+if (window.__SUN_INSTALL_API__) window.__SUN_INSTALL_API__();
+var api = window.api;
 
-const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n || 0);
+var fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n || 0);
 
 function esc(s) {
   return String(s == null ? '' : s)
@@ -2134,7 +2136,7 @@ function debounce(func, wait) {
 }
 
 // 3. State Management (Caches data to avoid redundant API calls)
-const AppState = {
+var AppState = {
   inventoryData: [],
   menuDataAdmin: [],
   customersData: [],
@@ -2148,8 +2150,8 @@ const AppState = {
 // ========================
 // PIN LOGIN
 // ========================
-const ADMIN_PIN = '2507';
-let pinInput = '';
+var ADMIN_PIN = '2507';
+var pinInput = '';
 
 function addPin(d) {
   if (pinInput.length >= ADMIN_PIN.length) return;
@@ -6609,6 +6611,64 @@ function showToast(msg, type) {
   t.textContent = msg; t.className = 'toast ' + (type||'success') + ' show';
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+window.initAdmin = initAdmin;
+window.addPin = addPin;
+window.delPin = delPin;
+window.submitPin = submitPin;
+window.logout = logout;
+}
+</script>
+<script>
+(function () {
+  var ADMIN_PIN = '2507';
+  var pinInput = '';
+  function updatePinDots() {
+    for (var i = 0; i < ADMIN_PIN.length; i++) {
+      var dot = document.getElementById('dot-' + i);
+      if (dot) dot.classList.toggle('filled', i < pinInput.length);
+    }
+  }
+  function addPin(d) {
+    if (pinInput.length >= ADMIN_PIN.length) return;
+    pinInput += d;
+    updatePinDots();
+    if (pinInput.length === ADMIN_PIN.length) setTimeout(submitPin, 200);
+  }
+  function delPin() { pinInput = pinInput.slice(0, -1); updatePinDots(); }
+  function submitPin() {
+    if (pinInput === ADMIN_PIN) {
+      var login = document.getElementById('login-screen');
+      var admin = document.getElementById('admin-screen');
+      if (login) login.style.display = 'none';
+      if (admin) admin.style.display = 'flex';
+      if (typeof window.initAdmin === 'function') window.initAdmin();
+    } else {
+      var err = document.getElementById('pin-error');
+      if (err) err.textContent = '❌ PIN không đúng!';
+      pinInput = '';
+      updatePinDots();
+      setTimeout(function () { if (err) err.textContent = ''; }, 2000);
+    }
+  }
+  window.addPin = addPin;
+  window.delPin = delPin;
+  window.submitPin = submitPin;
+  function wirePinPad() {
+    var pad = document.querySelector('#login-screen .numpad');
+    if (!pad || pad.dataset.pinWired === '1') return;
+    pad.dataset.pinWired = '1';
+    pad.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.num-btn');
+      if (!btn) return;
+      ev.preventDefault();
+      if (btn.classList.contains('del')) { delPin(); return; }
+      if (btn.classList.contains('enter')) { submitPin(); return; }
+      var ch = (btn.textContent || '').trim();
+      if (/^\d$/.test(ch)) addPin(ch);
+    });
+  }
+  wirePinPad();
+})();
 </script>
 </body>
 </html>
