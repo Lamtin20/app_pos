@@ -5,6 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Tiệm Cafe Sun &amp; Matcha</title>
+  <meta name="description" content="Tinh hoa từ hạt, trọn vẹn yêu thương.">
+  <meta property="og:title" content="Tiệm Cafe Sun &amp; Matcha">
+  <meta property="og:description" content="Tinh hoa từ hạt, trọn vẹn yêu thương.">
+  <meta property="og:type" content="website">
   <script>
   (function () {
     var SUN_FAVICON_URL = '__SUN_FAVICON_URL__';
@@ -10367,8 +10371,9 @@
       function openGuestGate(code) {
         pendingGuestGroupCode = String(code || '').trim().toUpperCase();
         document.body.classList.add('mem-group-invite');
-        var brandName = (window.memberPortalSettings && memberPortalSettings.brandTitle) || 'Tiệm Cafe Sun & Matcha';
+        var brandName = (window.memberPortalSettings && (memberPortalSettings.pageTitle || memberPortalSettings.brandTitle)) || 'Tiệm Cafe Sun & Matcha';
         document.title = brandName;
+        if (typeof applyPageMetaFromSettings === 'function') applyPageMetaFromSettings(memberPortalSettings);
         var brandEl = $('mem-group-invite-brand-txt');
         if (brandEl) brandEl.textContent = brandName;
         var brandWrap = $('mem-group-invite-brand');

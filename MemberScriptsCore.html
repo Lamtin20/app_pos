@@ -326,10 +326,35 @@ function applySiteBrandToMember(brand) {
   } catch (e) { /* */ }
   applyGateLogo(logo);
 }
+function applyPageMetaFromSettings(s) {
+  var title = String((s && (s.pageTitle || s.brandTitle)) || 'Tiệm Cafe Sun & Matcha').trim();
+  var desc = String((s && (s.pageDescription || s.brandTagline)) || 'Tinh hoa từ hạt, trọn vẹn yêu thương.').trim();
+  if (title) document.title = title;
+  function setMeta(attr, val, useProperty) {
+    if (!val) return;
+    var sel = useProperty ? ('meta[property="' + attr + '"]') : ('meta[name="' + attr + '"]');
+    var el = document.querySelector(sel);
+    if (!el) {
+      el = document.createElement('meta');
+      if (useProperty) el.setAttribute('property', attr);
+      else el.setAttribute('name', attr);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', val);
+  }
+  setMeta('description', desc, false);
+  setMeta('og:title', title, true);
+  setMeta('og:description', desc, true);
+  setMeta('og:type', 'website', true);
+  setMeta('twitter:title', title, false);
+  setMeta('twitter:description', desc, false);
+}
 function applyMemberPortalFromSettings(raw) {
   var d = {
     brandTitle: 'Tiệm Cafe Sun & Matcha',
     brandTagline: 'Tinh hoa từ hạt, trọn vẹn yêu thương.',
+    pageTitle: '',
+    pageDescription: '',
     loginCardTitle: 'Cổng vào Hội viên',
     loginCardSubtitle: 'Đăng nhập bằng số điện thoại để xem gói, lịch uống và ưu đãi.',
     heroImageUrl: 'https://images.unsplash.com/photo-1564890369479-c89fc36fb687?w=900&q=80',
@@ -408,6 +433,7 @@ function applyMemberPortalFromSettings(raw) {
   var lab = document.getElementById('mem-support-label');
   if (lab && phone) lab.textContent = 'Liên hệ & Góp ý · ' + phone;
   if (window.SUN_SITE_BRAND && window.SUN_SITE_BRAND.logoUrl) applyGateLogo(window.SUN_SITE_BRAND.logoUrl);
+  applyPageMetaFromSettings(s);
 }
 
 fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })

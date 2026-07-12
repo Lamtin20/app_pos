@@ -1,9 +1,11 @@
 import './globals.css';
+import { buildNextMetadata, getPublicPageMeta } from '../lib/siteMetadata.js';
 
-export const metadata = {
-  title: 'SUN Nut Milk',
-  description: 'SUN Sữa Hạt — POS, Hội viên, Admin',
-};
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata() {
+  return buildNextMetadata(await getPublicPageMeta());
+}
 
 export default function RootLayout({ children }) {
   return (
