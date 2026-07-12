@@ -132,11 +132,15 @@
       return mine;
     }
     function cartSummaryJson() {
-      return JSON.stringify(cart.map(function (it) {
-        return { id: it.id, quantity: it.quantity || 1 };
-      }).concat((inGroup() && isHost()) ? groupOthersItemsForApi().map(function (it) {
-        return { id: it.id, quantity: it.quantity || 1 };
-      }) : []));
+      return JSON.stringify(cartForPromoApi().map(function (it) {
+        var q = parseInt(it.quantity, 10) || parseInt(it.qty, 10) || 1;
+        return { id: it.id, quantity: q, qty: q, price: parseFloat(it.price) || 0 };
+      }));
+    }
+    function checkoutPromoSubtotal() {
+      var sub = cartSubtotal();
+      if (inGroup() && isHost()) sub += groupOthersSubtotal();
+      return sub;
     }
     function buildOptsParts(item) {
       var o = item.options || {};
@@ -784,6 +788,7 @@
       renderCartList();
       syncNavBadge();
       applyGroupModeUi();
+      refreshPromoOptions();
     }
     function exitGroupLocal() {
       group = null;
@@ -1129,6 +1134,8 @@
       if (promoBlock) promoBlock.style.display = memberOnly ? 'none' : '';
       var payBlock = $('mem-cart-pay-block');
       if (payBlock) payBlock.style.display = memberOnly ? 'none' : '';
+      var delBlock = $('mem-cart-delivery-schedule');
+      if (delBlock) delBlock.style.display = (inGroup() && isHost()) ? '' : 'none';
       var wait = $('mem-group-wait');
       if (wait) wait.style.display = memberOnly ? '' : 'none';
       syncSubmitButtonUi();
@@ -1248,8 +1255,9 @@
         '<span>Thành tiền của bạn</span>' +
         '<span class="mem-group-added-price-b" id="mem-group-added-price-b">' + fmt(finalAmt) + '</span></div>';
       list.innerHTML = '<p class="mem-group-added-promo-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm voucher…</p>';
-      api('getCheckoutPromoOptions', ph, JSON.stringify(cart.map(function (it) {
-        return { id: it.id, quantity: it.quantity || 1 };
+      api('getCheckoutPromoOptions', ph, JSON.stringify(myCartForPromoApi().map(function (it) {
+        var q = parseInt(it.quantity, 10) || parseInt(it.qty, 10) || 1;
+        return { id: it.id, quantity: q, qty: q, price: parseFloat(it.price) || 0 };
       })), sub).then(function (res) {
         var opts = (res && res.options) ? res.options.filter(function (o) {
           return o && (o.kind === 'promo' || o.kind === 'voucher') && o.code;
@@ -1954,6 +1962,7 @@
         };
       });
       syncCartTotals();
+      refreshPromoOptions();
     }
     function applyPromo(code, silent) {
       if (inGroup() && !isHost()) {
@@ -1997,6 +2006,7 @@
       } else ap.classList.add('mem-hidden');
     }
     var promoDebounce = null;
+    var promoFetchSeq = 0;
     function refreshPromoOptions() {
       if (inGroup() && !isHost()) {
         var box = $('mem-cart-promo-list');
@@ -2010,7 +2020,9 @@
       }
       clearTimeout(promoDebounce);
       promoDebounce = setTimeout(function () {
-        api('getCheckoutPromoOptions', phone(), cartSummaryJson(), cartSubtotal()).then(function (res) {
+        var seq = ++promoFetchSeq;
+        api('getCheckoutPromoOptions', phone(), cartSummaryJson(), checkoutPromoSubtotal()).then(function (res) {
+          if (seq !== promoFetchSeq) return;
           var list = $('mem-cart-promo-list');
           if (!list) return;
           var opts = (res && res.options) ? res.options.filter(function (o) { return o && (o.kind === 'promo' || o.kind === 'voucher') && o.code; }) : [];
@@ -2032,7 +2044,25 @@
             };
           });
         }).catch(function () {});
-      }, 400);
+      }, 150);
+    }
+    function initDeliveryScheduleDefaults() {
+      var dEl = $('mem-cart-delivery-date');
+      if (!dEl || dEl.value) return;
+      var now = new Date();
+      var y = now.getFullYear();
+      var m = String(now.getMonth() + 1).padStart(2, '0');
+      var d = String(now.getDate()).padStart(2, '0');
+      dEl.value = y + '-' + m + '-' + d;
+      dEl.min = y + '-' + m + '-' + d;
+    }
+    function getDeliveryAtIso() {
+      if (!inGroup() || !isHost()) return '';
+      var dEl = $('mem-cart-delivery-date');
+      var sEl = $('mem-cart-delivery-slot');
+      if (!dEl || !dEl.value) return '';
+      var slot = (sEl && sEl.value) || '10:00';
+      return dEl.value + 'T' + slot + ':00+07:00';
     }
     function loadZones() {
       if (zonesLoaded) return;
@@ -2059,6 +2089,7 @@
       if (nm && !nm.value) nm.value = prof.name || '';
       renderCartList();
       renderPromoApplied();
+      initDeliveryScheduleDefaults();
       refreshPromoOptions();
       loadZones();
       syncCartTotals();
@@ -2087,7 +2118,8 @@
           addressDetail: ($('mem-cart-addr') && $('mem-cart-addr').value) || '',
           deliveryZone: ($('mem-cart-zone') && $('mem-cart-zone').value) || '',
           promoCode: appliedPromo,
-          note: 'Member portal'
+          note: 'Member portal',
+          deliveryAt: getDeliveryAtIso()
         };
         if (inGroup() && isHost()) {
           // Chốt đơn nhóm: đồng bộ giỏ của mình lần cuối rồi để server gộp món tất cả thành viên

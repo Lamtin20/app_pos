@@ -935,6 +935,48 @@
 
     <!-- PROMOTIONS -->
     <div id="tab-promotions" class="tab-view">
+      <div class="card" id="office-streak-program-card" style="margin-bottom:20px;border:1px solid #fed7aa;background:linear-gradient(135deg,#fff7ed 0%,var(--bg2) 48%);">
+        <div class="card-title" style="flex-wrap:wrap;gap:8px;">
+          <div class="dot" style="background:#ea580c;"></div>
+          <span>Chuỗi đặt liên tục 4 ngày → tặng 1 ngày (văn phòng)</span>
+          <span id="os-prog-status" style="margin-left:auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--bg3);color:var(--text3);">Đang tải…</span>
+        </div>
+        <p style="font-size:12px;color:var(--text3);margin:0 0 14px;line-height:1.55;">
+          Khách đặt <strong>liên tục T2→T5</strong> (hoặc số ngày bạn cấu hình) sẽ được tặng voucher <code>CLxxxx</code> dùng vào ngày thưởng (mặc định thứ 6).
+          Áp dụng cho <strong>đơn cá nhân</strong> và <strong>đơn nhóm</strong> (tính theo SĐT từng người). Theo dõi sheet <em>Chuỗi VP</em> / <em>Voucher chuỗi VP</em>.
+        </p>
+        <input type="hidden" id="os-prog-code" value="VPSTREAK">
+        <div class="form-grid cols-4" style="gap:12px;">
+          <div class="form-group" style="grid-column:span 2;"><label>Tên chương trình (Admin + Cổng HV)</label><input type="text" class="form-control" id="os-prog-name" placeholder="Chuỗi văn phòng T2–T5 → voucher T6"></div>
+          <div class="form-group"><label>Số ngày liên tiếp</label><input type="number" class="form-control" id="os-prog-streak-days" min="2" max="7" value="4"></div>
+          <div class="form-group"><label>Giá trị ly miễn phí tối đa (₫)</label><input type="number" class="form-control" id="os-prog-max-free" min="1000" step="1000" value="30000"></div>
+          <div class="form-group"><label>Ngày nhận thưởng / dùng voucher</label>
+            <select class="form-control" id="os-prog-reward-weekday">
+              <option value="1">Thứ 2</option>
+              <option value="2">Thứ 3</option>
+              <option value="3">Thứ 4</option>
+              <option value="4">Thứ 5</option>
+              <option value="5" selected>Thứ 6</option>
+              <option value="6">Thứ 7</option>
+              <option value="0">Chủ nhật</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Ngày bắt đầu (tùy chọn)</label><input type="date" class="form-control" id="os-prog-start"></div>
+          <div class="form-group"><label>Ngày kết thúc (tùy chọn)</label><input type="date" class="form-control" id="os-prog-end"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Tiêu đề hiển thị (tab Ưu đãi)</label><input type="text" class="form-control" id="os-prog-member-title" placeholder="Chuỗi đặt văn phòng"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Mô tả ưu đãi (Cổng hội viên)</label><input type="text" class="form-control" id="os-prog-member-desc" placeholder="Mua 4 ngày liên tiếp (T2–T5) → tặng 1 ly miễn phí thứ 6"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Điều kiện / lưu ý (Cổng hội viên)</label><input type="text" class="form-control" id="os-prog-member-cond" placeholder="Đơn cá nhân & đơn nhóm đều tính · Mất chuỗi = bắt đầu lại thứ 2"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Tin nhắn khi đang tích chuỗi</label><input type="text" class="form-control" id="os-prog-msg-progress" placeholder="Giữ chuỗi 4 ngày T2–T5 liên tiếp để nhận 1 ly bất kỳ thứ 6"></div>
+          <div class="form-group" style="grid-column:span 2;"><label>Tin nhắn khi đủ chuỗi</label><input type="text" class="form-control" id="os-prog-msg-complete" placeholder="Đủ chuỗi! Dùng voucher vào thứ 6 để nhận 1 ly miễn phí"></div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:22px;"><label style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" id="os-prog-active" checked> Bật chương trình</label></div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:22px;"><label style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" id="os-prog-member-visible" checked> Hiện thẻ tiến độ tab Ưu đãi</label></div>
+          <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-purple" style="background:#ea580c;color:#fff;min-width:180px;justify-content:center;" onclick="saveOfficeStreakProgram()" id="os-prog-save-btn"><i class="fa-solid fa-fire"></i> Lưu chương trình chuỗi</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="openPromoTemplateHelp('office_week_streak')"><i class="fa-solid fa-book-open"></i> Hướng dẫn</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card" style="margin-bottom:20px;">
         <div class="card-title"><div class="dot" style="background:var(--purple);"></div>Tạo khuyến mãi mới</div>
         <input type="hidden" id="promo-orig-code" value="">
@@ -4996,7 +5038,7 @@ var PROMO_TEMPLATE_HELP = {
   group_order_10: '<p><strong>Ưu đãi đơn nhóm</strong> - hệ thống tự giảm % khi trưởng nhóm chốt đơn nhóm.</p><ul><li><strong>Quy tắc:</strong> <code>group_order</code> · <strong>Giá trị %:</strong> 5 / 10 / 15.</li><li>Chỉ nên bật <strong>1 mã</strong> tại một thời điểm - hệ thống lấy mã đang kích hoạt đầu tiên.</li><li>Tắt "Kích hoạt" hoặc để hết hạn = tắt ưu đãi nhóm (0%).</li><li>Không cộng dồn với mã KM: khi chốt đơn lấy mức giảm cao hơn.</li></ul>',
   feedback_reward_5: '<p><strong>Voucher góp ý</strong> - khách để lại SĐT khi góp ý sau khi nhận nước sẽ được tặng mã <code>GYxxxx</code>.</p><ul><li><strong>Quy tắc:</strong> <code>feedback_reward</code> · <strong>Giá trị %:</strong> mức giảm (VD 5).</li><li>Voucher <strong>hạn 7 ngày</strong> từ ngày phát hành, <strong>dùng 1 lần</strong>; lưu ở sheet <em>Voucher góp ý</em> (trạng thái Chưa dùng / Đã dùng).</li><li>Khách nhập mã GYxxxx vào ô Khuyến mãi ở đơn sau - hệ thống tự kiểm tra hạn + trạng thái.</li><li>Chưa khai báo / tắt rule này = form góp ý không hứa tặng ưu đãi.</li><li>Giảm theo % được <strong>làm tròn đến hàng nghìn</strong> (VD 870đ → 1.000đ).</li></ul>',
   welcome_member_5: '<p><strong>Voucher thành viên mới</strong> - tự phát mã <code>TVxxxx</code> khi khách đăng ký cổng hội viên lần đầu.</p><ul><li><strong>Quy tắc:</strong> <code>welcome_member</code> · <strong>Giá trị %:</strong> mức giảm (VD 5).</li><li>JSON: <code>{"percent":5,"validDays":30}</code> — <code>validDays</code> = số ngày hiệu lực voucher.</li><li>Dùng được cho <strong>đơn cá nhân</strong> và <strong>đơn nhóm</strong> (mỗi thành viên áp voucher riêng phần món của mình).</li><li>Tắt rule hoặc để % = 0 = không phát voucher khi đăng ký.</li><li>Giảm theo % làm tròn đến hàng nghìn.</li></ul>',
-  office_week_streak: '<p><strong>Chuỗi văn phòng</strong> - khách mua liên tiếp T2→T5 (4 ngày) được tặng voucher <code>CLxxxx</code> dùng thứ 6.</p><ul><li><strong>Quy tắc:</strong> <code>office_week_streak</code> · Loại <code>info</code> (hệ thống tự xử lý).</li><li>JSON mẫu: <code>{"streakDays":4,"maxFreeAmount":30000,"rewardWeekday":5}</code></li><li><code>maxFreeAmount</code>: giá trị ly miễn phí tối đa · <code>rewardWeekday</code>: 5 = thứ 6.</li><li>Đơn <strong>cá nhân</strong> và <strong>đơn nhóm</strong> đều tính chuỗi theo SĐT từng người.</li><li>Mất chuỗi (bỏ 1 ngày T2–T5) → bắt đầu lại từ thứ 2 tuần sau.</li><li>Sheet theo dõi: <em>Chuỗi VP</em>, voucher: <em>Voucher chuỗi VP</em>.</li></ul>',
+  office_week_streak: '<p><strong>Chuỗi văn phòng</strong> - khách mua liên tiếp T2→T5 (4 ngày) được tặng voucher <code>CLxxxx</code> dùng thứ 6.</p><ul><li><strong>Khai báo:</strong> dùng khối <em>Chuỗi đặt liên tục 4 ngày</em> ở đầu tab Khuyến mãi (bật/tắt, số ngày, giá trị ly, ngày thưởng, mô tả &amp; điều kiện).</li><li><strong>Quy tắc:</strong> <code>office_week_streak</code> · Loại <code>info</code> (hệ thống tự xử lý).</li><li><code>maxFreeAmount</code>: giá trị ly miễn phí tối đa · <code>rewardWeekday</code>: 5 = thứ 6.</li><li>Đơn <strong>cá nhân</strong> và <strong>đơn nhóm</strong> đều tính chuỗi theo SĐT từng người.</li><li>Mất chuỗi (bỏ 1 ngày T2–T5) → bắt đầu lại từ thứ 2 tuần sau.</li><li>Sheet theo dõi: <em>Chuỗi VP</em>, voucher: <em>Voucher chuỗi VP</em>.</li></ul>',
   new_customer: '<p>Giảm đơn đầu (SĐT chưa từng có đơn Hoàn thành).</p><ul><li><strong>Quy tắc:</strong> <code>new_customer</code></li></ul>',
   repeat_cup: '<p>Khách quay lại + đủ số ly trong giỏ.</p><ul><li><strong>Quy tắc:</strong> <code>repeat_2nd_cup</code> + <code>minCups</code> trong JSON.</li></ul>',
   points_redeem: '<p>Gợi ý đổi điểm (không tự trừ %).</p><ul><li><strong>Quy tắc:</strong> <code>points_redeem_hint</code> + <code>redeemCode</code> trong JSON.</li></ul>',
@@ -5096,11 +5138,108 @@ function renderPromotionsTable() {
   }).join('');
 }
 
+var OFFICE_STREAK_PROG_CODE = 'VPSTREAK';
+
+function findOfficeStreakPromo() {
+  var list = window.__adminPromosList || [];
+  var hit = list.find(function (p) { return String(p.ruleType || '').trim() === 'office_week_streak'; });
+  if (hit) return hit;
+  return list.find(function (p) { return String(p.code || '').trim().toUpperCase() === OFFICE_STREAK_PROG_CODE; }) || null;
+}
+
+function loadOfficeStreakProgram() {
+  var p = findOfficeStreakPromo();
+  var cfg = (p && p.ruleConfig) || {};
+  var codeEl = document.getElementById('os-prog-code');
+  if (codeEl) codeEl.value = (p && p.code) ? String(p.code).trim().toUpperCase() : OFFICE_STREAK_PROG_CODE;
+  var setVal = function (id, v) { var el = document.getElementById(id); if (el) el.value = v != null ? v : ''; };
+  setVal('os-prog-name', p ? (p.name || '') : 'Chuỗi văn phòng T2–T5 → voucher T6');
+  setVal('os-prog-streak-days', cfg.streakDays != null ? cfg.streakDays : 4);
+  setVal('os-prog-max-free', cfg.maxFreeAmount != null ? cfg.maxFreeAmount : (cfg.maxPrice != null ? cfg.maxPrice : 30000));
+  var rw = document.getElementById('os-prog-reward-weekday');
+  if (rw) rw.value = String(cfg.rewardWeekday != null ? cfg.rewardWeekday : 5);
+  setVal('os-prog-start', p ? promoDateToInput(p.startDate) : '');
+  setVal('os-prog-end', p ? promoDateToInput(p.endDate) : '');
+  setVal('os-prog-member-title', cfg.memberTitle || 'Chuỗi đặt văn phòng');
+  setVal('os-prog-member-desc', cfg.memberDescription || 'Mua 4 ngày liên tiếp (T2–T5) → tặng 1 ly miễn phí thứ 6');
+  setVal('os-prog-member-cond', cfg.memberConditions || 'Đơn cá nhân & đơn nhóm đều tính · Mất chuỗi = bắt đầu lại thứ 2');
+  setVal('os-prog-msg-progress', cfg.messageProgress || 'Giữ chuỗi 4 ngày T2–T5 liên tiếp để nhận 1 ly bất kỳ thứ 6');
+  setVal('os-prog-msg-complete', cfg.messageComplete || 'Đủ chuỗi! Dùng voucher vào thứ 6 để nhận 1 ly miễn phí');
+  var act = document.getElementById('os-prog-active');
+  if (act) act.checked = p ? (p.active !== false) : true;
+  var vis = document.getElementById('os-prog-member-visible');
+  if (vis) vis.checked = cfg.memberVisible !== false;
+  var status = document.getElementById('os-prog-status');
+  if (status) {
+    if (!p) {
+      status.textContent = 'Chưa khai báo';
+      status.style.background = 'var(--bg3)';
+      status.style.color = 'var(--text3)';
+    } else if (p.active !== false) {
+      status.textContent = 'Đang bật';
+      status.style.background = '#dcfce7';
+      status.style.color = '#166534';
+    } else {
+      status.textContent = 'Đã tắt';
+      status.style.background = '#fee2e2';
+      status.style.color = '#991b1b';
+    }
+  }
+}
+
+async function saveOfficeStreakProgram() {
+  var btn = document.getElementById('os-prog-save-btn');
+  var code = (document.getElementById('os-prog-code') || {}).value || OFFICE_STREAK_PROG_CODE;
+  code = String(code).trim().toUpperCase();
+  var name = (document.getElementById('os-prog-name') || {}).value || '';
+  if (!name.trim()) { showToast('Nhập tên chương trình', 'error'); return; }
+  var streakDays = parseInt((document.getElementById('os-prog-streak-days') || {}).value, 10) || 4;
+  var maxFree = parseFloat((document.getElementById('os-prog-max-free') || {}).value) || 30000;
+  var rewardWeekday = parseInt((document.getElementById('os-prog-reward-weekday') || {}).value, 10);
+  if (isNaN(rewardWeekday)) rewardWeekday = 5;
+  if (streakDays < 2 || streakDays > 7) { showToast('Số ngày liên tiếp: 2–7', 'error'); return; }
+  if (maxFree < 1000) { showToast('Giá trị ly miễn phí tối thiểu 1.000₫', 'error'); return; }
+  var cfg = {
+    streakDays: streakDays,
+    maxFreeAmount: maxFree,
+    rewardWeekday: rewardWeekday,
+    memberTitle: (document.getElementById('os-prog-member-title') || {}).value || '',
+    memberDescription: (document.getElementById('os-prog-member-desc') || {}).value || '',
+    memberConditions: (document.getElementById('os-prog-member-cond') || {}).value || '',
+    messageProgress: (document.getElementById('os-prog-msg-progress') || {}).value || '',
+    messageComplete: (document.getElementById('os-prog-msg-complete') || {}).value || '',
+    memberVisible: (document.getElementById('os-prog-member-visible') || {}).checked !== false,
+  };
+  var payload = {
+    code: code,
+    name: name.trim(),
+    type: 'info',
+    value: 0,
+    minOrder: 0,
+    startDate: (document.getElementById('os-prog-start') || {}).value || '',
+    endDate: (document.getElementById('os-prog-end') || {}).value || '',
+    ruleType: 'office_week_streak',
+    ruleConfigJson: JSON.stringify(cfg),
+    active: (document.getElementById('os-prog-active') || {}).checked !== false,
+  };
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu…'; }
+  try {
+    var msg = await api.call('savePromotion', payload);
+    showToast('✅ ' + (msg || 'Đã lưu chương trình chuỗi'), 'success');
+    await loadPromotions();
+  } catch (e) {
+    showToast('Lỗi: ' + (e.message || e), 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-fire"></i> Lưu chương trình chuỗi'; }
+  }
+}
+
 async function loadPromotions() {
   try {
     const promos = await api.call('getPromotionsAdmin');
     window.__adminPromosList = promos || [];
     renderPromotionsTable();
+    loadOfficeStreakProgram();
   } catch (e) {
     console.error(e);
   }

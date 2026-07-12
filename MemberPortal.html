@@ -470,7 +470,7 @@
     }
     #mem-carousel-wrap .mem-carousel-dots { left: 14px; right: 14px; }
     .mem-slide-img {
-      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center;
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
       z-index: 0; background: #f5f0ea;
     }
     .mem-carousel-dots button { pointer-events: auto; }
@@ -1135,6 +1135,73 @@
       border-color: rgba(255, 255, 255, .3);
     }
     .mem-promo-list { display: flex; flex-direction: column; gap: 10px; }
+    .mem-office-streak {
+      margin: 0 16px 14px; padding: 16px 14px 14px; border-radius: 18px;
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 55%, #fef3c7 100%);
+      border: 1px solid rgba(234, 88, 12, .18);
+      box-shadow: 0 8px 24px rgba(234, 88, 12, .08);
+    }
+    .mem-office-streak-head {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    }
+    .mem-streak-flame-wrap {
+      display: inline-flex; align-items: center; gap: 6px; min-width: 58px;
+      padding: 8px 10px; border-radius: 14px; background: rgba(255,255,255,.72);
+      font-size: 20px; font-weight: 900; color: #ea580c;
+    }
+    .mem-streak-flame {
+      color: #f97316; animation: memStreakFlame .75s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 6px rgba(249, 115, 22, .55));
+    }
+    @keyframes memStreakFlame {
+      0% { transform: scale(1) translateY(0); opacity: .92; }
+      100% { transform: scale(1.12) translateY(-2px); opacity: 1; }
+    }
+    .mem-office-streak-head h3 { margin: 0; font-size: 15px; font-weight: 800; color: #9a3412; }
+    .mem-office-streak-head p { margin: 2px 0 0; font-size: 11px; color: #c2410c; line-height: 1.4; }
+    .mem-streak-track {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
+    }
+    .mem-streak-day {
+      text-align: center; padding: 10px 6px 8px; border-radius: 14px;
+      background: rgba(255,255,255,.55); border: 1px dashed rgba(234, 88, 12, .25);
+      transition: transform .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .mem-streak-day.done {
+      background: #fff; border: 1px solid rgba(22, 163, 74, .35);
+      transform: translateY(-2px);
+    }
+    .mem-streak-day.current { border-color: rgba(234, 88, 12, .55); box-shadow: 0 0 0 2px rgba(249, 115, 22, .15); }
+    .mem-streak-day-ico {
+      width: 28px; height: 28px; margin: 0 auto 6px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: #fdba74; background: #fff7ed;
+    }
+    .mem-streak-day.done .mem-streak-day-ico {
+      color: #fff; background: linear-gradient(135deg, #22c55e, #16a34a);
+      animation: memStreakTick .45s ease;
+    }
+    @keyframes memStreakTick {
+      0% { transform: scale(.6); }
+      70% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    .mem-streak-day-label { font-size: 11px; font-weight: 800; color: #9a3412; }
+    .mem-streak-voucher {
+      margin-top: 12px; padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,.78); font-size: 12px; font-weight: 700; color: #15803d;
+    }
+    .mem-delivery-schedule {
+      margin: 12px 0 4px; padding: 12px; border-radius: 14px;
+      background: #fffbeb; border: 1px solid rgba(234, 179, 8, .25);
+    }
+    .mem-delivery-schedule-hint { margin: 0 0 8px; font-size: 11px; color: var(--text3); line-height: 1.4; }
+    .mem-delivery-schedule-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mem-delivery-schedule-row input,
+    .mem-delivery-schedule-row select {
+      flex: 1; min-width: 120px; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--border); font-size: 14px;
+    }
     .mem-promo-empty {
       font-size: 13px; color: var(--text3); text-align: center; padding: 32px 16px; margin: 0;
       background: var(--surface); border: 1.5px dashed var(--border); border-radius: 16px; line-height: 1.5;
@@ -3813,9 +3880,11 @@
     body[data-mem-tab="home"] .mem-topbar-sky-bg { margin-bottom: 0; }
     body[data-mem-tab="home"] .mem-carousel-wrap {
       width: calc(100% - 24px); max-width: 480px;
-      margin: 16px auto 10px; padding: 0 !important;
+      margin: 10px auto 10px; padding: 0 !important;
       position: relative; z-index: 2;
     }
+    .mem-carousel-dots:empty { display: none !important; }
+    #mem-home-dashboard .mem-home-toolbar { display: none !important; }
     .mem-carousel-wrap { width: calc(100% - 24px); max-width: 480px; margin: 0 auto; padding: 0 !important; }
     .mem-carousel { border-radius: 16px; aspect-ratio: 5 / 2; min-height: 0; background: #f5f0ea; }
     @media (max-width: 640px) {
@@ -4560,12 +4629,10 @@
     <div id="mem-home-schedule-block" class="mem-hidden mem-home-extra"><div id="mem-home-schedule-inner"></div></div>
 
     <div class="mem-carousel-wrap mem-hidden" id="mem-carousel-wrap" aria-hidden="true">
-      <div class="mem-carousel" id="mem-carousel">
-        <div class="mem-carousel-dots" id="mem-carousel-dots"></div>
-      </div>
+      <div class="mem-carousel" id="mem-carousel"></div>
     </div>
 
-    <div class="mem-home-toolbar">
+    <div class="mem-home-toolbar mem-hidden" id="mem-home-toolbar" aria-hidden="true" style="display:none !important;">
       <label class="mem-search-wrap">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
         <input type="search" id="mem-home-search" placeholder="Tìm món..." autocomplete="off">
@@ -4809,6 +4876,21 @@
       <div class="mem-checkout-head"><i class="fa-solid fa-receipt"></i> Thanh toán &amp; nhận đơn</div>
       <label class="mem-field-label">Họ tên</label><input id="mem-cart-name" type="text" placeholder="Tên người nhận">
       <label class="mem-field-label">SĐT</label><input id="mem-cart-phone" type="tel" readonly>
+      <div id="mem-cart-delivery-schedule" class="mem-delivery-schedule" style="display:none;">
+        <label class="mem-field-label"><i class="fa-solid fa-clock"></i> Thời gian nhận đơn nhóm</label>
+        <p class="mem-delivery-schedule-hint">Trưởng nhóm chọn ngày nhận (ví dụ đặt hôm nay, giao ngày mai) — dùng để tính chuỗi ưu đãi văn phòng.</p>
+        <div class="mem-delivery-schedule-row">
+          <input type="date" id="mem-cart-delivery-date" aria-label="Ngày nhận">
+          <select id="mem-cart-delivery-slot" aria-label="Khung giờ">
+            <option value="08:00">Sáng 8:00</option>
+            <option value="10:00" selected>10:00</option>
+            <option value="12:00">Trưa 12:00</option>
+            <option value="14:00">14:00</option>
+            <option value="16:00">Chiều 16:00</option>
+            <option value="17:30">17:30</option>
+          </select>
+        </div>
+      </div>
       <!-- Hình thức nhận: tạm ẩn theo yêu cầu - mặc định Nhận tại quầy -->
       <div id="mem-cart-fulfillment-block" style="display:none;">
       <label class="mem-field-label">Hình thức nhận</label>
@@ -5126,6 +5208,20 @@
       <div class="mem-offers-section-head">
         <h2>Phiếu ưu đãi của bạn</h2>
         <button type="button" class="mem-promo-see-all" id="mem-promo-see-all">Xem tất cả</button>
+      </div>
+      <div class="mem-office-streak mem-hidden" id="mem-office-streak" aria-live="polite">
+        <div class="mem-office-streak-head">
+          <span class="mem-streak-flame-wrap" aria-label="Chuỗi ngày">
+            <i class="fa-solid fa-fire mem-streak-flame" aria-hidden="true"></i>
+            <strong id="mem-streak-count">0</strong>
+          </span>
+          <div>
+            <h3 id="mem-streak-title">Chuỗi đặt văn phòng</h3>
+            <p id="mem-streak-sub">Đặt liên tục T2–T5 · nhận 1 ly miễn phí thứ 6</p>
+          </div>
+        </div>
+        <div class="mem-streak-track" id="mem-streak-track"></div>
+        <div class="mem-streak-voucher mem-hidden" id="mem-streak-voucher"></div>
       </div>
       <div class="mem-promo-list" id="mem-promo-list">
         <p class="mem-promo-empty"><span class="mem-promo-empty-icon" aria-hidden="true">🎟️</span>Chưa có ưu đãi — theo dõi cửa hàng để nhận tin mới.</p>
@@ -6373,6 +6469,7 @@
         if ($('mem-offers-code')) $('mem-offers-code').textContent = (prof && prof.memberCode) || (o && o.memberCode) || '-';
         renderTierProgress(tp);
         paintMemberBarcode();
+        renderOfficeStreak(o && o.officeStreak);
         var list = $('mem-promo-list');
         var seeAll = $('mem-promo-see-all');
         if (!list) return;
@@ -6402,6 +6499,44 @@
           card.style.cursor = 'pointer';
           card.onclick = function () { openVoucherDetail(promos[idx]); };
         });
+      }
+      function renderOfficeStreak(st) {
+        var box = $('mem-office-streak');
+        var track = $('mem-streak-track');
+        var countEl = $('mem-streak-count');
+        var subEl = $('mem-streak-sub');
+        var voucherEl = $('mem-streak-voucher');
+        if (!box || !track) return;
+        if (!st || !st.active) {
+          box.classList.add('mem-hidden');
+          return;
+        }
+        box.classList.remove('mem-hidden');
+        var streak = parseInt(st.streak, 10) || 0;
+        var titleEl = $('mem-streak-title');
+        if (countEl) countEl.textContent = String(streak);
+        if (titleEl) titleEl.textContent = st.title || 'Chuỗi đặt văn phòng';
+        if (subEl) subEl.textContent = st.message || st.description || 'Đặt liên tục T2–T5 · nhận 1 ly miễn phí thứ 6';
+        var days = st.days || [];
+        track.innerHTML = days.map(function (d) {
+          var cls = 'mem-streak-day' + (d.done ? ' done' : '') + (d.current ? ' current' : '');
+          var ico = d.done
+            ? '<i class="fa-solid fa-check"></i>'
+            : (d.current ? '<i class="fa-solid fa-mug-hot"></i>' : '<i class="fa-regular fa-circle"></i>');
+          return '<div class="' + cls + '">' +
+            '<div class="mem-streak-day-ico">' + ico + '</div>' +
+            '<div class="mem-streak-day-label">' + esc(d.label || '') + '</div></div>';
+        }).join('');
+        if (voucherEl) {
+          if (st.voucherCode) {
+            voucherEl.classList.remove('mem-hidden');
+            voucherEl.innerHTML = '<i class="fa-solid fa-ticket"></i> Voucher <strong>' + esc(st.voucherCode) +
+              '</strong> · dùng thứ 6' + (st.voucherExpires ? (' · HSD ' + esc(st.voucherExpires)) : '');
+          } else {
+            voucherEl.classList.add('mem-hidden');
+            voucherEl.innerHTML = '';
+          }
+        }
       }
 
       var stateVoucherPromo = null;
