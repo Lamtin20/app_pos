@@ -433,6 +433,10 @@ function applyMemberPortalFromSettings(raw) {
   var lab = document.getElementById('mem-support-label');
   if (lab && phone) lab.textContent = 'Liên hệ & Góp ý · ' + phone;
   if (window.SUN_SITE_BRAND && window.SUN_SITE_BRAND.logoUrl) applyGateLogo(window.SUN_SITE_BRAND.logoUrl);
+  if (window.MemOrder && MemOrder.setMenuCategories && Array.isArray(s.menuCategories)) {
+    MemOrder.setMenuCategories(s.menuCategories);
+  }
+  if (window.SUN_MEM && SUN_MEM.state) SUN_MEM.state.settings = s;
   applyPageMetaFromSettings(s);
 }
 

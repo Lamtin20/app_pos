@@ -1025,7 +1025,7 @@
       backface-visibility: hidden;
       transform: translateZ(0);
     }
-    #btn-top-cart, #btn-top-group { display: none !important; }
+    #btn-top-group { display: none !important; }
     .mem-barcode-wrap { text-align: center; padding-bottom: 4px; overflow: hidden; border-radius: 10px; }
     .mem-barcode-wrap .code-text {
       font-family: var(--mono); font-size: 14px; font-weight: 800; letter-spacing: 0.14em;
@@ -2061,6 +2061,71 @@
       border: none; background: transparent; font-size: 28px; cursor: pointer; padding: 4px; opacity: .35;
     }
     .mem-group-feedback-stars button.on { opacity: 1; }
+    .mem-group-feedback-note {
+      width: 100%; box-sizing: border-box; min-height: 72px; resize: vertical;
+      border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px;
+      font-family: var(--font); font-size: 13px; color: var(--text); background: #fff;
+      margin: 4px 0 12px;
+    }
+    .mem-group-feedback-note::placeholder { color: var(--text3); }
+    .mem-group-mi-total-block { display: flex; flex-direction: column; gap: 2px; font-size: 11px; }
+    .mem-group-mi-total-line { display: flex; justify-content: space-between; gap: 8px; color: var(--text3); }
+    .mem-group-mi-total-line strong, .mem-group-mi-total-final { color: var(--primary); font-weight: 900; }
+    .mem-group-mi-total-disc span:last-child { color: #16a34a; font-weight: 800; }
+    body[data-mem-tab="order"] .mem-topbar-greet strong,
+    body[data-mem-tab="group"] .mem-topbar-greet strong,
+    body[data-mem-tab="more"] .mem-topbar-greet strong,
+    body[data-mem-tab="cart"] .mem-topbar-greet strong {
+      font-size: 18px; font-weight: 900; letter-spacing: .01em;
+      color: #fde68a;
+      text-shadow: 0 1px 10px rgba(253, 230, 138, .5), 0 2px 6px rgba(0, 0, 0, .35);
+    }
+    body[data-sky-dark="1"][data-mem-tab="order"] .mem-topbar-greet strong,
+    body[data-sky-dark="1"][data-mem-tab="group"] .mem-topbar-greet strong,
+    body[data-sky-dark="1"][data-mem-tab="more"] .mem-topbar-greet strong,
+    body[data-sky-dark="1"][data-mem-tab="cart"] .mem-topbar-greet strong {
+      color: #fde68a;
+    }
+    body:not([data-sky-dark="1"])[data-mem-tab="order"] .mem-topbar-greet strong,
+    body:not([data-sky-dark="1"])[data-mem-tab="group"] .mem-topbar-greet strong,
+    body:not([data-sky-dark="1"])[data-mem-tab="more"] .mem-topbar-greet strong,
+    body:not([data-sky-dark="1"])[data-mem-tab="cart"] .mem-topbar-greet strong {
+      background: linear-gradient(135deg, #c2410c 0%, #ea580c 55%, #f59e0b 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: none;
+    }
+    .mem-top-icon-btn.mem-top-cart-mode { position: relative; }
+    .mem-top-cart-mode-badge {
+      position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px; background: var(--primary-lt); color: #fff; font-size: 9px; font-weight: 900;
+      font-style: normal; display: none; align-items: center; justify-content: center; border: 2px solid #fff;
+    }
+    .mem-redeem-pick-overlay {
+      position: fixed; inset: 0; z-index: 190; background: rgba(20, 12, 8, .5);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .mem-redeem-pick-overlay.mem-hidden { display: none !important; }
+    .mem-redeem-pick-sheet {
+      background: #fff; border-radius: 22px 22px 0 0; width: 100%; max-width: 520px;
+      max-height: 82vh; overflow: auto; padding: 16px 14px 24px;
+    }
+    .mem-redeem-pick-sheet h3 { margin: 0 0 6px; font-size: 16px; font-weight: 900; color: var(--primary-dk); }
+    .mem-redeem-pick-sheet p { margin: 0 0 12px; font-size: 12px; color: var(--text3); }
+    .mem-redeem-pick-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
+    }
+    .mem-redeem-pick-card {
+      border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface2);
+      cursor: pointer; text-align: left; padding: 0; font-family: var(--font);
+    }
+    .mem-redeem-pick-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+    .mem-redeem-pick-card-body { padding: 8px 10px 10px; }
+    .mem-redeem-pick-card-body strong { display: block; font-size: 12px; color: var(--text); line-height: 1.3; }
+    .mem-redeem-pick-card-body span { font-size: 11px; color: var(--primary); font-weight: 800; }
+    .mem-voucher-card-img {
+      width: 100%; height: 88px; object-fit: cover; border-radius: 12px; margin-bottom: 8px;
+      background: linear-gradient(135deg, #ffedd5, #fed7aa);
+    }
     .mem-danger-zone { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
     #mem-profile-modal.mem-pd-overlay { align-items: center; justify-content: center; padding: 12px; }
     #mem-profile-modal .mem-profile-sheet {
@@ -5329,7 +5394,6 @@
           <p class="mem-tier-hint" id="mem-tier-hint">Tích ly để nâng hạng và nhận thêm quyền lợi.</p>
         </div>
       </div>
-      <p class="mem-offers-expiry" id="mem-offers-expiry">1 ly hoàn tất = 1 Sun · Đổi 10 Sun = 1 ly nước bất kỳ (voucher 30 ngày)</p>
     </div>
     <div class="mem-offers-body">
       <div class="mem-office-streak mem-hidden" id="mem-office-streak" aria-live="polite">
@@ -5999,6 +6063,10 @@ function applyMemberPortalFromSettings(raw) {
   var lab = document.getElementById('mem-support-label');
   if (lab && phone) lab.textContent = 'Liên hệ & Góp ý · ' + phone;
   if (window.SUN_SITE_BRAND && window.SUN_SITE_BRAND.logoUrl) applyGateLogo(window.SUN_SITE_BRAND.logoUrl);
+  if (window.MemOrder && MemOrder.setMenuCategories && Array.isArray(s.menuCategories)) {
+    MemOrder.setMenuCategories(s.menuCategories);
+  }
+  if (window.SUN_MEM && SUN_MEM.state) SUN_MEM.state.settings = s;
   applyPageMetaFromSettings(s);
 }
 
@@ -6148,13 +6216,24 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     function fmtGroupMemberTotal(subtotal, discount, promoCode) {
       var sub = Math.max(0, parseFloat(subtotal) || 0);
       var disc = Math.max(0, parseFloat(discount) || 0);
-      if (disc <= 0) return fmt(sub);
+      if (disc <= 0) {
+        return '<div class="mem-group-mi-total-block"><div class="mem-group-mi-total-line mem-group-mi-total-final"><span>Tổng</span><strong>' + fmt(sub) + '</strong></div></div>';
+      }
       var after = Math.max(0, sub - disc);
-      var tag = promoCode
-        ? (' <em class="mem-group-disc-tag">' + esc(promoCode) + ' −' + fmt(disc) + '</em>')
-        : (' <em class="mem-group-disc-tag">−' + fmt(disc) + '</em>');
-      return '<span class="mem-group-mi-price mem-group-mi-price-disc"><s class="mem-group-mi-price-old">' +
-        fmt(sub) + '</s> ' + fmt(after) + tag + '</span>';
+      var promo = promoCode ? (' <em class="mem-group-disc-tag">' + esc(promoCode) + '</em>') : '';
+      return '<div class="mem-group-mi-total-block">' +
+        '<div class="mem-group-mi-total-line"><span>Gốc</span><span class="mem-group-mi-price-old">' + fmt(sub) + '</span></div>' +
+        '<div class="mem-group-mi-total-line mem-group-mi-total-disc"><span>Giảm' + promo + '</span><span>−' + fmt(disc) + '</span></div>' +
+        '<div class="mem-group-mi-total-line mem-group-mi-total-final"><span>Tổng</span><strong>' + fmt(after) + '</strong></div></div>';
+    }
+    function resolveMenuItemImage(it) {
+      if (!it) return '';
+      if (it.imageUrl) return String(it.imageUrl).trim();
+      var menu = (global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.menu) || [];
+      var m = menu.find(function (x) {
+        return String(x.id) === String(it.id) || String(x.name || '').trim() === String(it.name || '').trim();
+      });
+      return (m && (m.imageUrl || m.coverImageUrl)) || '';
     }
     function myCartSubtotal() {
       return cart.reduce(function (s, it) { return s + lineUnit(it) * (parseInt(it.quantity, 10) || 1); }, 0);
@@ -6725,6 +6804,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         return {
           id: it.id, name: it.name, quantity: it.quantity || 1,
           price: lineUnit(it), basePrice: it.basePrice || 0,
+          imageUrl: it.imageUrl || resolveMenuItemImage(it) || '',
           note: it.note || '', options: it.options || {}
         };
       });
@@ -6784,7 +6864,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         if (mine && (mine.items || []).length && !cart.length) {
           cart = mine.items.map(function (it) {
             return {
-              id: it.id, name: it.name, imageUrl: '',
+              id: it.id, name: it.name, imageUrl: it.imageUrl || resolveMenuItemImage(it) || '',
               basePrice: it.basePrice || (parseFloat(it.price) || 0) -
                 ((it.options && ((parseFloat(it.options.sizePrice) || 0) + (parseFloat(it.options.packagingPrice) || 0) +
                   ((it.options.addonPrices || []).reduce(function (a, p) { return a + (parseFloat(p) || 0); }, 0)))) || 0),
@@ -7593,8 +7673,12 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             if (o.size && o.size !== 'Tiêu chuẩn') opts.push(o.size);
             if (o.sweetness) opts.push(o.sweetness);
             var optsHtml = opts.length ? '<div class="mem-ci-opts">' + esc(opts.join(' · ')) + '</div>' : '';
-            return '<div class="mem-group-mi"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
-              '<span>' + fmt((parseFloat(it.price) || 0) * (parseInt(it.quantity, 10) || 1)) + '</span>' + optsHtml + '</div>';
+            var thumb = resolveMenuItemImage(it);
+            var thumbHtml = thumb ? ('<img class="mem-group-mi-thumb" src="' + esc(thumb) + '" alt="">') : '';
+            return '<div class="mem-group-mi mem-group-mi-own">' + thumbHtml +
+              '<div class="mem-group-mi-body"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
+              optsHtml + '</div>' +
+              '<span class="mem-group-mi-price">' + fmt((parseFloat(it.price) || 0) * (parseInt(it.quantity, 10) || 1)) + '</span></div>';
           }).join('')
           : '<div class="mem-group-mi mem-group-mi-empty">Đang chọn món…</div>';
         return '<div class="mem-group-member"><div class="mem-group-member-head"><i class="fa-solid fa-circle-user"></i> ' +
@@ -8289,9 +8373,19 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       if (sub) sub.onclick = submitOrder;
     }
   
+    function applyMenuCategoriesFromSettings() {
+      var settings = (global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.settings) ||
+        global.memberPortalSettings || null;
+      var cats = settings && settings.menuCategories;
+      if (!Array.isArray(cats) || !cats.length) return;
+      MEM_CAT_LIST = cats.filter(function (c) {
+        return c && c.enabled !== false && String(c.name || '').trim();
+      }).map(function (c) { return String(c.name).trim(); });
+    }
     function bootstrap() {
       wireOnce();
       loadBankQrSettings();
+      applyMenuCategoriesFromSettings();
       api('getMixHats').then(function (list) {
         mixHatList = Array.isArray(list) ? list : [];
       }).catch(function () { mixHatList = []; });
@@ -8344,7 +8438,13 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       },
       hasAwait: hasAwait,
       normalizeCategory: normalizeMemCategory,
-      categoryList: function () { return MEM_CAT_LIST.slice(); }
+      categoryList: function () { applyMenuCategoriesFromSettings(); return MEM_CAT_LIST.slice(); },
+      setMenuCategories: function (cats) {
+        if (!Array.isArray(cats)) return;
+        MEM_CAT_LIST = cats.filter(function (c) {
+          return c && c.enabled !== false && String(c.name || '').trim();
+        }).map(function (c) { return String(c.name).trim(); });
+      }
     };
     loadAwait();
     try { wireOnce(); } catch (eWire) { }
@@ -8608,7 +8708,9 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             category: m.category || '',
             image: String(m.imageUrl || m.coverImageUrl || m.image || '').trim(),
             price: m.basePrice != null ? Number(m.basePrice) : (Number(m.price) || 0),
-            available: m.available !== false
+            available: m.available !== false,
+            popular: !!m.popular,
+            orderScore: parseInt(m.orderScore, 10) || 0
           };
         });
       }
@@ -8666,6 +8768,12 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var norm = window.MemOrder && MemOrder.normalizeCategory ? MemOrder.normalizeCategory.bind(MemOrder) : function (c) { return String(c || '').trim(); };
         var list = cat === 'all' ? memPk.menu : memPk.menu.filter(function (m) { return norm(m.category) === cat; });
         var items = list.filter(function (m) { return m.available !== false; });
+        items = items.slice().sort(function (a, b) {
+          var diff = (parseInt(b.orderScore, 10) || 0) - (parseInt(a.orderScore, 10) || 0);
+          if (diff) return diff;
+          if (!!b.popular !== !!a.popular) return b.popular ? 1 : -1;
+          return String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+        });
         grid.innerHTML = items.length ? items.map(function (m) {
           var full = (state.menu || []).find(function (x) { return String(x.id) === String(m.id); });
           var card = full || {
@@ -8696,7 +8804,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       function renderMemPkMenu() {
         var catsEl = $('pk-cats');
         if (!catsEl) return;
-        var cats = ['all'].concat((window.MemOrder && MemOrder.categoryList) ? MemOrder.categoryList() : ['Sữa hạt', 'Mix hạt', 'Coffee', 'Topping', 'Matcha', 'Trà trái cây']);
+        var cats = ['all'].concat(getEnabledMenuCategories());
         catsEl.innerHTML = cats.map(function (c) {
           return '<button type="button" data-c="' + escAttr(c) + '"' + (c === 'all' ? ' class="on"' : '') + '>' + (c === 'all' ? 'Tất cả' : esc(c)) + '</button>';
         }).join('');
@@ -9109,7 +9217,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         return {
           cups: c, currentTier: current.name, currentTierId: current.id, nextTier: next.name, nextTierId: next.id,
           progressPct: pct,
-          tierHint: 'Còn ' + remaining + ' Sun để lên ' + next.name + ' · Rule: +' + rule + ' Sun từ ' + current.name
+          tierHint: 'Còn ' + remaining + ' Sun để lên ' + next.name
         };
       }
       function renderTierProgress(tp) {
@@ -9319,25 +9427,76 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             var idx = parseInt(btn.getAttribute('data-redeem-idx'), 10) || 0;
             var prog = programs[idx];
             if (!prog || !need) return;
-            redeemSunProgram(need, prog.title || 'quà tặng');
+            redeemSunProgram(need, prog.title || 'quà tặng', null, prog);
           };
         });
       }
       var sunRedeemBusy = false;
-      function showSunRedeemSuccess(voucher, sunLeft) {
+      var sunRedeemPending = null;
+      function closeRedeemPick() {
+        var ov = $('mem-redeem-pick-overlay');
+        if (ov) {
+          ov.classList.add('mem-hidden');
+          ov.setAttribute('aria-hidden', 'true');
+        }
+        sunRedeemPending = null;
+      }
+      function openRedeemPick(prog) {
+        if (!prog) return;
+        var ov = $('mem-redeem-pick-overlay');
+        var grid = $('mem-redeem-pick-grid');
+        var sub = $('mem-redeem-pick-sub');
+        if (!ov || !grid) return;
+        var drinks = (state.menu || []).filter(function (m) {
+          if (!m || m.available === false) return false;
+          var cat = String(m.category || '').toLowerCase();
+          return cat.indexOf('topping') < 0;
+        }).sort(function (a, b) {
+          return (parseInt(b.orderScore, 10) || 0) - (parseInt(a.orderScore, 10) || 0);
+        });
+        if (sub) sub.textContent = 'Chọn món bạn muốn đổi bằng ' + (parseInt(prog.sun, 10) || 0) + ' Sun — voucher sẽ áp dụng đúng món này.';
+        grid.innerHTML = drinks.length ? drinks.map(function (m) {
+          var img = m.imageUrl || m.coverImageUrl || '';
+          return '<button type="button" class="mem-redeem-pick-card" data-pick-id="' + escAttr(m.id) + '">' +
+            (img ? ('<img src="' + escAttr(img) + '" alt="">') : '<div style="aspect-ratio:1;background:#ffedd5;display:flex;align-items:center;justify-content:center;font-size:32px;">🥤</div>') +
+            '<div class="mem-redeem-pick-card-body"><strong>' + esc(m.name) + '</strong><span>' + fmt(m.basePrice) + '</span></div></button>';
+        }).join('') : '<p style="color:var(--text3);font-size:13px;">Chưa có món để chọn.</p>';
+        grid.querySelectorAll('[data-pick-id]').forEach(function (btn) {
+          btn.onclick = function () {
+            var id = btn.getAttribute('data-pick-id');
+            var item = drinks.find(function (x) { return String(x.id) === String(id); });
+            if (!item) return;
+            closeRedeemPick();
+            redeemSunProgram(parseInt(prog.sun, 10) || 0, prog.title || 'quà tặng', item);
+          };
+        });
+        ov.classList.remove('mem-hidden');
+        ov.setAttribute('aria-hidden', 'false');
+        memNavOpen(closeRedeemPick);
+      }
+      function showSunRedeemSuccess(voucher, sunLeft, drink) {
         var v = voucher || {};
+        var dName = (drink && drink.name) || v.menuItemName || '';
+        var dImg = (drink && (drink.imageUrl || drink.coverImageUrl)) || v.menuItemImage || '';
         var m = $('mem-voucher-modal');
         var d = $('mem-voucher-detail');
         var applyBtn = $('mem-voucher-apply');
         if (!m || !d) return;
-        stateVoucherPromo = { code: v.code, description: 'Voucher đổi Sun — 1 ly nước bất kỳ', conditions: 'HSD ' + (v.expires || '') + ' · Còn ' + (sunLeft != null ? sunLeft : getMemberSunBalance()) + ' Sun' };
+        stateVoucherPromo = {
+          code: v.code,
+          description: dName ? ('Voucher đổi Sun — ' + dName) : 'Voucher đổi Sun — 1 ly nước',
+          conditions: 'HSD ' + (v.expires || '') + ' · Còn ' + (sunLeft != null ? sunLeft : getMemberSunBalance()) + ' Sun'
+        };
         d.innerHTML =
           '<div class="mem-voucher-preview">' +
+          (dImg ? ('<img class="mem-voucher-card-img" src="' + escAttr(dImg) + '" alt="">') : '') +
           '<div class="mem-voucher-stub type-info"><div class="mem-voucher-badge">DS<small>Đổi Sun</small></div></div>' +
           '<h3 style="margin:12px 0 6px;">Đổi Sun thành công!</h3>' +
           '<p style="font-size:13px;font-weight:900;color:var(--primary);letter-spacing:.04em;">' + esc(v.code || '') + '</p>' +
-          '<p style="font-size:12px;color:var(--text3);line-height:1.5;">1 ly nước bất kỳ · HSD <strong>' + esc(v.expires || '') + '</strong></p>' +
-          '<p style="font-size:11px;color:var(--text3);margin-top:8px;">Nhập mã vào ô Khuyến mãi khi đặt hàng hoặc đưa mã cho nhân viên tại quầy.</p>' +
+          '<p style="font-size:12px;color:var(--text3);line-height:1.5;">' +
+          (dName ? ('Món: <strong>' + esc(dName) + '</strong> · ') : '') +
+          'HSD <strong>' + esc(v.expires || '') + '</strong></p>' +
+          '<p style="font-size:11px;color:var(--text3);margin-top:8px;">Voucher đã lưu trong tab Ưu đãi. Thêm đúng món vào giỏ rồi áp mã hoặc đưa mã cho quầy.</p>' +
           '</div>';
         if (applyBtn) {
           applyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy mã voucher';
@@ -9351,19 +9510,23 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         m.classList.remove('mem-hidden');
         memNavOpen(closeVoucherDetail);
       }
-      function redeemSunProgram(sunCost, title) {
+      function redeemSunProgram(sunCost, title, drink, prog) {
         if (sunRedeemBusy) return;
         if (!state.phone || state.phone.length < 9) { showToast('Đăng nhập SĐT trước'); return; }
         var need = parseInt(sunCost, 10) || 0;
         if (getMemberSunBalance() < need) { showToast('Chưa đủ Sun để đổi'); renderRedeemList(); return; }
-        var ok = window.confirm('Đổi ' + need + ' Sun lấy «' + (title || 'quà tặng') + '»?\n\nSun sẽ bị trừ ngay. Bạn nhận voucher dùng trong 30 ngày.');
+        if (!drink || !drink.id) {
+          openRedeemPick(prog || getRedeemPrograms().find(function (p) { return (parseInt(p.sun, 10) || 0) === need; }));
+          return;
+        }
+        var ok = window.confirm('Đổi ' + need + ' Sun lấy «' + (drink.name || title || 'quà tặng') + '»?\n\nSun sẽ bị trừ ngay. Bạn nhận voucher dùng trong 30 ngày.');
         if (!ok) return;
         sunRedeemBusy = true;
         var btn = document.querySelector('.mem-redeem-card-btn[data-redeem-sun="' + need + '"]');
         if (btn) btn.disabled = true;
         var p = (typeof apiLong === 'function')
-          ? apiLong('redeemMemberSunProgram', 45000, state.phone, need)
-          : api('redeemMemberSunProgram', state.phone, need);
+          ? apiLong('redeemMemberSunProgram', 45000, state.phone, need, drink.id)
+          : api('redeemMemberSunProgram', state.phone, need, drink.id);
         Promise.resolve(p).then(function (r) {
           if (!r || !r.ok) throw new Error((r && r.message) || 'Không đổi được Sun');
           if (state.portal && state.portal.offers) {
@@ -9374,7 +9537,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           if (state.profile) state.profile.points = r.pointsRemaining;
           renderOffers();
           renderRedeemList();
-          showSunRedeemSuccess(r.voucher, r.pointsRemaining);
+          showSunRedeemSuccess(r.voucher, r.pointsRemaining, drink);
           showToast('✅ ' + (r.message || 'Đã đổi Sun'));
           refreshPortalStatus().catch(function () { });
         }).catch(function (e) {
@@ -9465,11 +9628,13 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           var tag = (p.minOrder && p.minOrder > 0) ? ('Đơn từ ' + fmt(p.minOrder)) : 'SUN NUT MILK';
           var exp = fmtPromoExpiry(p.endDate);
           var cond = p.conditions ? ('<p class="mem-voucher-meta"><i class="fa-solid fa-circle-info"></i> ' + esc(p.conditions) + '</p>') : '';
+          var img = String(p.imageUrl || p.menuItemImage || '').trim();
+          var imgHtml = img ? ('<img class="mem-voucher-card-img" src="' + escAttr(img) + '" alt="">') : '';
           return '<article class="mem-voucher-card">' +
             '<div class="' + stubCls + '">' +
             '<div class="mem-voucher-badge">' + esc(b.main) + '<small>' + esc(b.sub) + '</small></div>' +
             '<span class="mem-voucher-tag">' + esc(tag) + '</span></div>' +
-            '<div class="mem-voucher-body">' +
+            '<div class="mem-voucher-body">' + imgHtml +
             '<h3 class="mem-voucher-title">' + esc(p.description || p.name) + '</h3>' +
             (p.name && p.description ? '<p class="mem-voucher-desc">' + esc(p.name) + '</p>' : '') +
             '<p class="mem-voucher-meta"><i class="fa-regular fa-calendar"></i> ' + esc(exp) + '</p>' +
@@ -9531,7 +9696,10 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var d = $('mem-voucher-detail');
         if (!m || !d) return;
         var b = fmtPromoBadge(p);
-        d.innerHTML = '<div class="mem-voucher-preview"><div class="mem-voucher-stub type-' + b.type + '"><div class="mem-voucher-badge">' + esc(b.main) + '<small>' + esc(b.sub) + '</small></div></div><h3 style="margin:12px 0 6px;">' + esc(p.description || p.name) + '</h3><p style="font-size:12px;color:var(--text3);">' + esc(p.conditions || '') + '</p><p style="font-size:12px;color:var(--primary);font-weight:700;margin-top:8px;">' + esc(fmtPromoExpiry(p.endDate)) + '</p></div>';
+        var img = String(p.imageUrl || p.menuItemImage || '').trim();
+        d.innerHTML = '<div class="mem-voucher-preview">' +
+          (img ? ('<img class="mem-voucher-card-img" src="' + escAttr(img) + '" alt="">') : '') +
+          '<div class="mem-voucher-stub type-' + b.type + '"><div class="mem-voucher-badge">' + esc(b.main) + '<small>' + esc(b.sub) + '</small></div></div><h3 style="margin:12px 0 6px;">' + esc(p.description || p.name) + '</h3><p style="font-size:12px;color:var(--text3);">' + esc(p.conditions || '') + '</p><p style="font-size:12px;color:var(--primary);font-weight:700;margin-top:8px;">' + esc(fmtPromoExpiry(p.endDate)) + '</p></div>';
         m.classList.remove('mem-hidden');
         memNavOpen(closeVoucherDetail);
       }
@@ -10608,8 +10776,22 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         return { settings: triple[0], menu: triple[1] || [], packages: triple[2] || [] };
       }
 
+      function getEnabledMenuCategories() {
+        var settings = state.settings || window.memberPortalSettings || null;
+        var cats = settings && settings.menuCategories;
+        if (Array.isArray(cats) && cats.length) {
+          var enabled = cats.filter(function (c) {
+            return c && c.enabled !== false && String(c.name || '').trim();
+          }).map(function (c) { return String(c.name).trim(); });
+          if (enabled.length) {
+            if (window.MemOrder && MemOrder.setMenuCategories) MemOrder.setMenuCategories(cats);
+            return enabled;
+          }
+        }
+        return (window.MemOrder && MemOrder.categoryList) ? MemOrder.categoryList() : ['Sữa hạt', 'Mix hạt', 'Coffee', 'Topping', 'Matcha', 'Trà trái cây'];
+      }
       function getMenuCategories() {
-        var base = (window.MemOrder && MemOrder.categoryList) ? MemOrder.categoryList() : ['Sữa hạt', 'Mix hạt', 'Coffee', 'Topping', 'Matcha', 'Trà trái cây'];
+        var base = getEnabledMenuCategories();
         var norm = window.MemOrder && MemOrder.normalizeCategory ? MemOrder.normalizeCategory.bind(MemOrder) : function (c) { return String(c || '').trim(); };
         var seen = {};
         var order = [];
@@ -10901,7 +11083,9 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         if (isMobile && tab === 'order') {
           cartBtn = document.querySelector('.mem-bottom-nav [data-nav-cart-swap="1"]');
         }
-        if (!cartBtn) cartBtn = $('btn-top-cart');
+        if (!cartBtn) cartBtn = $('btn-top-offers');
+        if (cartBtn && cartBtn.classList.contains('mem-top-cart-mode')) { /* ok */ }
+        else if (!cartBtn) cartBtn = $('btn-top-cart');
         if (!cartBtn || (cartBtn.id === 'btn-top-cart' && cartBtn.classList.contains('mem-hidden'))) return;
         var fromEl = $('mem-product-modal') && !$('mem-product-modal').classList.contains('mem-hidden')
           ? $('mem-sheet-hero') : null;
@@ -10953,19 +11137,32 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             badge.style.display = 'none';
           }
         });
-        if (imageUrl && n > 0 && isMobile && tab === 'order') window.memCartFlyAnim(imageUrl);
+        if (imageUrl && n > 0) {
+          var tab = document.body.getAttribute('data-mem-tab') || '';
+          if (tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart' || (isMobile && tab === 'order')) {
+            window.memCartFlyAnim(imageUrl);
+          }
+        }
       };
       window.memSyncHeaderCart = function (qty, imageUrl) {
-        var btn = $('btn-top-cart');
-        var badge = $('mem-top-cart-badge');
+        var offersBtn = $('btn-top-offers');
+        var badge = offersBtn && offersBtn.querySelector('.mem-top-cart-mode-badge');
         var n = parseInt(qty, 10) || 0;
-        if (btn) btn.classList.toggle('mem-hidden', n <= 0);
         if (badge) {
           badge.textContent = String(n);
           badge.style.display = n > 0 ? 'inline-flex' : 'none';
         }
+        var btn = $('btn-top-cart');
+        var topBadge = $('mem-top-cart-badge');
+        if (btn) btn.classList.toggle('mem-hidden', n <= 0);
+        if (topBadge) {
+          topBadge.textContent = String(n);
+          topBadge.style.display = n > 0 ? 'inline-flex' : 'none';
+        }
         if (window.memSyncBottomNavCart) window.memSyncBottomNavCart(n, imageUrl);
         else if (imageUrl && n > 0) window.memCartFlyAnim(imageUrl);
+        var tab = document.body.getAttribute('data-mem-tab') || '';
+        if (tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart') syncTopbarActionButtons(tab);
       };
       function timeGreeting() {
         var h = new Date().getHours();
@@ -10987,9 +11184,35 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       function syncTopbarActionButtons(tab) {
         var notifyBtn = $('btn-top-notify');
         var searchBtn = $('btn-top-search');
+        var offersBtn = $('btn-top-offers');
         var isOrder = tab === 'order';
+        var cartTabs = tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart';
         if (notifyBtn) notifyBtn.classList.toggle('mem-hidden', isOrder);
         if (searchBtn) searchBtn.classList.toggle('mem-hidden', !isOrder);
+        if (offersBtn) {
+          var icon = offersBtn.querySelector('i');
+          var badge = offersBtn.querySelector('.mem-top-cart-mode-badge');
+          if (!badge) {
+            badge = document.createElement('em');
+            badge.className = 'mem-top-cart-mode-badge';
+            offersBtn.appendChild(badge);
+          }
+          if (cartTabs) {
+            offersBtn.classList.add('mem-top-cart-mode');
+            offersBtn.title = 'Giỏ hàng';
+            offersBtn.setAttribute('aria-label', 'Giỏ hàng');
+            if (icon) icon.className = 'fa-solid fa-cart-shopping';
+            var n = (window.MemOrder && MemOrder.cartQty) ? MemOrder.cartQty() : 0;
+            badge.textContent = String(n);
+            badge.style.display = n > 0 ? 'inline-flex' : 'none';
+          } else {
+            offersBtn.classList.remove('mem-top-cart-mode');
+            offersBtn.title = 'Ưu đãi';
+            offersBtn.setAttribute('aria-label', 'Ưu đãi');
+            if (icon) icon.className = 'fa-solid fa-ticket';
+            badge.style.display = 'none';
+          }
+        }
         if (!isOrder) {
           var pkBar = $('pk-search-bar');
           if (pkBar) pkBar.classList.remove('open');
@@ -11101,6 +11324,8 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         }
         state._groupFeedbackOrder = null;
         groupFeedbackStar = 0;
+        var noteEl = $('mem-group-feedback-note');
+        if (noteEl) noteEl.value = '';
       }
       function maybeShowGroupFeedback() {
         if (!state.phone || !state.menu.length) return;
@@ -11138,6 +11363,8 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             '<span style="font-size:11px;color:var(--text3);">' + esc(gname || 'Đơn nhóm') + '</span></div>';
           if (sub) sub.textContent = 'Bạn từng đặt qua đơn nhóm — cho SUN biết cảm nhận về món này nhé.';
           groupFeedbackStar = 0;
+          var noteEl = $('mem-group-feedback-note');
+          if (noteEl) noteEl.value = '';
           overlay.querySelectorAll('.mem-group-feedback-stars button').forEach(function (b) { b.classList.remove('on'); });
           overlay.classList.remove('mem-hidden');
           overlay.removeAttribute('hidden');
@@ -12952,7 +13179,11 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         showToast('Đăng nhập bằng SĐT để tích Sun và nhận ưu đãi nhé!');
       };
       var bto = $('btn-top-offers');
-      if (bto) bto.onclick = function () { goOffers(); };
+      if (bto) bto.onclick = function () {
+        var tab = document.body.getAttribute('data-mem-tab') || '';
+        if (tab === 'order' || tab === 'group' || tab === 'more' || tab === 'cart') goCart();
+        else goOffers();
+      };
       var btc = $('btn-top-cart');
       if (btc) btc.onclick = function () { goCart(); };
       var btnMoreContact = $('btn-more-contact-toggle');
@@ -13054,13 +13285,26 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       });
       if (gfSend) gfSend.onclick = function () {
         if (!groupFeedbackStar) { showToast('Chọn số sao trước nhé'); return; }
-        showToast('Cảm ơn bạn đã góp ý!');
+        var noteEl = $('mem-group-feedback-note');
+        var noteTxt = noteEl ? String(noteEl.value || '').trim() : '';
+        try {
+          if (state.phone) {
+            localStorage.setItem('sun_group_fb_' + state.phone, JSON.stringify({
+              star: groupFeedbackStar,
+              note: noteTxt,
+              ts: Date.now()
+            }));
+          }
+        } catch (eFb) {}
+        showToast(noteTxt ? 'Cảm ơn bạn đã góp ý chi tiết!' : 'Cảm ơn bạn đã góp ý!');
         closeGroupFeedback(true);
       };
       var tierBack = $('mem-tier-back');
       if (tierBack) tierBack.onclick = function () { memNavBack(); };
       var redeemBack = $('mem-redeem-back');
       if (redeemBack) redeemBack.onclick = function () { memNavBack(); };
+      var redeemPickCancel = $('mem-redeem-pick-cancel');
+      if (redeemPickCancel) redeemPickCancel.onclick = function () { memNavBack(); };
       (function initTeaLeafWind() {
         var layer = document.createElement('div');
         layer.className = 'mem-wind-layer';
@@ -13301,8 +13545,12 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         }
         try {
           var bootData = await loadMemberBootstrapData();
+          state.settings = bootData.settings || null;
           if (typeof applyMemberPortalFromSettings === 'function') {
             applyMemberPortalFromSettings(bootData.settings);
+          }
+          if (window.MemOrder && MemOrder.setMenuCategories && bootData.settings && bootData.settings.menuCategories) {
+            MemOrder.setMenuCategories(bootData.settings.menuCategories);
           }
           state.menu = bootData.menu || [];
           state.packages = bootData.packages || [];
@@ -13382,6 +13630,15 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     })();
   </script>
 
+  <div class="mem-redeem-pick-overlay mem-hidden" id="mem-redeem-pick-overlay" aria-hidden="true">
+    <div class="mem-redeem-pick-sheet">
+      <h3>Chọn món đổi Sun</h3>
+      <p id="mem-redeem-pick-sub">Chọn ly nước bạn muốn nhận — voucher sẽ áp dụng đúng món đó.</p>
+      <div class="mem-redeem-pick-grid" id="mem-redeem-pick-grid"></div>
+      <button type="button" class="btn btn-sec" id="mem-redeem-pick-cancel" style="width:100%;margin-top:12px;">Huỷ</button>
+    </div>
+  </div>
+
   <div class="mem-group-feedback-overlay mem-hidden" id="mem-group-feedback" hidden aria-hidden="true">
     <div class="mem-group-feedback-card">
       <h3>Bạn thấy món hôm trước thế nào?</h3>
@@ -13394,6 +13651,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         <button type="button" data-star="4" aria-label="4 sao">⭐</button>
         <button type="button" data-star="5" aria-label="5 sao">⭐</button>
       </div>
+      <textarea class="mem-group-feedback-note" id="mem-group-feedback-note" rows="3" maxlength="500" placeholder="Chia sẻ thêm cảm nhận của bạn (tuỳ chọn)…"></textarea>
       <button type="button" class="btn" id="mem-group-feedback-send" style="width:100%;"><i class="fa-solid fa-paper-plane"></i> Gửi góp ý</button>
       <button type="button" class="btn btn-sec" id="mem-group-feedback-skip" style="width:100%;margin-top:8px;">Để sau</button>
     </div>

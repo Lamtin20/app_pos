@@ -1760,6 +1760,14 @@
           <div id="mem-cms-tag-catalog-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
           <button type="button" class="btn btn-ghost btn-sm" onclick="addMemCmsTagRow()"><i class="fa-solid fa-plus"></i> Thêm tag</button>
         </div>
+        <div style="margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+            <span style="font-size:12px;font-weight:700;color:var(--gold);">Danh mục lọc thực đơn (Đặt hàng)</span>
+            <button type="button" class="btn btn-gold btn-sm" onclick="addMemMenuCategoryRow()"><i class="fa-solid fa-plus"></i> Thêm danh mục</button>
+          </div>
+          <p style="font-size:11px;color:var(--text3);margin:0 0 10px;line-height:1.45;">Bật/tắt và khai báo danh mục hiển thị trên tab Đặt hàng. Tên danh mục nên khớp cột Danh mục trên sheet Menu.</p>
+          <div id="mem-cms-menu-categories-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:14px 0 8px;">
           <span style="font-size:12px;font-weight:700;color:var(--text2);">Khai báo banner / ảnh theo vị trí</span>
           <button type="button" class="btn btn-gold btn-sm" onclick="addMemCmsItemRow()"><i class="fa-solid fa-plus"></i> Thêm mục</button>
@@ -3884,7 +3892,38 @@ function defaultMemMenuMetaCatalogs() {
   };
 }
 
-function memCatSlug_(s) {
+function memMenuCategoryRowHtml_(d) {
+  d = d || { name: '', enabled: true };
+  return '<div class="mem-menu-cat-row" style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;">' +
+    '<input type="text" class="form-control mem-menu-cat-name" placeholder="Sữa hạt" value="' + escAttr_(d.name || '') + '">' +
+    '<label style="font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px;white-space:nowrap;"><input type="checkbox" class="mem-menu-cat-enabled"' + (d.enabled !== false ? ' checked' : '') + '> Bật</label>' +
+    '<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest(\'.mem-menu-cat-row\').remove()"><i class="fa-solid fa-trash"></i></button></div>';
+}
+function renderMemMenuCategoriesList(cats) {
+  var list = document.getElementById('mem-cms-menu-categories-list');
+  if (!list) return;
+  var arr = Array.isArray(cats) ? cats : [];
+  if (!arr.length) arr = [
+    { name: 'Sữa hạt', enabled: true }, { name: 'Mix hạt', enabled: true }, { name: 'Coffee', enabled: true },
+    { name: 'Topping', enabled: true }, { name: 'Matcha', enabled: true }, { name: 'Trà trái cây', enabled: true }
+  ];
+  list.innerHTML = arr.map(memMenuCategoryRowHtml_).join('');
+}
+function addMemMenuCategoryRow() {
+  var list = document.getElementById('mem-cms-menu-categories-list');
+  if (!list) return;
+  list.insertAdjacentHTML('beforeend', memMenuCategoryRowHtml_({ name: '', enabled: true }));
+}
+function collectMemMenuCategoriesFromForm_() {
+  var list = document.getElementById('mem-cms-menu-categories-list');
+  if (!list) return [];
+  return Array.from(list.querySelectorAll('.mem-menu-cat-row')).map(function (row) {
+    var name = String((row.querySelector('.mem-menu-cat-name') || {}).value || '').trim();
+    var enabled = !!((row.querySelector('.mem-menu-cat-enabled') || {}).checked);
+    return name ? { name: name, enabled: enabled } : null;
+  }).filter(Boolean);
+}
+
   return String(s || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
@@ -4036,6 +4075,7 @@ async function hydrateMemberPortalCmsForm() {
   renderMemCatBannersList(s.categoryBanners || []);
   renderMemTiersList(s.memberTiers || []);
   renderMemCmsCatalogEditors(s.menuLabelCatalog, s.menuTagCatalog);
+  renderMemMenuCategoriesList(s.menuCategories || []);
   var specEl = document.getElementById('mem-cms-cat-banner-spec');
   if (specEl && s.mediaSpecs && s.mediaSpecs.categoryBanner) specEl.textContent = s.mediaSpecs.categoryBanner.split('(')[0].trim();
 }
@@ -4090,6 +4130,7 @@ function collectMemberPortalCmsFromForm() {
     redeemPrograms: collectRedeemProgramsFromForm_(),
     menuLabelCatalog: collectMemCatCatalogFromList_('mem-cms-label-catalog-list'),
     menuTagCatalog: collectMemCatCatalogFromList_('mem-cms-tag-catalog-list'),
+    menuCategories: collectMemMenuCategoriesFromForm_(),
     categoryBanners: collectMemCatBannersFromForm(),
     memberTiers: collectMemTiersFromForm(),
     mediaSpecs: {

@@ -114,13 +114,24 @@
     function fmtGroupMemberTotal(subtotal, discount, promoCode) {
       var sub = Math.max(0, parseFloat(subtotal) || 0);
       var disc = Math.max(0, parseFloat(discount) || 0);
-      if (disc <= 0) return fmt(sub);
+      if (disc <= 0) {
+        return '<div class="mem-group-mi-total-block"><div class="mem-group-mi-total-line mem-group-mi-total-final"><span>Tổng</span><strong>' + fmt(sub) + '</strong></div></div>';
+      }
       var after = Math.max(0, sub - disc);
-      var tag = promoCode
-        ? (' <em class="mem-group-disc-tag">' + esc(promoCode) + ' −' + fmt(disc) + '</em>')
-        : (' <em class="mem-group-disc-tag">−' + fmt(disc) + '</em>');
-      return '<span class="mem-group-mi-price mem-group-mi-price-disc"><s class="mem-group-mi-price-old">' +
-        fmt(sub) + '</s> ' + fmt(after) + tag + '</span>';
+      var promo = promoCode ? (' <em class="mem-group-disc-tag">' + esc(promoCode) + '</em>') : '';
+      return '<div class="mem-group-mi-total-block">' +
+        '<div class="mem-group-mi-total-line"><span>Gốc</span><span class="mem-group-mi-price-old">' + fmt(sub) + '</span></div>' +
+        '<div class="mem-group-mi-total-line mem-group-mi-total-disc"><span>Giảm' + promo + '</span><span>−' + fmt(disc) + '</span></div>' +
+        '<div class="mem-group-mi-total-line mem-group-mi-total-final"><span>Tổng</span><strong>' + fmt(after) + '</strong></div></div>';
+    }
+    function resolveMenuItemImage(it) {
+      if (!it) return '';
+      if (it.imageUrl) return String(it.imageUrl).trim();
+      var menu = (global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.menu) || [];
+      var m = menu.find(function (x) {
+        return String(x.id) === String(it.id) || String(x.name || '').trim() === String(it.name || '').trim();
+      });
+      return (m && (m.imageUrl || m.coverImageUrl)) || '';
     }
     function myCartSubtotal() {
       return cart.reduce(function (s, it) { return s + lineUnit(it) * (parseInt(it.quantity, 10) || 1); }, 0);
@@ -691,6 +702,7 @@
         return {
           id: it.id, name: it.name, quantity: it.quantity || 1,
           price: lineUnit(it), basePrice: it.basePrice || 0,
+          imageUrl: it.imageUrl || resolveMenuItemImage(it) || '',
           note: it.note || '', options: it.options || {}
         };
       });
@@ -750,7 +762,7 @@
         if (mine && (mine.items || []).length && !cart.length) {
           cart = mine.items.map(function (it) {
             return {
-              id: it.id, name: it.name, imageUrl: '',
+              id: it.id, name: it.name, imageUrl: it.imageUrl || resolveMenuItemImage(it) || '',
               basePrice: it.basePrice || (parseFloat(it.price) || 0) -
                 ((it.options && ((parseFloat(it.options.sizePrice) || 0) + (parseFloat(it.options.packagingPrice) || 0) +
                   ((it.options.addonPrices || []).reduce(function (a, p) { return a + (parseFloat(p) || 0); }, 0)))) || 0),
@@ -1559,8 +1571,12 @@
             if (o.size && o.size !== 'Tiêu chuẩn') opts.push(o.size);
             if (o.sweetness) opts.push(o.sweetness);
             var optsHtml = opts.length ? '<div class="mem-ci-opts">' + esc(opts.join(' · ')) + '</div>' : '';
-            return '<div class="mem-group-mi"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
-              '<span>' + fmt((parseFloat(it.price) || 0) * (parseInt(it.quantity, 10) || 1)) + '</span>' + optsHtml + '</div>';
+            var thumb = resolveMenuItemImage(it);
+            var thumbHtml = thumb ? ('<img class="mem-group-mi-thumb" src="' + esc(thumb) + '" alt="">') : '';
+            return '<div class="mem-group-mi mem-group-mi-own">' + thumbHtml +
+              '<div class="mem-group-mi-body"><span>' + esc(it.name) + ' × ' + (parseInt(it.quantity, 10) || 1) + '</span>' +
+              optsHtml + '</div>' +
+              '<span class="mem-group-mi-price">' + fmt((parseFloat(it.price) || 0) * (parseInt(it.quantity, 10) || 1)) + '</span></div>';
           }).join('')
           : '<div class="mem-group-mi mem-group-mi-empty">Đang chọn món…</div>';
         return '<div class="mem-group-member"><div class="mem-group-member-head"><i class="fa-solid fa-circle-user"></i> ' +
@@ -2255,9 +2271,19 @@
       if (sub) sub.onclick = submitOrder;
     }
   
+    function applyMenuCategoriesFromSettings() {
+      var settings = (global.SUN_MEM && global.SUN_MEM.state && global.SUN_MEM.state.settings) ||
+        global.memberPortalSettings || null;
+      var cats = settings && settings.menuCategories;
+      if (!Array.isArray(cats) || !cats.length) return;
+      MEM_CAT_LIST = cats.filter(function (c) {
+        return c && c.enabled !== false && String(c.name || '').trim();
+      }).map(function (c) { return String(c.name).trim(); });
+    }
     function bootstrap() {
       wireOnce();
       loadBankQrSettings();
+      applyMenuCategoriesFromSettings();
       api('getMixHats').then(function (list) {
         mixHatList = Array.isArray(list) ? list : [];
       }).catch(function () { mixHatList = []; });
@@ -2310,7 +2336,13 @@
       },
       hasAwait: hasAwait,
       normalizeCategory: normalizeMemCategory,
-      categoryList: function () { return MEM_CAT_LIST.slice(); }
+      categoryList: function () { applyMenuCategoriesFromSettings(); return MEM_CAT_LIST.slice(); },
+      setMenuCategories: function (cats) {
+        if (!Array.isArray(cats)) return;
+        MEM_CAT_LIST = cats.filter(function (c) {
+          return c && c.enabled !== false && String(c.name || '').trim();
+        }).map(function (c) { return String(c.name).trim(); });
+      }
     };
     loadAwait();
     try { wireOnce(); } catch (eWire) { }
