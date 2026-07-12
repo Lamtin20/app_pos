@@ -1974,6 +1974,7 @@
 <script>try { var SCRIPT_URL = __SUN_URL_INJECT__; } catch (e) { var SCRIPT_URL = ''; }</script>
 <script>
 if(typeof SCRIPT_URL==='undefined')var SCRIPT_URL='';
+(function (global) {
 (function () {
   var U = '__SUN_FAVICON_URL__';
   if (!window.SUN_FAVICON_URL) window.SUN_FAVICON_URL = U;
@@ -3945,6 +3946,7 @@ function collectMemMenuCategoriesFromForm_() {
   }).filter(Boolean);
 }
 
+function memCatSlug_(s) {
   return String(s || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
@@ -6630,20 +6632,21 @@ function showToast(msg, type) {
   t.textContent = msg; t.className = 'toast ' + (type||'success') + ' show';
   setTimeout(() => t.classList.remove('show'), 3000);
 }
-window.initAdmin = initAdmin;
-window.delPin = delPin;
-window.submitPin = submitPin;
-window.logout = logout;
-window.loadSiteBrandForAdmin = loadSiteBrandForAdmin;
-window.switchAdminTab = switchAdminTab;
-window.goToOrder = goToOrder;
-window.refreshAll = refreshAll;
-window.loadDashboard = loadDashboard;
-window.loadOrders = loadOrders;
-window.loadInventory = loadInventory;
-window.loadMenu = loadMenu;
-window.loadCustomers = loadCustomers;
-window.loadPromotions = loadPromotions;
+global.initAdmin = initAdmin;
+global.delPin = delPin;
+global.submitPin = submitPin;
+global.logout = logout;
+global.loadSiteBrandForAdmin = loadSiteBrandForAdmin;
+global.switchAdminTab = switchAdminTab;
+global.goToOrder = goToOrder;
+global.refreshAll = refreshAll;
+global.loadDashboard = loadDashboard;
+global.loadOrders = loadOrders;
+global.loadInventory = loadInventory;
+global.loadMenu = loadMenu;
+global.loadCustomers = loadCustomers;
+global.loadPromotions = loadPromotions;
+})(window);
 </script>
 <script>
 (function () {
@@ -6740,27 +6743,34 @@ window.loadPromotions = loadPromotions;
     var admin = document.getElementById('admin-screen');
     if (admin) admin.style.display = 'flex';
   }
+  function whenAdminReady(fn, triesLeft) {
+    if (typeof window.initAdmin === 'function') return fn();
+    if (triesLeft <= 0) {
+      showLoginError('❌ Hệ thống chưa sẵn sàng — hãy tải lại trang (F5).');
+      pinInput = '';
+      updatePinDots();
+      pinBusy = false;
+      return;
+    }
+    setTimeout(function () { whenAdminReady(fn, triesLeft - 1); }, 200);
+  }
   function submitPin() {
     if (pinBusy) return;
     if (pinInput === ADMIN_PIN) {
-      if (typeof window.initAdmin !== 'function') {
-        showLoginError('❌ Hệ thống chưa sẵn sàng — hãy tải lại trang (F5).');
-        pinInput = '';
-        updatePinDots();
-        return;
-      }
       pinBusy = true;
-      hideLoginScreen();
-      showAdminScreen();
-      var boot = function () {
-        try { window.initAdmin(); } catch (eInit) { showLoginError('❌ Lỗi khởi động admin — tải lại trang.'); }
-        pinBusy = false;
-      };
-      if (typeof window.loadSiteBrandForAdmin === 'function') {
-        window.loadSiteBrandForAdmin().finally(boot);
-      } else {
-        boot();
-      }
+      whenAdminReady(function () {
+        hideLoginScreen();
+        showAdminScreen();
+        var boot = function () {
+          try { window.initAdmin(); } catch (eInit) { showLoginError('❌ Lỗi khởi động admin — tải lại trang.'); }
+          pinBusy = false;
+        };
+        if (typeof window.loadSiteBrandForAdmin === 'function') {
+          window.loadSiteBrandForAdmin().finally(boot);
+        } else {
+          boot();
+        }
+      }, 30);
     } else {
       showLoginError('❌ PIN không đúng!');
       pinInput = '';

@@ -278,6 +278,9 @@ export default function LegacyPage({ src, title }) {
         el.setAttribute('data-sun-legacy-idx', String(i));
         el.textContent = s.textContent;
         document.body.appendChild(el);
+        if (pageSrc.includes('admin.html') && i === scripts.length - 2 && typeof window.initAdmin !== 'function') {
+          console.error('[SUN] Admin core script failed to expose initAdmin (script index ' + i + ')');
+        }
       }
     }
 
@@ -354,7 +357,9 @@ export default function LegacyPage({ src, title }) {
       cancelled = true;
       if (src.includes('admin.html')) {
         window._adminUiBound = false;
-        delete window.__SUN_ADMIN_CORE__;
+        ['initAdmin', 'switchAdminTab', 'goToOrder', 'refreshAll', 'loadSiteBrandForAdmin',
+          'loadDashboard', 'loadOrders', 'loadInventory', 'loadMenu', 'loadCustomers', 'loadPromotions',
+          'delPin', 'submitPin', 'logout'].forEach(function (k) { delete window[k]; });
       }
       document.querySelectorAll('script[data-sun-legacy-src="' + src + '"]').forEach((node) => {
         node.remove();
