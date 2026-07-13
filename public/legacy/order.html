@@ -5130,6 +5130,14 @@
     return s;
   }
 
+  function displaySizeLabel(s) {
+    var x = String(s || '').replace(/\s+/g, ' ').trim();
+    if (!x || x === 'Tiêu chuẩn') return x;
+    x = x.replace(/\s*\(\s*\d+\s*ml\s*\)/gi, '');
+    x = x.replace(/\s+\d+\s*ml\s*$/gi, '');
+    return x.trim() || String(s || '').trim();
+  }
+
   function serveTempLabel(m) {
     if (m === 'hot') return 'Nóng';
     if (m === 'iced') return 'Đá';
@@ -5870,7 +5878,7 @@
       return tOnly.concat(o.addons || []).filter(Boolean);
     }
     var parts = [];
-    parts.push(o.size);
+    parts.push(displaySizeLabel(o.size));
     var st = o.serveTemp || 'cold_steep';
     if (st === 'iced' && o.ice) parts.push('Đá: ' + o.ice);
     else parts.push(serveTempLabel(st));
@@ -7021,7 +7029,7 @@
   function onlineOrderItemOptsText(it) {
     var o = (it && it.options) || {};
     var parts = [];
-    if (o.size && o.size !== 'Tiêu chuẩn') parts.push(o.size);
+    if (o.size && o.size !== 'Tiêu chuẩn') parts.push(displaySizeLabel(o.size));
     if (o.serveTemp === 'hot') parts.push('Nóng');
     else if (o.serveTemp === 'iced') parts.push('Đá' + (o.ice ? ': ' + o.ice : ''));
     if (o.sweetness) parts.push(o.sweetness);

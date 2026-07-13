@@ -6273,6 +6273,13 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     function normalizeCupSizeLabel(s) {
       return String(s || '').replace(/\s+/g, ' ').trim();
     }
+    function displaySizeLabel(s) {
+      var x = normalizeCupSizeLabel(s);
+      if (!x || x === 'Tiêu chuẩn') return x;
+      x = x.replace(/\s*\(\s*\d+\s*ml\s*\)/gi, '');
+      x = x.replace(/\s+\d+\s*ml\s*$/gi, '');
+      return x.trim() || normalizeCupSizeLabel(s);
+    }
     function serveTempLabel(st) {
       if (st === 'hot') return 'Nóng';
       if (st === 'iced') return 'Đá';
@@ -6341,7 +6348,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       if (normalizeCupSizeLabel(o.size) === 'Tiêu chuẩn') {
         return [o.sweetness].concat(o.addons || []).filter(Boolean);
       }
-      var parts = [o.size];
+      var parts = [displaySizeLabel(o.size)];
       var st = o.serveTemp || 'cold_steep';
       if (st === 'iced' && o.ice) parts.push('Đá: ' + o.ice);
       else parts.push(serveTempLabel(st));
@@ -7044,7 +7051,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         var u = parseFloat(it.price) || 0;
         var o = it.options || {};
         var parts = [];
-        if (o.size && o.size !== 'Tiêu chuẩn') parts.push(o.size);
+        if (o.size && o.size !== 'Tiêu chuẩn') parts.push(displaySizeLabel(o.size));
         if (o.sweetness) parts.push(o.sweetness);
         return '<div class="mem-await-item"><span>' + esc(it.name) + ' × ' + q +
           (parts.length ? '<em>' + esc(parts.join(' · ')) + '</em>' : '') + '</span><span>' + fmt(u * q) + '</span></div>';
@@ -7770,7 +7777,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           ? items.map(function (it) {
             var opts = [];
             var o = it.options || {};
-            if (o.size && o.size !== 'Tiêu chuẩn') opts.push(o.size);
+            if (o.size && o.size !== 'Tiêu chuẩn') opts.push(displaySizeLabel(o.size));
             if (o.sweetness) opts.push(o.sweetness);
             var optsHtml = opts.length ? '<div class="mem-ci-opts">' + esc(opts.join(' · ')) + '</div>' : '';
             var thumb = resolveMenuItemImage(it);
@@ -8032,7 +8039,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             var u = parseFloat(it.price) || 0;
             var o = it.options || {};
             var parts = [];
-            if (o.size && o.size !== 'Tiêu chuẩn') parts.push(o.size);
+            if (o.size && o.size !== 'Tiêu chuẩn') parts.push(displaySizeLabel(o.size));
             if (o.sweetness) parts.push(o.sweetness);
             out.push({
               name: it.name, qty: q, unit: u, total: u * q,
