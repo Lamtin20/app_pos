@@ -28,7 +28,8 @@
     var groupPollTimer = null;
     var groupSyncTimer = null;
     var groupSyncBusy = false;
-    var groupSyncAgain = false;
+    var groupSyncPending = 0;
+    var localCartRev = 0;
     var pendingGroupCode = '';
     // Màn hình chờ nhận nước (thành viên nhóm, sau khi trưởng nhóm gửi đơn)
     var awaitInfo = null;          // {orderId, groupId, groupName, name, items, stage, ts}
@@ -112,6 +113,35 @@
     }
     function cartQty() {
       return cart.reduce(function (s, it) { return s + (it.quantity || 1); }, 0);
+    }
+    function bumpCartRev() { localCartRev++; }
+    function getMyMemberFromGroup() {
+      if (!inGroup() || !group) return null;
+      var mid = memberId();
+      return (group.members || []).find(function (m) { return (m.id || m.phone) === mid; }) || null;
+    }
+    function mapServerItemsToCart(items) {
+      return (items || []).map(function (it) {
+        return {
+          id: it.id, name: it.name, imageUrl: it.imageUrl || resolveMenuItemImage(it) || '',
+          basePrice: it.basePrice || (parseFloat(it.price) || 0) -
+            ((it.options && ((parseFloat(it.options.sizePrice) || 0) + (parseFloat(it.options.packagingPrice) || 0) +
+              ((it.options.addonPrices || []).reduce(function (a, p) { return a + (parseFloat(p) || 0); }, 0)))) || 0),
+          options: it.options || {}, note: it.note || '', quantity: parseInt(it.quantity, 10) || 1
+        };
+      });
+    }
+    function countItemQty(items) {
+      return (items || []).reduce(function (s, it) { return s + (parseInt(it.quantity, 10) || 1); }, 0);
+    }
+    function myItemsForDisplay() {
+      if (!inGroup()) return cart;
+      var mine = getMyMemberFromGroup();
+      var serverItems = mine ? (mine.items || []) : [];
+      if (!cart.length && serverItems.length) return mapServerItemsToCart(serverItems);
+      if (!serverItems.length) return cart;
+      if (countItemQty(cart) >= countItemQty(serverItems)) return cart;
+      return mapServerItemsToCart(serverItems);
     }
     function myCartForPromoApi() {
       return cart.map(function (it) {
@@ -626,15 +656,22 @@
           quantity: currentQty
         });
       }
+      bumpCartRev();
       var addedItem = ex || cart[cart.length - 1];
       closeModal();
       qrOrderLock = null;
-      if (awaitInfo) clearAwait(); // bắt đầu đơn mới thì rời màn hình chờ nhận nước
+      if (awaitInfo) clearAwait();
       syncNavBadge(currentProduct.imageUrl);
-      scheduleGroupSync();
+      renderCartList();
+      if (inGroup()) {
+        scheduleGroupSync();
+        groupSyncNow();
+        renderCartGroupInfo();
+        showGroupAddedPopup(addedItem);
+      } else {
+        toast('✅ Đã thêm ' + currentProduct.name);
+      }
       if (appliedPromo) applyPromo(appliedPromo, true);
-      if (inGroup()) showGroupAddedPopup(addedItem);
-      else toast('✅ Đã thêm ' + currentProduct.name);
     }
   
     // ============================================================
@@ -767,15 +804,15 @@
       }
       if (opts.adoptMyItems) {
         if (mine && (mine.items || []).length && !cart.length) {
-          cart = mine.items.map(function (it) {
-            return {
-              id: it.id, name: it.name, imageUrl: it.imageUrl || resolveMenuItemImage(it) || '',
-              basePrice: it.basePrice || (parseFloat(it.price) || 0) -
-                ((it.options && ((parseFloat(it.options.sizePrice) || 0) + (parseFloat(it.options.packagingPrice) || 0) +
-                  ((it.options.addonPrices || []).reduce(function (a, p) { return a + (parseFloat(p) || 0); }, 0)))) || 0),
-              options: it.options || {}, note: it.note || '', quantity: parseInt(it.quantity, 10) || 1
-            };
-          });
+          cart = mapServerItemsToCart(mine.items);
+          bumpCartRev();
+        }
+      } else if (mine && (mine.items || []).length && !groupSyncBusy) {
+        var serverQty = countItemQty(mine.items);
+        var localQty = cartQty();
+        if (serverQty > localQty) {
+          cart = mapServerItemsToCart(mine.items);
+          bumpCartRev();
         }
       }
       startGroupPolling();
@@ -1042,28 +1079,40 @@
     }
     function scheduleGroupSync() {
       if (!inGroup()) return;
+      groupSyncPending++;
       clearTimeout(groupSyncTimer);
-      groupSyncTimer = setTimeout(function () { groupSyncNow(); }, 700);
+      groupSyncTimer = setTimeout(function () { groupSyncNow(); }, 250);
     }
     function groupSyncNow() {
       if (!inGroup() || !memberId()) return Promise.resolve();
-      if (groupSyncBusy) { groupSyncAgain = true; return Promise.resolve(); }
+      if (groupSyncBusy) {
+        groupSyncPending++;
+        return Promise.resolve();
+      }
       groupSyncBusy = true;
+      var syncRev = localCartRev;
       return api('syncGroupCart', group.groupId, memberId(), myName(), myItemsForApi(), myMemberPromo, myMemberDiscount).then(function (st) {
-        applyGroupState(st);
+        applyGroupState(st, { fromSync: true });
+        renderGroupOrdersPanel();
       }).catch(function (e) {
         var msg = String((e && e.message) || '');
         if (msg.indexOf('khóa') >= 0 || msg.indexOf('chưa ở trong nhóm') >= 0) toast(msg);
       }).finally(function () {
         groupSyncBusy = false;
-        if (groupSyncAgain) { groupSyncAgain = false; scheduleGroupSync(); }
+        if (groupSyncPending > 0 || localCartRev !== syncRev) {
+          groupSyncPending = 0;
+          setTimeout(function () { groupSyncNow(); }, 80);
+        }
       });
     }
     function pollGroupState() {
       if (!inGroup()) return;
       var gid = group.groupId;
       var done = function (st) {
-        if (st && st.groupId === gid && inGroup() && group.groupId === gid) applyGroupState(st);
+        if (st && st.groupId === gid && inGroup() && group.groupId === gid) {
+          applyGroupState(st);
+          renderGroupOrdersPanel();
+        }
       };
       fetch('/api/group-order?group=' + encodeURIComponent(gid), { cache: 'no-store', credentials: 'same-origin' })
         .then(function (r) { return r.json(); }).then(done)
@@ -1071,7 +1120,8 @@
     }
     function startGroupPolling() {
       if (groupPollTimer) return;
-      groupPollTimer = setInterval(pollGroupState, 6000);
+      pollGroupState();
+      groupPollTimer = setInterval(pollGroupState, 3000);
     }
     function stopGroupPolling() {
       if (groupPollTimer) { clearInterval(groupPollTimer); groupPollTimer = null; }
@@ -1130,6 +1180,33 @@
       var pre = $('mem-cart-qr-pre');
       if (pre && (freeOrder || pay !== 'Chuyển khoản')) pre.style.display = 'none';
     }
+    function renderCartGroupInfo() {
+      var box = $('mem-cart-group-sync-info');
+      if (!box) return;
+      if (!inGroup()) {
+        box.classList.add('mem-hidden');
+        box.innerHTML = '';
+        return;
+      }
+      var gName = String((group && group.groupName) || 'đơn nhóm').trim() || 'đơn nhóm';
+      var n = cartQty();
+      box.classList.remove('mem-hidden');
+      box.innerHTML =
+        '<div class="mem-cart-group-sync-inner">' +
+        '<i class="fa-solid fa-circle-info"></i>' +
+        '<div class="mem-cart-group-sync-text">' +
+        '<strong>Đơn nhóm đang mở</strong>' +
+        '<p>Đơn hàng của bạn đã được tự động cập nhật vào đơn của nhóm: <strong>' + esc(gName) + '</strong>' +
+        (n ? (' (' + n + ' món trong giỏ).') : '.') +
+        ' Bạn có thể kiểm tra nhanh tại tab Đơn nhóm.</p>' +
+        '</div>' +
+        '<button type="button" class="btn btn-sm" id="mem-cart-group-go-btn"><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>' +
+        '</div>';
+      var go = $('mem-cart-group-go-btn');
+      if (go) go.onclick = function () {
+        if (global.SUN_MEM && global.SUN_MEM.goGroup) global.SUN_MEM.goGroup();
+      };
+    }
     function applyGroupModeUi() {
       var memberOnly = inGroup() && !isHost();
       var checkoutCard = document.querySelector('.mem-cart-checkout-card');
@@ -1144,6 +1221,7 @@
       syncSubmitButtonUi();
       document.body.classList.toggle('mem-group-mode', inGroup());
       document.body.classList.toggle('mem-group-guest', isGuest() && inGroup());
+      renderCartGroupInfo();
     }
     function syncPayMethodBadge() {
       var badge = $('mem-pay-method-badge');
@@ -1374,10 +1452,12 @@
             if (cart[idx].quantity < 1) cart.splice(idx, 1);
           }
           if (!cart.length) renderGroupOrdersPanel._editing = false;
+          bumpCartRev();
           if (appliedPromo) applyPromo(appliedPromo, true);
           renderCartList();
           syncNavBadge();
           scheduleGroupSync();
+          groupSyncNow();
         };
       });
     }
@@ -1392,16 +1472,17 @@
       }
       panel.classList.remove('mem-hidden');
       var editing = !!renderGroupOrdersPanel._editing;
-      var mySub = myCartSubtotal();
+      var myItems = myItemsForDisplay();
+      var mySub = myItems.reduce(function (s, it) { return s + lineUnit(it) * (it.quantity || 1); }, 0);
       var myHtml = '';
-      if (cart.length) {
+      if (myItems.length) {
         myHtml = '<div class="mem-group-my-items' + (editing ? ' mem-group-editing' : '') + '">' +
           '<div class="mem-group-section-label"><i class="fa-solid fa-mug-hot"></i> Món của bạn' +
           (myMemberDiscount > 0
             ? (' <span class="mem-group-disc-tag">' + esc(myMemberPromo || 'Voucher') + ' −' + fmt(myMemberDiscount) + '</span>')
             : '') +
           '</div>' +
-          cart.map(function (it, idx) {
+          myItems.map(function (it, idx) {
             var parts = buildOptsParts(it);
             var opts = parts.length ? ('<div class="mem-ci-opts">' + esc(parts.join(' · ')) + '</div>') : '';
             var note = it.note ? ('<div class="mem-ci-note">' + esc(it.note) + '</div>') : '';
@@ -1977,10 +2058,12 @@
             cart[idx].quantity--;
             if (cart[idx].quantity < 1) cart.splice(idx, 1);
           }
+          bumpCartRev();
           if (appliedPromo) applyPromo(appliedPromo, true);
           renderCartList();
           syncNavBadge();
           scheduleGroupSync();
+          groupSyncNow();
           refreshPromoOptions();
         };
       });
@@ -2121,6 +2204,7 @@
         if (dn && (!cur || cur.toLowerCase() === 'khách hàng' || cur.toLowerCase() === 'khach hang')) nm.value = dn;
       }
       renderCartList();
+      renderCartGroupInfo();
       renderPromoApplied();
       initDeliveryScheduleDefaults();
       refreshPromoOptions();
@@ -2296,6 +2380,12 @@
       };
       var sub = $('mem-cart-submit');
       if (sub) sub.onclick = submitOrder;
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && inGroup()) {
+          pollGroupState();
+          groupSyncNow();
+        }
+      });
     }
   
     function applyMenuCategoriesFromSettings() {

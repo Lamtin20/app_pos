@@ -3733,6 +3733,21 @@
       margin-top: 12px; padding: 12px 14px; border-radius: 14px; font-size: 12.5px; line-height: 1.5;
       background: rgba(234, 88, 12, .08); color: var(--primary-dk); font-weight: 600;
     }
+    .mem-cart-group-sync-info {
+      margin: 0 0 14px; padding: 14px 16px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(234, 88, 12, .1), rgba(251, 191, 36, .08));
+      border: 1.5px solid rgba(234, 88, 12, .22);
+    }
+    .mem-cart-group-sync-inner {
+      display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;
+    }
+    .mem-cart-group-sync-inner > i {
+      color: var(--primary); font-size: 18px; margin-top: 2px; flex-shrink: 0;
+    }
+    .mem-cart-group-sync-text { flex: 1; min-width: 180px; }
+    .mem-cart-group-sync-text strong { display: block; font-size: 13px; color: var(--primary-dk); margin-bottom: 4px; }
+    .mem-cart-group-sync-text p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text2); }
+    #mem-cart-group-go-btn { flex-shrink: 0; white-space: nowrap; }
     .mem-group-done-btn { display: flex; width: 100%; margin-top: 10px; justify-content: center; }
     /* Nút chốt đơn của trưởng nhóm - nổi bật ngay trong thẻ nhóm */
     .mem-group-finalize-btn {
@@ -5126,6 +5141,7 @@
     <div class="mem-cart-grid-desktop">
     <div class="mem-cart-col-main">
     <div id="mem-cart-items" class="mem-cart-list"></div>
+    <div id="mem-cart-group-sync-info" class="mem-cart-group-sync-info mem-hidden" role="status" aria-live="polite"></div>
     <div class="mem-cart-promo-block card">
       <div class="mem-section-label"><i class="fa-solid fa-tags"></i> Khuyến mãi áp dụng</div>
       <div class="mem-cart-promo-applied mem-hidden" id="mem-cart-promo-applied"></div>
