@@ -1256,18 +1256,140 @@
       opts = opts || {};
       var wantQty = cartQty();
       var maxTry = opts.retries || 5;
+      function reportProgress(n, phase) {
+        if (!opts.onProgress) return;
+        var base = 18;
+        var span = 72;
+        var pct = Math.min(94, base + Math.round((span * (n - 1)) / Math.max(1, maxTry - 1)));
+        if (phase === 'verify') pct = Math.min(96, pct + 4);
+        if (phase === 'done') pct = 100;
+        var msg = n === 1 ? 'Đang lưu món vào đơn nhóm…' : ('Đang xác minh lần ' + n + '…');
+        opts.onProgress(pct, msg, phase);
+      }
       function run(n) {
+        reportProgress(n, 'sync');
         return ensureGroupMembership().then(function () {
           if (!inGroup()) throw new Error('Chưa vào được nhóm');
           return groupSyncNow({ force: true, forceEmpty: wantQty <= 0 && allowEmptyGroupSync }).then(function (st) {
-            if (wantQty <= 0) return st;
-            if (verifySyncSaved(st, wantQty)) return st;
+            if (wantQty <= 0) {
+              if (opts.onProgress) opts.onProgress(100, 'Đã lưu xong!', 'done');
+              return st;
+            }
+            reportProgress(n, 'verify');
+            if (verifySyncSaved(st, wantQty)) {
+              if (opts.onProgress) opts.onProgress(100, 'Đã lưu ' + wantQty + ' món vào nhóm!', 'done');
+              return st;
+            }
             if (n >= maxTry) throw new Error('Chưa lưu đủ ' + wantQty + ' món vào nhóm');
             return new Promise(function (r) { setTimeout(r, 350 * n); }).then(function () { return run(n + 1); });
           });
         });
       }
       return run(1);
+    }
+    var groupSaveOverlayTimer = null;
+    var groupSaveOverlayFill = 0;
+    var groupSaveUnloadBound = false;
+    function groupSaveBeforeUnload(e) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+    function bindGroupSaveUnload(on) {
+      if (on && !groupSaveUnloadBound) {
+        window.addEventListener('beforeunload', groupSaveBeforeUnload);
+        groupSaveUnloadBound = true;
+      } else if (!on && groupSaveUnloadBound) {
+        window.removeEventListener('beforeunload', groupSaveBeforeUnload);
+        groupSaveUnloadBound = false;
+      }
+    }
+    function setGroupSaveProgress(pct, sub, title) {
+      var bar = $('mem-group-save-progress');
+      var liquid = $('mem-group-save-liquid');
+      var subEl = $('mem-group-save-sub');
+      var titleEl = $('mem-group-save-title');
+      pct = Math.max(0, Math.min(100, pct));
+      groupSaveOverlayFill = pct;
+      if (bar) bar.style.width = pct + '%';
+      if (liquid) liquid.style.height = pct + '%';
+      if (sub && subEl) subEl.textContent = sub;
+      if (title && titleEl) titleEl.textContent = title;
+    }
+    function showGroupSaveOverlay() {
+      var el = $('mem-group-save-overlay');
+      var retry = $('mem-group-save-retry');
+      if (!el) return;
+      el.classList.remove('mem-hidden', 'mem-group-save-error', 'mem-group-save-done');
+      el.setAttribute('aria-busy', 'true');
+      if (retry) retry.classList.add('mem-hidden');
+      document.body.classList.add('mem-group-save-lock');
+      bindGroupSaveUnload(true);
+      setGroupSaveProgress(10, 'Đang kết nối đơn nhóm…', 'Đang thêm món vào đơn nhóm');
+      clearInterval(groupSaveOverlayTimer);
+      groupSaveOverlayTimer = setInterval(function () {
+        if (groupSaveOverlayFill < 88) setGroupSaveProgress(groupSaveOverlayFill + 1.2);
+      }, 140);
+    }
+    function finishGroupSaveOverlay(success) {
+      clearInterval(groupSaveOverlayTimer);
+      groupSaveOverlayTimer = null;
+      bindGroupSaveUnload(false);
+      var el = $('mem-group-save-overlay');
+      if (!el) return Promise.resolve();
+      if (success) {
+        setGroupSaveProgress(100, 'Đã lưu xong — chuyển sang tab Đơn nhóm…', 'Hoàn tất!');
+        el.classList.add('mem-group-save-done');
+        el.setAttribute('aria-busy', 'false');
+        return new Promise(function (r) {
+          setTimeout(function () {
+            el.classList.add('mem-hidden');
+            el.classList.remove('mem-group-save-done');
+            document.body.classList.remove('mem-group-save-lock');
+            r();
+          }, 750);
+        });
+      }
+      el.classList.add('mem-hidden');
+      el.classList.remove('mem-group-save-error', 'mem-group-save-done');
+      document.body.classList.remove('mem-group-save-lock');
+      return Promise.resolve();
+    }
+    function showGroupSaveOverlayError(msg, retryFn) {
+      clearInterval(groupSaveOverlayTimer);
+      groupSaveOverlayTimer = null;
+      var el = $('mem-group-save-overlay');
+      var retry = $('mem-group-save-retry');
+      var hint = $('mem-group-save-hint');
+      if (!el) return;
+      el.classList.add('mem-group-save-error');
+      el.setAttribute('aria-busy', 'false');
+      setGroupSaveProgress(groupSaveOverlayFill, msg || 'Chưa lưu được — thử lại nhé', 'Chưa lưu xong');
+      if (hint) hint.textContent = 'Bạn có thể thử lại — đừng thoát cho đến khi lưu thành công.';
+      if (retry) {
+        retry.classList.remove('mem-hidden');
+        retry.onclick = function () {
+          retry.classList.add('mem-hidden');
+          el.classList.remove('mem-group-save-error');
+          if (retryFn) retryFn();
+        };
+      }
+    }
+    function commitGroupOrderWithOverlay(retries) {
+      showGroupSaveOverlay();
+      return groupSyncCommit({
+        retries: retries || 6,
+        onProgress: function (pct, msg) { setGroupSaveProgress(pct, msg); }
+      }).then(function () {
+        return finishGroupSaveOverlay(true);
+      }).catch(function (e) {
+        return new Promise(function (resolve, reject) {
+          showGroupSaveOverlayError(e.message || 'Chưa lưu được món vào nhóm', function () {
+            commitGroupOrderWithOverlay(retries).then(resolve).catch(reject);
+          });
+          reject(e);
+        });
+      });
     }
     function flushPendingGroupSync() {
       if (!inGroup()) return Promise.resolve();
@@ -1922,23 +2044,21 @@
       if (b) b.onclick = function () {
         if (inGroup() && !isHost()) {
           b.disabled = true;
-          var oldHtml = b.innerHTML;
-          b.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu…';
-          groupSyncCommit({ retries: 6 }).then(function () {
+          commitGroupOrderWithOverlay(6).then(function () {
             toast('✅ Đã lưu ' + cartQty() + ' món vào nhóm');
             if (global.SUN_MEM && global.SUN_MEM.goGroup) global.SUN_MEM.goGroup();
             else if (global.SUN_MEM && global.SUN_MEM.goCart) global.SUN_MEM.goCart();
-          }).catch(function (e) {
-            toast('❌ ' + (e.message || 'Chưa lưu được món - thử lại'));
-          }).finally(function () {
+          }).catch(function () { }).finally(function () {
             b.disabled = false;
-            b.innerHTML = oldHtml;
           });
           return;
         }
         if (inGroup() && isHost()) {
-          groupSyncCommit({ retries: 4 }).finally(function () {
+          b.disabled = true;
+          commitGroupOrderWithOverlay(4).then(function () {
             if (global.SUN_MEM && global.SUN_MEM.goGroup) global.SUN_MEM.goGroup();
+          }).catch(function () { }).finally(function () {
+            b.disabled = false;
           });
           return;
         }
