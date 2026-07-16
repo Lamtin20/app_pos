@@ -6316,6 +6316,7 @@
         if (s === 'order' && (state.phone || state.guest)) initMemPickup();
         if (s === 'cart' && window.MemOrder && MemOrder.renderCartPage) MemOrder.renderCartPage();
         if (s === 'group' && window.MemOrder && MemOrder.renderGroupPage) MemOrder.renderGroupPage();
+        if (window.MemOrder && MemOrder.onPortalTabChange) MemOrder.onPortalTabChange(s);
         if (s === 'packages') renderPackagesPage();
       }
       function applySupportLinks() {

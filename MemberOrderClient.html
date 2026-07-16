@@ -26,7 +26,11 @@
     // ----- Đơn nhóm (kiểu GrabFood) -----
     var group = null;              // trạng thái nhóm từ server {groupId, hostPhone, status, members, total, ...}
     var groupPollTimer = null;
-    var groupSyncTimer = null;
+    var autoSaveGroupTimer = null;
+    var autoSaveGroupInFlight = null;
+    var groupPendingRetryTimer = null;
+    var groupPollFast = false;
+    var lastSyncedCartRev = 0;
     var groupSyncBusy = false;
     var groupSyncPending = 0;
     var localCartRev = 0;
@@ -133,6 +137,32 @@
     }
     function countItemQty(items) {
       return (items || []).reduce(function (s, it) { return s + (parseInt(it.quantity, 10) || 1); }, 0);
+    }
+    function hasUnsavedGroupCart() {
+      if (groupSyncBusy || autoSaveGroupInFlight) return true;
+      if (localCartRev > lastSyncedCartRev && cart.length) return true;
+      try {
+        var key = pendingSyncKey();
+        if (key && lsGet(key)) return true;
+      } catch (e) { }
+      return false;
+    }
+    function isGroupRealtimeView() {
+      var b = document.body;
+      return b.classList.contains('mem-view-group') ||
+        b.classList.contains('mem-view-cart') ||
+        b.classList.contains('mem-view-order');
+    }
+    function groupPollIntervalMs() {
+      return (groupPollFast || isGroupRealtimeView()) ? 700 : 1200;
+    }
+    function groupMembersFingerprint(st) {
+      if (!st || !st.members) return '';
+      try {
+        return st.members.map(function (m) {
+          return normMemberId(m.id || m.phone) + ':' + countItemQty(m.items) + ':' + String(m.updatedAt || '');
+        }).join('|');
+      } catch (e) { return ''; }
     }
     function myItemsForDisplay() {
       if (!inGroup()) return cart;
@@ -666,16 +696,9 @@
       saveLocalGroupCart();
       var groupFlow = inGroup() || savedGroupId() || pendingGroup();
       if (groupFlow) {
-        ensureGroupMembership().then(function () {
-          return groupSyncCommit({ retries: 5 });
-        }).then(function () {
-          renderCartGroupInfo();
-          showGroupAddedPopup(addedItem);
-        }).catch(function (e) {
-          savePendingGroupSync();
-          toast('⚠️ ' + (e.message || 'Chưa lưu được vào nhóm - hệ thống sẽ thử lại'));
-          scheduleGroupSync();
-        });
+        renderCartGroupInfo();
+        showGroupAddedPopup(addedItem);
+        scheduleAutoSaveGroupCart(true);
       } else {
         toast('✅ Đã thêm ' + currentProduct.name);
       }
@@ -908,25 +931,31 @@
         myMemberPromo = String(mine.promoCode || '').trim().toUpperCase();
         myMemberDiscount = Math.max(0, parseFloat(mine.discount) || 0);
       }
-      if (opts.adoptMyItems) {
-        if (mine && (mine.items || []).length && !cart.length) {
+      var skipCartMerge = opts.fromSync || (opts.fromPoll && hasUnsavedGroupCart());
+      if (!skipCartMerge) {
+        if (opts.adoptMyItems) {
+          if (mine && (mine.items || []).length && !cart.length) {
+            cart = mapServerItemsToCart(mine.items);
+            bumpCartRev();
+            lastSyncedCartRev = localCartRev;
+          } else if (!cart.length) {
+            loadLocalGroupCart();
+          }
+        } else if (mine && (mine.items || []).length && !groupSyncBusy && !autoSaveGroupInFlight) {
+          var serverQty = countItemQty(mine.items);
+          var localQty = cartQty();
+          if (serverQty > localQty) {
+            cart = mapServerItemsToCart(mine.items);
+            bumpCartRev();
+            lastSyncedCartRev = localCartRev;
+          }
+        } else if (!cart.length && mine && (mine.items || []).length) {
           cart = mapServerItemsToCart(mine.items);
           bumpCartRev();
-        } else if (!cart.length) {
-          loadLocalGroupCart();
+          lastSyncedCartRev = localCartRev;
         }
-      } else if (mine && (mine.items || []).length && !groupSyncBusy) {
-        var serverQty = countItemQty(mine.items);
-        var localQty = cartQty();
-        if (serverQty > localQty) {
-          cart = mapServerItemsToCart(mine.items);
-          bumpCartRev();
-        }
-      } else if (!cart.length && mine && (mine.items || []).length) {
-        cart = mapServerItemsToCart(mine.items);
-        bumpCartRev();
+        saveLocalGroupCart();
       }
-      saveLocalGroupCart();
       startGroupPolling();
       renderGroupCard();
       renderCartList();
@@ -942,6 +971,7 @@
       group = null;
       saveGroupSession('');
       stopGroupPolling();
+      stopGroupPendingRetry();
       applyGroupModeUi();
     }
     // ===== Chờ nhận nước: sau khi trưởng nhóm gửi đơn, thành viên xem món của mình + trạng thái bếp =====
@@ -1201,10 +1231,34 @@
       }).catch(function (e) { toast(e.message || 'Lỗi'); });
     }
     function scheduleGroupSync() {
-      if (!inGroup()) return;
-      groupSyncPending++;
-      clearTimeout(groupSyncTimer);
-      groupSyncTimer = setTimeout(function () { groupSyncNow(); }, 250);
+      scheduleAutoSaveGroupCart(false);
+    }
+    function scheduleAutoSaveGroupCart(immediate) {
+      var code = activeGroupCode();
+      if (!code || !cart.length) return;
+      clearTimeout(autoSaveGroupTimer);
+      autoSaveGroupTimer = setTimeout(function () { autoSaveGroupCart(); }, immediate ? 60 : 180);
+    }
+    function autoSaveGroupCart() {
+      if (!cart.length) return Promise.resolve(null);
+      if (autoSaveGroupInFlight) return autoSaveGroupInFlight;
+      autoSaveGroupInFlight = ensureGroupMembership().then(function () {
+        if (!inGroup()) return null;
+        return groupSyncCommit({ retries: 5, silent: true });
+      }).then(function (st) {
+        if (st) lastSyncedCartRev = localCartRev;
+        clearPendingGroupSync();
+        renderCartGroupInfo();
+        renderGroupOrdersPanel();
+        return st;
+      }).catch(function () {
+        savePendingGroupSync();
+        return null;
+      }).finally(function () {
+        autoSaveGroupInFlight = null;
+        if (hasUnsavedGroupCart()) scheduleAutoSaveGroupCart(false);
+      });
+      return autoSaveGroupInFlight;
     }
     function groupSyncNow(opts) {
       opts = opts || {};
@@ -1232,6 +1286,7 @@
       var syncRev = localCartRev;
       return api('syncGroupCart', group.groupId, normPh(phone()) || memberId(), myName(), payload, myMemberPromo, myMemberDiscount, forceEmpty).then(function (st) {
         applyGroupState(st, { fromSync: true });
+        lastSyncedCartRev = localCartRev;
         saveLocalGroupCart();
         clearPendingGroupSync();
         renderGroupOrdersPanel();
@@ -1277,10 +1332,15 @@
             }
             reportProgress(n, 'verify');
             if (verifySyncSaved(st, wantQty)) {
+              lastSyncedCartRev = localCartRev;
               if (opts.onProgress) opts.onProgress(100, 'Đã lưu ' + wantQty + ' món vào nhóm!', 'done');
               return st;
             }
-            if (n >= maxTry) throw new Error('Chưa lưu đủ ' + wantQty + ' món vào nhóm');
+            if (n >= maxTry) {
+              var err = new Error('Chưa lưu đủ ' + wantQty + ' món vào nhóm');
+              if (opts.silent) err._silent = true;
+              throw err;
+            }
             return new Promise(function (r) { setTimeout(r, 350 * n); }).then(function () { return run(n + 1); });
           });
         });
@@ -1392,36 +1452,77 @@
       });
     }
     function flushPendingGroupSync() {
-      if (!inGroup()) return Promise.resolve();
-      mergePendingLocalCart();
       if (!cart.length) return Promise.resolve();
-      return groupSyncCommit({ retries: 5 }).then(function () {
-        clearPendingGroupSync();
+      var prep = inGroup() ? Promise.resolve() : ensureGroupMembership();
+      return prep.then(function () {
+        if (!inGroup()) return;
+        mergePendingLocalCart();
+        if (!cart.length) return;
+        return groupSyncCommit({ retries: 5, silent: true }).then(function () {
+          lastSyncedCartRev = localCartRev;
+          clearPendingGroupSync();
+        }).catch(function () {
+          savePendingGroupSync();
+          scheduleAutoSaveGroupCart(false);
+        });
       }).catch(function () {
-        savePendingGroupSync();
-        scheduleGroupSync();
+        scheduleAutoSaveGroupCart(false);
       });
     }
     function pollGroupState() {
       if (!inGroup()) return;
       var gid = group.groupId;
+      var prevFp = groupMembersFingerprint(group);
       var done = function (st) {
-        if (st && st.groupId === gid && inGroup() && group.groupId === gid) {
-          applyGroupState(st);
+        if (!st || st.groupId !== gid || !inGroup() || group.groupId !== gid) return;
+        var fp = groupMembersFingerprint(st);
+        applyGroupState(st, { fromPoll: true, silent: true });
+        if (fp !== prevFp) {
           renderGroupOrdersPanel();
+          renderGroupCard();
+          syncCartTotals();
         }
       };
-      fetch('/api/group-order?group=' + encodeURIComponent(gid), { cache: 'no-store', credentials: 'same-origin' })
-        .then(function (r) { return r.json(); }).then(done)
+      fetch('/api/group-order?group=' + encodeURIComponent(gid) + '&_=' + Date.now(), {
+        cache: 'no-store', credentials: 'same-origin'
+      }).then(function (r) { return r.json(); }).then(done)
         .catch(function () { api('getGroupOrder', gid).then(done).catch(function () { }); });
     }
+    function restartGroupPolling() {
+      stopGroupPolling();
+      startGroupPolling();
+    }
     function startGroupPolling() {
-      if (groupPollTimer) return;
+      if (!inGroup()) return;
+      stopGroupPolling();
       pollGroupState();
-      groupPollTimer = setInterval(pollGroupState, 3000);
+      groupPollTimer = setInterval(pollGroupState, groupPollIntervalMs());
+      startGroupPendingRetry();
     }
     function stopGroupPolling() {
       if (groupPollTimer) { clearInterval(groupPollTimer); groupPollTimer = null; }
+    }
+    function startGroupPendingRetry() {
+      if (groupPendingRetryTimer) return;
+      groupPendingRetryTimer = setInterval(function () {
+        if (!inGroup() && !activeGroupCode()) return;
+        if (hasUnsavedGroupCart()) {
+          flushPendingGroupSync();
+          scheduleAutoSaveGroupCart(false);
+        } else {
+          pollGroupState();
+        }
+      }, 10000);
+    }
+    function stopGroupPendingRetry() {
+      if (groupPendingRetryTimer) { clearInterval(groupPendingRetryTimer); groupPendingRetryTimer = null; }
+    }
+    function onPortalTabChange(sec) {
+      groupPollFast = sec === 'group' || sec === 'order' || sec === 'cart';
+      if (inGroup() && groupPollTimer) restartGroupPolling();
+      else if (inGroup()) startGroupPolling();
+      if (inGroup() && hasUnsavedGroupCart()) scheduleAutoSaveGroupCart(true);
+      if (sec === 'group' && inGroup()) pollGroupState();
     }
     function restoreGroupSession() {
       var gid = savedGroupId();
@@ -1492,15 +1593,18 @@
       }
       var gName = String((group && group.groupName) || 'đơn nhóm').trim() || 'đơn nhóm';
       var n = cartQty();
+      var syncTag = hasUnsavedGroupCart()
+        ? '<span style="color:var(--primary);font-weight:800;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu vào nhóm…</span>'
+        : '<span style="color:var(--green);font-weight:800;"><i class="fa-solid fa-circle-check"></i> Đã đồng bộ nhóm</span>';
       box.classList.remove('mem-hidden');
       box.innerHTML =
         '<div class="mem-cart-group-sync-inner">' +
         '<i class="fa-solid fa-circle-info"></i>' +
         '<div class="mem-cart-group-sync-text">' +
         '<strong>Đơn nhóm đang mở</strong>' +
-        '<p>Đơn hàng của bạn đã được tự động cập nhật vào đơn của nhóm: <strong>' + esc(gName) + '</strong>' +
-        (n ? (' (' + n + ' món trong giỏ).') : '.') +
-        ' Bạn có thể kiểm tra nhanh tại tab Đơn nhóm.</p>' +
+        '<p>Món của bạn được <strong>tự động lưu</strong> vào nhóm <strong>' + esc(gName) + '</strong>' +
+        (n ? (' (' + n + ' món).') : '.') + ' ' + syncTag +
+        ' Xem tổng hợp tại tab Đơn nhóm.</p>' +
         '</div>' +
         '<button type="button" class="btn btn-sm" id="mem-cart-group-go-btn"><i class="fa-solid fa-user-group"></i> Đơn nhóm</button>' +
         '</div>';
@@ -1762,8 +1866,7 @@
           renderCartList();
           saveLocalGroupCart();
           syncNavBadge();
-          scheduleGroupSync();
-          groupSyncNow();
+          scheduleAutoSaveGroupCart(true);
         };
       });
     }
@@ -1837,7 +1940,12 @@
       renderGroupCard();
       renderGroupOrdersPanel();
       applyGroupModeUi();
-      if (inGroup()) pollGroupState();
+      if (inGroup()) {
+        groupPollFast = true;
+        pollGroupState();
+        restartGroupPolling();
+        if (hasUnsavedGroupCart()) scheduleAutoSaveGroupCart(true);
+      }
     }
     function renderGroupCard() {
       var blk = ensureGroupBlock();
@@ -2387,8 +2495,7 @@
           renderCartList();
           saveLocalGroupCart();
           syncNavBadge();
-          scheduleGroupSync();
-          groupSyncNow();
+          scheduleAutoSaveGroupCart(true);
           refreshPromoOptions();
         };
       });
@@ -2706,9 +2813,27 @@
       var sub = $('mem-cart-submit');
       if (sub) sub.onclick = submitOrder;
       document.addEventListener('visibilitychange', function () {
-        if (!document.hidden && inGroup()) {
+        if (!document.hidden && (inGroup() || activeGroupCode())) {
           pollGroupState();
-          groupSyncNow();
+          flushPendingGroupSync();
+          scheduleAutoSaveGroupCart(true);
+        }
+      });
+      window.addEventListener('focus', function () {
+        if (inGroup() || activeGroupCode()) pollGroupState();
+      });
+      window.addEventListener('online', function () {
+        if (inGroup() || activeGroupCode()) {
+          pollGroupState();
+          flushPendingGroupSync();
+          scheduleAutoSaveGroupCart(true);
+        }
+      });
+      window.addEventListener('pageshow', function () {
+        if (inGroup() || activeGroupCode()) {
+          pollGroupState();
+          flushPendingGroupSync();
+          scheduleAutoSaveGroupCart(true);
         }
       });
     }
@@ -2745,6 +2870,9 @@
       pendingGroup: pendingGroup,
       consumePendingGroupJoin: consumePendingGroupJoin,
       restoreGroupSession: restoreGroupSession,
+      onPortalTabChange: onPortalTabChange,
+      pollGroupState: pollGroupState,
+      autoSaveGroupCart: autoSaveGroupCart,
       setPendingGroupCode: function (code) {
         pendingGroupCode = String(code || '').trim().toUpperCase();
         lsSet('sun_group_pending', pendingGroupCode);

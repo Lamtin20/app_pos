@@ -6,5 +6,8 @@ export async function GET(request) {
   const group = searchParams.get('group');
   if (!group) return jsonError('Missing group');
   const data = await getGroupOrder(group);
-  return jsonOk(data);
+  return jsonOk(data, 200, {
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    Pragma: 'no-cache',
+  });
 }
