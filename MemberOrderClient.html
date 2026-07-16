@@ -664,11 +664,18 @@
       syncNavBadge(currentProduct.imageUrl);
       renderCartList();
       saveLocalGroupCart();
-      if (inGroup()) {
-        scheduleGroupSync();
-        groupSyncNow();
-        renderCartGroupInfo();
-        showGroupAddedPopup(addedItem);
+      var groupFlow = inGroup() || savedGroupId() || pendingGroup();
+      if (groupFlow) {
+        ensureGroupMembership().then(function () {
+          return groupSyncCommit({ retries: 5 });
+        }).then(function () {
+          renderCartGroupInfo();
+          showGroupAddedPopup(addedItem);
+        }).catch(function (e) {
+          savePendingGroupSync();
+          toast('⚠️ ' + (e.message || 'Chưa lưu được vào nhóm - hệ thống sẽ thử lại'));
+          scheduleGroupSync();
+        });
       } else {
         toast('✅ Đã thêm ' + currentProduct.name);
       }
@@ -766,16 +773,27 @@
         };
       });
     }
+    function groupCartStorageId() {
+      return (group && group.groupId) || savedGroupId() || pendingGroup() || '';
+    }
+    function localGroupCartKey() {
+      var gid = groupCartStorageId();
+      var mid = normMemberId(memberId());
+      if (!gid || !mid) return '';
+      return 'sun_grp_cart_' + gid + '_' + mid;
+    }
     function saveLocalGroupCart() {
-      if (!inGroup()) return;
+      var key = localGroupCartKey();
+      if (!key) return;
       try {
-        lsSet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()), JSON.stringify(cart || []));
+        lsSet(key, JSON.stringify(cart || []));
       } catch (e) { }
     }
     function loadLocalGroupCart() {
-      if (!inGroup()) return false;
+      var key = localGroupCartKey();
+      if (!key) return false;
       try {
-        var raw = lsGet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()));
+        var raw = lsGet(key);
         if (!raw) return false;
         var arr = JSON.parse(raw);
         if (!Array.isArray(arr) || !arr.length) return false;
@@ -785,8 +803,60 @@
       } catch (e) { return false; }
     }
     function clearLocalGroupCart() {
-      if (!inGroup()) return;
-      try { lsSet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()), ''); } catch (e) { }
+      var key = localGroupCartKey();
+      if (!key) return;
+      try { lsSet(key, ''); } catch (e) { }
+    }
+    function pendingSyncKey() {
+      var gid = groupCartStorageId();
+      var mid = normMemberId(memberId());
+      if (!gid || !mid) return '';
+      return 'sun_grp_sync_pending_' + gid + '_' + mid;
+    }
+    function savePendingGroupSync() {
+      var key = pendingSyncKey();
+      if (!key || !cart.length) return;
+      try {
+        lsSet(key, JSON.stringify({ cart: cart, ts: Date.now() }));
+      } catch (e) { }
+    }
+    function clearPendingGroupSync() {
+      var key = pendingSyncKey();
+      if (!key) return;
+      try { lsSet(key, ''); } catch (e) { }
+    }
+    function mergePendingLocalCart() {
+      var key = pendingSyncKey();
+      if (!key) return;
+      try {
+        var raw = lsGet(key);
+        if (!raw) return;
+        var data = JSON.parse(raw);
+        if (!data || !Array.isArray(data.cart) || !data.cart.length) return;
+        if (countItemQty(data.cart) > cartQty()) {
+          cart = data.cart;
+          bumpCartRev();
+        }
+      } catch (e) { }
+    }
+    function activeGroupCode() {
+      return (group && group.groupId) || savedGroupId() || pendingGroup() || '';
+    }
+    function ensureGroupMembership() {
+      if (!phone()) return Promise.reject(new Error('Đăng nhập SĐT trước'));
+      var code = activeGroupCode();
+      if (!code) return Promise.resolve(false);
+      if (inGroup() && findMember(group.members, memberId())) return Promise.resolve(true);
+      return joinGroup(code, myName()).then(function (r) {
+        if (r !== true) throw new Error('Không vào được nhóm - thử lại');
+        return true;
+      });
+    }
+    function verifySyncSaved(st, expectedQty) {
+      var members = (st && st.members) || (group && group.members) || [];
+      var mine = findMember(members, memberId());
+      if (!mine) return expectedQty <= 0;
+      return countItemQty(mine.items) >= expectedQty;
     }
     function saveGroupSession(gid) {
       lsSet('sun_group_id', gid || '');
@@ -867,6 +937,7 @@
     function exitGroupLocal() {
       if (group && group.groupId) {
         try { lsSet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()), ''); } catch (e) { }
+        try { lsSet('sun_grp_sync_pending_' + group.groupId + '_' + normMemberId(memberId()), ''); } catch (e) { }
       }
       group = null;
       saveGroupSession('');
@@ -1076,7 +1147,7 @@
         lsSet('sun_group_pending', c);
         return Promise.resolve('need-login');
       }
-      var mid = phone();
+      var mid = normPh(phone());
       var nm = String(guestNameIn || '').trim() || myName();
       if (!nm) {
         pendingGroupCode = c;
@@ -1093,12 +1164,16 @@
           toast('🧺 Giỏ được làm mới - món cho đơn nhóm tính từ lúc này nhé');
         }
         applyGroupState(st, { adoptMyItems: true });
-        if (cart.length) {
-          scheduleGroupSync();
-          groupSyncNow();
-        }
-        toast('✅ Đã vào «' + (st.groupName || ('nhóm của ' + (st.hostName || 'bạn bè'))) + '»');
-        return true;
+        mergePendingLocalCart();
+        var afterJoin = function () {
+          return flushPendingGroupSync().then(function () {
+            if (cart.length) return groupSyncCommit({ retries: 4 });
+          });
+        };
+        return afterJoin().then(function () {
+          toast('✅ Đã vào «' + (st.groupName || ('nhóm của ' + (st.hostName || 'bạn bè'))) + '»');
+          return true;
+        });
       }).catch(function (e) {
         toast(e.message || 'Không vào được nhóm');
         return false;
@@ -1131,42 +1206,78 @@
       clearTimeout(groupSyncTimer);
       groupSyncTimer = setTimeout(function () { groupSyncNow(); }, 250);
     }
-    function groupSyncNow() {
-      if (!inGroup() || !memberId()) return Promise.resolve();
+    function groupSyncNow(opts) {
+      opts = opts || {};
+      if (!inGroup() || !memberId()) return Promise.resolve(null);
       if (groupSyncBusy) {
         groupSyncPending++;
-        return Promise.resolve();
+        return Promise.resolve(null);
       }
       var payload = myItemsForApi();
       var mine = getMyMemberFromGroup();
-      var forceEmpty = allowEmptyGroupSync;
-      allowEmptyGroupSync = false;
-      if (!payload.length && mine && countItemQty(mine.items) > 0 && !forceEmpty) {
+      var forceEmpty = opts.forceEmpty === true || allowEmptyGroupSync;
+      if (!opts.force && !payload.length && mine && countItemQty(mine.items) > 0 && !forceEmpty) {
         cart = mapServerItemsToCart(mine.items);
         bumpCartRev();
         saveLocalGroupCart();
         renderCartList();
         renderGroupOrdersPanel();
-        return Promise.resolve();
+        return Promise.resolve(group);
       }
       if (!payload.length && !forceEmpty) {
-        return Promise.resolve();
+        return Promise.resolve(null);
       }
+      allowEmptyGroupSync = false;
       groupSyncBusy = true;
       var syncRev = localCartRev;
-      return api('syncGroupCart', group.groupId, memberId(), myName(), payload, myMemberPromo, myMemberDiscount, forceEmpty).then(function (st) {
+      return api('syncGroupCart', group.groupId, normPh(phone()) || memberId(), myName(), payload, myMemberPromo, myMemberDiscount, forceEmpty).then(function (st) {
         applyGroupState(st, { fromSync: true });
         saveLocalGroupCart();
+        clearPendingGroupSync();
         renderGroupOrdersPanel();
+        return st;
       }).catch(function (e) {
+        savePendingGroupSync();
         var msg = String((e && e.message) || '');
-        if (msg.indexOf('khóa') >= 0 || msg.indexOf('chưa ở trong nhóm') >= 0) toast(msg);
+        if (msg.indexOf('chưa ở trong nhóm') >= 0) {
+          return ensureGroupMembership().then(function () { return groupSyncNow({ force: true, forceEmpty: forceEmpty }); });
+        }
+        if (msg.indexOf('khóa') >= 0 || msg.indexOf('SĐT') >= 0) toast(msg);
+        throw e;
       }).finally(function () {
         groupSyncBusy = false;
         if (groupSyncPending > 0 || localCartRev !== syncRev) {
           groupSyncPending = 0;
-          setTimeout(function () { groupSyncNow(); }, 80);
+          setTimeout(function () { groupSyncNow(opts); }, 80);
         }
+      });
+    }
+    function groupSyncCommit(opts) {
+      opts = opts || {};
+      var wantQty = cartQty();
+      var maxTry = opts.retries || 5;
+      function run(n) {
+        return ensureGroupMembership().then(function () {
+          if (!inGroup()) throw new Error('Chưa vào được nhóm');
+          return groupSyncNow({ force: true, forceEmpty: wantQty <= 0 && allowEmptyGroupSync }).then(function (st) {
+            if (wantQty <= 0) return st;
+            if (verifySyncSaved(st, wantQty)) return st;
+            if (n >= maxTry) throw new Error('Chưa lưu đủ ' + wantQty + ' món vào nhóm');
+            return new Promise(function (r) { setTimeout(r, 350 * n); }).then(function () { return run(n + 1); });
+          });
+        });
+      }
+      return run(1);
+    }
+    function flushPendingGroupSync() {
+      if (!inGroup()) return Promise.resolve();
+      mergePendingLocalCart();
+      if (!cart.length) return Promise.resolve();
+      return groupSyncCommit({ retries: 5 }).then(function () {
+        clearPendingGroupSync();
+      }).catch(function () {
+        savePendingGroupSync();
+        scheduleGroupSync();
       });
     }
     function pollGroupState() {
@@ -1196,6 +1307,12 @@
       return api('getGroupOrder', gid).then(function (st) {
         if (!st || st.ok === false) { saveGroupSession(''); return false; }
         var iAmIn = !!findMember(st.members, memberId());
+        if (!iAmIn && phone()) {
+          return joinGroup(gid, myName()).then(function (ok) {
+            if (ok !== true) { saveGroupSession(''); return false; }
+            return flushPendingGroupSync().then(function () { return true; });
+          });
+        }
         if (!iAmIn) { saveGroupSession(''); return false; }
         var ended = st.status === 'ordered' || st.status === 'cancelled' || st.status === 'expired';
         if (ended) {
@@ -1209,7 +1326,7 @@
           return false;
         }
         applyGroupState(st, { adoptMyItems: true, silent: true });
-        return true;
+        return flushPendingGroupSync().then(function () { return true; });
       }).catch(function () { return false; });
     }
     function pendingGroup() {
@@ -1804,7 +1921,26 @@
       var b = $('mem-order-cta-btn');
       if (b) b.onclick = function () {
         if (inGroup() && !isHost()) {
-          groupSyncNow().then(function () { toast('✅ Đã lưu ' + cartQty() + ' món của bạn vào nhóm'); });
+          b.disabled = true;
+          var oldHtml = b.innerHTML;
+          b.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu…';
+          groupSyncCommit({ retries: 6 }).then(function () {
+            toast('✅ Đã lưu ' + cartQty() + ' món vào nhóm');
+            if (global.SUN_MEM && global.SUN_MEM.goGroup) global.SUN_MEM.goGroup();
+            else if (global.SUN_MEM && global.SUN_MEM.goCart) global.SUN_MEM.goCart();
+          }).catch(function (e) {
+            toast('❌ ' + (e.message || 'Chưa lưu được món - thử lại'));
+          }).finally(function () {
+            b.disabled = false;
+            b.innerHTML = oldHtml;
+          });
+          return;
+        }
+        if (inGroup() && isHost()) {
+          groupSyncCommit({ retries: 4 }).finally(function () {
+            if (global.SUN_MEM && global.SUN_MEM.goGroup) global.SUN_MEM.goGroup();
+          });
+          return;
         }
         if (global.SUN_MEM && global.SUN_MEM.goCart) global.SUN_MEM.goCart();
       };

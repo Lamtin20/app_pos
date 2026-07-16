@@ -10383,7 +10383,7 @@
         loadMemberOrderInsights();
         showToast('👋 Xin chào! Đang tải thông tin hội viên…');
         state.gateLookupInFlight = false;
-        tryPendingGroupJoin();
+        await tryPendingGroupJoin();
         clearGroupInviteUi();
         // Tải nền song song: hồ sơ khách + trạng thái gói/ưu đãi
         try {
@@ -10722,15 +10722,17 @@
       }
       /** Sau khi đăng nhập: nếu có mã nhóm chờ thì tự vào nhóm rồi mở trang đặt món. */
       function tryPendingGroupJoin() {
-        if (!window.MemOrder || !MemOrder.consumePendingGroupJoin) return;
-        MemOrder.consumePendingGroupJoin().then(function (r) {
-          if (r === 'need-login') return;
+        if (!window.MemOrder || !MemOrder.consumePendingGroupJoin) return Promise.resolve(false);
+        return MemOrder.consumePendingGroupJoin().then(function (r) {
+          if (r === 'need-login') return false;
           if (r === true && MemOrder.inGroup && MemOrder.inGroup()) {
             clearGroupInviteUi();
             goOrder();
             showToast('✅ Đã vào đơn nhóm — chọn món bạn thích nhé!');
+            return true;
           }
-        }).catch(function () { });
+          return false;
+        }).catch(function () { return false; });
       }
       // ---------- Khách mời đơn nhóm (không cần đăng nhập, chỉ nhập tên) ----------
       var pendingGuestGroupCode = '';
@@ -10907,7 +10909,7 @@
           }
         }
         if (isPhone10(saved)) {
-          tryPendingGroupJoin();
+          await tryPendingGroupJoin();
           // Không await - hồ sơ/ưu đãi cập nhật nền khi sẵn sàng
           portalPromise.then(function (r) {
             if (r && r.ok !== false) {
