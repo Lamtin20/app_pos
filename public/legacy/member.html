@@ -6229,6 +6229,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     var groupSyncBusy = false;
     var groupSyncPending = 0;
     var localCartRev = 0;
+    var allowEmptyGroupSync = false;
     var pendingGroupCode = '';
     // Màn hình chờ nhận nước (thành viên nhóm, sau khi trưởng nhóm gửi đơn)
     var awaitInfo = null;          // {orderId, groupId, groupName, name, items, stage, ts}
@@ -6316,8 +6317,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     function bumpCartRev() { localCartRev++; }
     function getMyMemberFromGroup() {
       if (!inGroup() || !group) return null;
-      var mid = memberId();
-      return (group.members || []).find(function (m) { return (m.id || m.phone) === mid; }) || null;
+      return findMember(group.members, memberId());
     }
     function mapServerItemsToCart(items) {
       return (items || []).map(function (it) {
@@ -6862,6 +6862,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       if (awaitInfo) clearAwait();
       syncNavBadge(currentProduct.imageUrl);
       renderCartList();
+      saveLocalGroupCart();
       if (inGroup()) {
         scheduleGroupSync();
         groupSyncNow();
@@ -6884,6 +6885,21 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       if (d.indexOf('84') === 0 && d.length >= 10) d = '0' + d.slice(2);
       if (d.length === 9 && d.charAt(0) !== '0') d = '0' + d;
       return d;
+    }
+    /** Khớp định danh thành viên với server (groupNormMemberId). */
+    function normMemberId(id) {
+      var s = String(id || '').trim();
+      if (!s) return '';
+      if (/^g_/i.test(s)) return s.replace(/[^A-Za-z0-9_\-]/g, '').slice(0, 48);
+      return normPh(s);
+    }
+    function memberIdsMatch(memberOrId, id) {
+      var want = normMemberId(typeof memberOrId === 'object' ? (memberOrId.id || memberOrId.phone) : memberOrId);
+      var got = normMemberId(id);
+      return !!want && !!got && want === got;
+    }
+    function findMember(members, id) {
+      return (members || []).find(function (m) { return memberIdsMatch(m, id); }) || null;
     }
     function isHost() { return inGroup() && phone() && normPh(group.hostPhone) === normPh(phone()); }
     function groupLocked() { return inGroup() && group.status === 'locked'; }
@@ -6917,8 +6933,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     }
     function groupOthers() {
       if (!inGroup()) return [];
-      var mid = memberId();
-      return (group.members || []).filter(function (m) { return (m.id || m.phone) !== mid; });
+      return (group.members || []).filter(function (m) { return !memberIdsMatch(m, memberId()); });
     }
     /** Tổng số món cả nhóm (gồm giỏ local của mình phòng khi chưa kịp sync). */
     function groupTotalQty() {
@@ -6949,6 +6964,28 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           note: it.note || '', options: it.options || {}
         };
       });
+    }
+    function saveLocalGroupCart() {
+      if (!inGroup()) return;
+      try {
+        lsSet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()), JSON.stringify(cart || []));
+      } catch (e) { }
+    }
+    function loadLocalGroupCart() {
+      if (!inGroup()) return false;
+      try {
+        var raw = lsGet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()));
+        if (!raw) return false;
+        var arr = JSON.parse(raw);
+        if (!Array.isArray(arr) || !arr.length) return false;
+        cart = arr;
+        bumpCartRev();
+        return true;
+      } catch (e) { return false; }
+    }
+    function clearLocalGroupCart() {
+      if (!inGroup()) return;
+      try { lsSet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()), ''); } catch (e) { }
     }
     function saveGroupSession(gid) {
       lsSet('sun_group_id', gid || '');
@@ -6995,8 +7032,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       }
       group = st;
       saveGroupSession(st.groupId);
-      var mid = memberId();
-      var mine = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
+      var mine = findMember(st.members, memberId());
       if (mine) {
         myMemberPromo = String(mine.promoCode || '').trim().toUpperCase();
         myMemberDiscount = Math.max(0, parseFloat(mine.discount) || 0);
@@ -7005,6 +7041,8 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         if (mine && (mine.items || []).length && !cart.length) {
           cart = mapServerItemsToCart(mine.items);
           bumpCartRev();
+        } else if (!cart.length) {
+          loadLocalGroupCart();
         }
       } else if (mine && (mine.items || []).length && !groupSyncBusy) {
         var serverQty = countItemQty(mine.items);
@@ -7013,7 +7051,11 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
           cart = mapServerItemsToCart(mine.items);
           bumpCartRev();
         }
+      } else if (!cart.length && mine && (mine.items || []).length) {
+        cart = mapServerItemsToCart(mine.items);
+        bumpCartRev();
       }
+      saveLocalGroupCart();
       startGroupPolling();
       renderGroupCard();
       renderCartList();
@@ -7022,6 +7064,9 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       refreshPromoOptions();
     }
     function exitGroupLocal() {
+      if (group && group.groupId) {
+        try { lsSet('sun_grp_cart_' + group.groupId + '_' + normMemberId(memberId()), ''); } catch (e) { }
+      }
       group = null;
       saveGroupSession('');
       stopGroupPolling();
@@ -7037,7 +7082,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
     function hasAwait() { return !!awaitInfo; }
     function enterAwaitMode(st, opts) {
       var mid = memberId();
-      var me = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
+      var me = findMember(st.members, mid);
       awaitInfo = {
         orderId: st.orderId || '', groupId: st.groupId || '', groupName: st.groupName || '',
         name: myName(), items: (me && me.items) || [], stage: 'making', status: '', ts: Date.now()
@@ -7238,16 +7283,19 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         return Promise.resolve('need-name');
       }
       return api('joinGroupOrder', c, mid, nm, '').then(function (st) {
-        // Món của đơn nhóm chỉ tính từ lúc bấm link vào nhóm - giỏ chọn trước đó KHÔNG đưa vào nhóm
-        var meSt = (st.members || []).find(function (m) { return (m.id || m.phone) === mid; });
-        var freshJoin = !(meSt && (meSt.items || []).length);
-        if (freshJoin && cart.length) {
+        var meSt = findMember(st.members, memberId());
+        var isNewMember = !meSt;
+        if (isNewMember && cart.length) {
           cart = [];
+          bumpCartRev();
           syncNavBadge();
           toast('🧺 Giỏ được làm mới - món cho đơn nhóm tính từ lúc này nhé');
         }
         applyGroupState(st, { adoptMyItems: true });
-        scheduleGroupSync();
+        if (cart.length) {
+          scheduleGroupSync();
+          groupSyncNow();
+        }
         toast('✅ Đã vào «' + (st.groupName || ('nhóm của ' + (st.hostName || 'bạn bè'))) + '»');
         return true;
       }).catch(function (e) {
@@ -7288,10 +7336,26 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
         groupSyncPending++;
         return Promise.resolve();
       }
+      var payload = myItemsForApi();
+      var mine = getMyMemberFromGroup();
+      var forceEmpty = allowEmptyGroupSync;
+      allowEmptyGroupSync = false;
+      if (!payload.length && mine && countItemQty(mine.items) > 0 && !forceEmpty) {
+        cart = mapServerItemsToCart(mine.items);
+        bumpCartRev();
+        saveLocalGroupCart();
+        renderCartList();
+        renderGroupOrdersPanel();
+        return Promise.resolve();
+      }
+      if (!payload.length && !forceEmpty) {
+        return Promise.resolve();
+      }
       groupSyncBusy = true;
       var syncRev = localCartRev;
-      return api('syncGroupCart', group.groupId, memberId(), myName(), myItemsForApi(), myMemberPromo, myMemberDiscount).then(function (st) {
+      return api('syncGroupCart', group.groupId, memberId(), myName(), payload, myMemberPromo, myMemberDiscount, forceEmpty).then(function (st) {
         applyGroupState(st, { fromSync: true });
+        saveLocalGroupCart();
         renderGroupOrdersPanel();
       }).catch(function (e) {
         var msg = String((e && e.message) || '');
@@ -7330,8 +7394,7 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
       if (!gid || inGroup()) return Promise.resolve(false);
       return api('getGroupOrder', gid).then(function (st) {
         if (!st || st.ok === false) { saveGroupSession(''); return false; }
-        var mid = memberId();
-        var iAmIn = (st.members || []).some(function (m) { return (m.id || m.phone) === mid; });
+        var iAmIn = !!findMember(st.members, memberId());
         if (!iAmIn) { saveGroupSession(''); return false; }
         var ended = st.status === 'ordered' || st.status === 'cancelled' || st.status === 'expired';
         if (ended) {
@@ -7650,10 +7713,14 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             cart[idx].quantity--;
             if (cart[idx].quantity < 1) cart.splice(idx, 1);
           }
-          if (!cart.length) renderGroupOrdersPanel._editing = false;
+          if (!cart.length) {
+            renderGroupOrdersPanel._editing = false;
+            allowEmptyGroupSync = true;
+          }
           bumpCartRev();
           if (appliedPromo) applyPromo(appliedPromo, true);
           renderCartList();
+          saveLocalGroupCart();
           syncNavBadge();
           scheduleGroupSync();
           groupSyncNow();
@@ -8257,9 +8324,11 @@ fetch('/api/brand', { cache: 'no-store', credentials: 'same-origin' })
             cart[idx].quantity--;
             if (cart[idx].quantity < 1) cart.splice(idx, 1);
           }
+          if (!cart.length) allowEmptyGroupSync = true;
           bumpCartRev();
           if (appliedPromo) applyPromo(appliedPromo, true);
           renderCartList();
+          saveLocalGroupCart();
           syncNavBadge();
           scheduleGroupSync();
           groupSyncNow();
